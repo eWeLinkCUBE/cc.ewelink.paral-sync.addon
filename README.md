@@ -1,8 +1,8 @@
-# eWeLink Smart Home
+# eWeLink NsPanel Pro
 
-## What is eWeLink Smart Home
+## What is eWeLink NsPanel Pro
 
-eWeLink Smart Home can discover eWeLink WiFi devices in LAN. After login with eWeLink account, you can sync the device you chose to eWeLink CUBE. By eWeLink CUBE, you can control the device in LAN and link the zigbee device in eWeLink CUBE with the scene.
+eWeLink NsPanel Pro
 
 ## Quick start
 
