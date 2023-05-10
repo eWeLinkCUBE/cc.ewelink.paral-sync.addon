@@ -1,0 +1,6 @@
+# Docker files
+Dockerfile
+.dockerignore
+
+# npm
+package-lock.json

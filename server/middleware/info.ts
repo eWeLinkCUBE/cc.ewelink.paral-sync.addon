@@ -1,0 +1,23 @@
+import { NextFunction, Request, Response } from 'express';
+import logger from '../log';
+import _ from 'lodash';
+
+export default (req: Request, res: Response, next: NextFunction) => {
+    logger.info('==================request info begin===================');
+    const { params, body, method, url } = req;
+    logger.info(`incoming request info: ${method} ${url}`);
+
+    //不打印用户信息
+    if (method === 'POST' && url.includes('account')) {
+        return next();
+    }
+
+    if (!_.isEmpty(params)) {
+        logger.info(`incoming request params: ${JSON.stringify(params, null, 2)}`);
+    }
+    if (!_.isEmpty(body)) {
+        logger.info(`incoming request body: ${JSON.stringify(body, null, 2)}`);
+    }
+
+    next();
+};
