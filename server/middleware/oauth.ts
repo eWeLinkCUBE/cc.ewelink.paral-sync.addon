@@ -1,20 +1,9 @@
 import cryptoJS from 'crypto-js';
 import _ from 'lodash';
 import { NextFunction, Request, Response } from 'express';
-import EApiPath from '../ts/enum/EApiPath';
 import { toResponse } from '../utils/error';
 import logger from '../log';
-import db from '../utils/db';
 import config from '../config';
-
-function atExpired() {
-    const AT_LIFETIME = 86400000 * 30; // 30 day
-    const atUpdateTime = db.getDbValue('atUpdateTime');
-    if (atUpdateTime === 0) {
-        return false;
-    }
-    return Date.now() > db.getDbValue('atUpdateTime') + AT_LIFETIME;
-}
 
 function getSign(params: any, appSecret: string) {
     let sign = '';
@@ -93,9 +82,6 @@ export default async function oauth(req: Request, res: Response, next: NextFunct
         return res.json(toResponse(401, 'appid is invalid'));
     }
 
-    // 用户相关接口以及获取局域网设备信息接口不需要鉴权at
-    if (req.path.includes('/user') || req.path === '/api/v1' + EApiPath.SCAN_LAN_DEVICE) return next();
-
     // 检测at是否存在
     const headerAt = headers['authorization'];
     if (!headerAt) {
@@ -108,20 +94,6 @@ export default async function oauth(req: Request, res: Response, next: NextFunct
     if (atTitle !== 'Bearer' || !at) {
         logger.error('oauth error: authorization in headers is not in right format');
         return res.json(toResponse(401, "authorization in headers must begin with 'Bearer'"));
-    }
-
-    // 跟存储的at做比较
-    const eWeLinkApiInfo = db.getDbValue('eWeLinkApiInfo');
-    if (!eWeLinkApiInfo || at !== eWeLinkApiInfo.at) {
-        logger.info('no oauth----------------eWeLinkApiInfo,at', eWeLinkApiInfo, at);
-        logger.error('oauth error: access token is invalid');
-        return res.json(toResponse(401, 'access token is invalid'));
-    }
-
-    // 检测at是否过期
-    if (atExpired()) {
-        logger.error('oauth error: your access token is expired, please login again');
-        return res.json(toResponse(401, 'your access token is expired, please login again'));
     }
 
     return next();
