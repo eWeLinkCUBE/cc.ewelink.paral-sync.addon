@@ -15,8 +15,14 @@ export const devConf = {
         appId: '',
         appSecret: '',
     },
+    timeConfig: {
+        mDnsGapTime: 30, //s
+    },
     iHost: {
         api: 'http://192.168.31.116/open-api/v1/rest',
+    },
+    nsPro: {
+        api: 'http://nspanelpro.local/open-api/v1/rest',
     },
     log: {
         path: 'log/logFile/total_dev.log',

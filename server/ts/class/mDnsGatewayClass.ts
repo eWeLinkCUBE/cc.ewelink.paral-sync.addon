@@ -1,10 +1,7 @@
 //内存中保存局域网扫描到的网关设备信息
 interface IGatewayMap {
-    discoveryTime: number;
-    gatewayInfo: {
-        ip: string;
-        name: string; //'NSPanelPro.local'
-    };
+    ip: string;
+    name: string; //'NSPanelPro.local'
 }
 
 class MDnsGatewayMapClass {

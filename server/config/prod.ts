@@ -15,8 +15,14 @@ export const prodConf = {
         appId: '',
         appSecret: '',
     },
+    timeConfig: {
+        mDnsGapTime: 30, //s
+    },
     iHost: {
         api: 'http://ihost/open-api/v1/rest',
+    },
+    nsPro: {
+        api: 'http://nspanelpro.local/open-api/v1/rest',
     },
     log: {
         path: 'log/logFile/total_prod.log',

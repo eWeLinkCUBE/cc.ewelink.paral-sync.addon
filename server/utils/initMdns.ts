@@ -16,6 +16,7 @@ mDns.on('response', (response: any) => {
     const gatewayInfo = {
         ip: '',
         name: '',
+        discoveryTime: 0,
     };
 
     for (const item of responseDataList) {
@@ -25,15 +26,16 @@ mDns.on('response', (response: any) => {
         if (reg.test(`${item.name}`)) {
             gatewayInfo.ip = item.data;
             gatewayInfo.name = item.name;
+            gatewayInfo.discoveryTime = Date.now();
 
-            logger.info('responseDataList--------------------------------', responseDataList);
+            // logger.info('responseDataList--------------------------------', responseDataList);
         }
     }
 
     if (gatewayInfo.ip) {
         mDnsGateway.gatewayMap.set(gatewayInfo.ip, {
-            discoveryTime: Date.now(),
-            gatewayInfo,
+            ip: gatewayInfo.ip,
+            name: gatewayInfo.name,
         });
     }
 });

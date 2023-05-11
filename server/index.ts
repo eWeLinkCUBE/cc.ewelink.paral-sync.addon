@@ -10,7 +10,7 @@ import { encode } from 'js-base64';
 import { dbDataTmp } from './utils/db';
 import oauth from './middleware/oauth';
 import _ from 'lodash';
-import mDns from './utils/initMDns';
+import gapTimeRun from './utils/gapTimeRun';
 
 const app = express();
 const port = config.nodeApp.port;
@@ -56,12 +56,5 @@ app.use(internalError);
 
 app.listen(port, '0.0.0.0', () => {
     logger.info(`Server is running at http://localhost:${port}----env: ${config.nodeApp.env}----version: v${config.nodeApp.version}`);
-    mDns.query({
-        questions: [
-            {
-                name: 'nspanelpro.local',
-                type: 'A',
-            },
-        ],
-    });
+    gapTimeRun();
 });

@@ -3,18 +3,15 @@ import mDnsGatewayClass from '../ts/class/mDnsGatewayClass';
 
 /** 获取已搜索到的局域网设备 */
 function getMDnsGatewayList() {
-    let arr: any = Array.from(mDnsGatewayClass.gatewayMap.values());
-    arr = arr.map((item: any) => {
+    let arr = Array.from(mDnsGatewayClass.gatewayMap.values());
+    arr = arr.map((gatewayInfo: any) => {
+        const { ip, name } = gatewayInfo;
         return {
-            ip: item[0],
-            ...item[1],
+            ip,
+            name,
         };
     });
-    logger.info('arr----------------------------------', arr);
-    return arr as {
-        deviceId: string;
-        discoveryTime: number;
-    }[];
+    return arr;
 }
 
 export default {
