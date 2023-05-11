@@ -129,9 +129,15 @@ interface IGatewayInfo {
     /** 网关服务域名。 */
     domain: string;
 }
-/** 获取网关信息 */
-export const getGatewayInfo = () => {
-    return request<IGatewayInfo>(`/bridge`, EMethod.GET);
+/** 获取网关信息
+ * ip : xxx.xxx.xxx.xxx
+ */
+export const getGatewayInfo = (ip?: string) => {
+    let requestPath = '';
+    if (ip) {
+        requestPath = `http://${ip}/open-api/v1/rest`;
+    }
+    return request<IGatewayInfo>(`${requestPath}/bridge`, EMethod.GET);
 };
 
 export default {

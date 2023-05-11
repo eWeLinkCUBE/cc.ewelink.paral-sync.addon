@@ -15,7 +15,7 @@ axios.defaults.timeout = 60000;
 
 const iHostAxiosInstance = axios.create({
     baseURL: config.iHost.api, //基本请求路径
-    timeout: 60000, //超时设定
+    timeout: 5000, //超时设定
 });
 
 // 请求拦截器，在请求发出之前添加 Authorization 请求头
@@ -24,6 +24,9 @@ iHostAxiosInstance.interceptors.request.use((request: any) => {
     const whitelist = ['/bridge', '/bridge/access_token'];
 
     const at = db.getDbValue('iHostToken');
+
+    const targetGatewayInfo = db.getDbValue('targetGatewayInfo');
+    request.baseURL = `http://${targetGatewayInfo}/open-api/v1/rest`;
 
     if (request.headers && !whitelist.includes(request.url)) {
         request.headers['Authorization'] = at ? `Bearer ${at}` : '';

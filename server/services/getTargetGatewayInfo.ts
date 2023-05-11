@@ -12,6 +12,7 @@ interface IGatewayInfo {
     mac: string;
     /* 域名 */
     domain: string;
+    name: string;
 }
 
 /** 获取本机网关信息(1000) */
@@ -21,28 +22,25 @@ export default async function getTargetGatewayInfo(req: Request, res: Response) 
         const ipAddressInfo = getIPAdressInfo();
         logger.info('ipAddressInfo-------------------', ipAddressInfo);
         if (!ipAddressInfo) {
-            throw new Error('can not get this gateway ip');
+            return res.json(toResponse(EErrorCode.ADDON_NO_IN_IHOST, 'addon not in iHost'));
         }
         //2、接口获取网关信息
-        const iHostRes = await iHostApi.getGatewayInfo();
+        const iHostRes = await iHostApi.getGatewayInfo(ipAddressInfo.address);
+        logger.info('iHostRes----------------', iHostRes);
 
         if (iHostRes.error !== 0 || !iHostRes.data) {
-            throw new Error('can not get gateway info');
+            return res.json(toResponse(EErrorCode.IP_CAN_NOT_CONNECT, 'ip can not connect'));
         }
 
         const { ip, mac, domain } = iHostRes.data;
 
         logger.info('iHostRes----------------------', iHostRes);
-        //3、判断获取的本机ip信息和接口获取的网关信息是否一致
-        if (ip !== ipAddressInfo.address || mac !== ipAddressInfo.mac) {
-            return res.json(toResponse(EErrorCode.ADDON_NO_IN_IHOST, 'addon not on gateway'));
-        }
-        logger.info('res--------------------------', iHostRes);
 
         const data: IGatewayInfo = {
             ip,
             mac,
             domain,
+            name: 'iHost',
         };
 
         logger.info('getTargetGatewayInfo api response--------------------', data);

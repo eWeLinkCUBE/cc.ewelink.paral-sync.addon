@@ -4,7 +4,7 @@ export const prodConf = {
         port: 8321,
         dataPath: '',
         dbPath: '',
-        name: 'ewelink-smart-home',
+        name: 'ewelink-nspanel-pro',
         version: '0.0.1',
     },
     coolKit: {
