@@ -23,5 +23,5 @@ export const prodConf = {
         pattern: '-yyyy-MM-dd.log',
     },
     /** 启动的ip */
-    localIp: 'http://ihost:8321',
+    localIp: 'http://ihost:8322',
 };

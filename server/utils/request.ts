@@ -21,14 +21,11 @@ const iHostAxiosInstance = axios.create({
 // 请求拦截器，在请求发出之前添加 Authorization 请求头
 iHostAxiosInstance.interceptors.request.use((request: any) => {
     // 白名单请求路径，不需要添加 Authorization 请求头
-    const whitelist = ['/bridge/access_token'];
+    const whitelist = ['/bridge', '/bridge/access_token'];
 
     const at = db.getDbValue('iHostToken');
 
-    const appid = _.get(request.headers, 'X-CK-Appid', '');
-
-    const notEWeLinkApi = appid !== config.coolKit.appId;
-    if (request.headers && whitelist.indexOf(request.url as string) < 0 && notEWeLinkApi) {
+    if (request.headers && !whitelist.includes(request.url)) {
         request.headers['Authorization'] = at ? `Bearer ${at}` : '';
     }
 

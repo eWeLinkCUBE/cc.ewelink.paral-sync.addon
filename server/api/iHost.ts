@@ -122,3 +122,18 @@ export const syncDeviceStateToIHost = (params: SyncDeviceStateToIHostReq) => {
 export const deleteDevice = (serialNumber: string) => {
     return request(`/devices/${serialNumber}`, EMethod.DELETE);
 };
+
+interface IGatewayInfo {
+    ip: string;
+    mac: string;
+    /** 网关服务域名。 */
+    domain: string;
+}
+/** 获取网关信息 */
+export const getGatewayInfo = () => {
+    return request<IGatewayInfo>(`/bridge`, EMethod.GET);
+};
+
+export default {
+    getGatewayInfo,
+};

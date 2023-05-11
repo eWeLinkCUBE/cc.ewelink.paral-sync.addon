@@ -44,7 +44,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(info);
 
 // 鉴权校验
-app.use(oauth);
+// app.use(oauth);
 
 // 路由处理
 app.use('/api/v1', router);

@@ -24,6 +24,7 @@ function getDbPath() {
 function getDb() {
     const data = fs.readFileSync(getDbPath(), 'utf-8');
     try {
+        logger.info('Database----------------------------------', data);
         return JSON.parse(decode(data)) as IDbData;
     } catch (error) {
         logger.error('get db file---------------', 'error-----', error, 'data--------', data);
