@@ -5,6 +5,15 @@ import os from 'os';
 import EErrorCode from '../ts/enum/EErrorCode';
 import iHostApi from '../api/iHost';
 
+interface IGatewayInfo {
+    /** ip地址 */
+    ip: string;
+    /**  mac地址 */
+    mac: string;
+    /* 域名 */
+    domain: string;
+}
+
 /** 获取本机网关信息(1000) */
 export default async function getTargetGatewayInfo(req: Request, res: Response) {
     try {
@@ -26,11 +35,11 @@ export default async function getTargetGatewayInfo(req: Request, res: Response) 
         logger.info('iHostRes----------------------', iHostRes);
         //3、判断获取的本机ip信息和接口获取的网关信息是否一致
         if (ip !== ipAddressInfo.address || mac !== ipAddressInfo.mac) {
-            return res.json(toResponse(EErrorCode.ADDON_NO_IN_IHOST));
+            return res.json(toResponse(EErrorCode.ADDON_NO_IN_IHOST, 'addon not on gateway'));
         }
         logger.info('res--------------------------', iHostRes);
 
-        const data: IGateway = {
+        const data: IGatewayInfo = {
             ip,
             mac,
             domain,
@@ -43,15 +52,6 @@ export default async function getTargetGatewayInfo(req: Request, res: Response) 
         logger.error(`getTargetGatewayInfo code error----------------: ${error.message}`);
         res.json(toResponse(500));
     }
-}
-
-interface IGateway {
-    /** ip地址 */
-    ip: string;
-    /**  mac地址 */
-    mac: string;
-    /* 域名 */
-    domain: string;
 }
 
 //获取本机ip地址
