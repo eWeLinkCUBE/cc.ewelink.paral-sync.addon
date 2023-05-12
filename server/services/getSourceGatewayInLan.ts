@@ -1,15 +1,16 @@
 import { Request, Response } from 'express';
 import { toResponse } from '../utils/error';
 import logger from '../log';
-import gatewayMapUtil from '../utils/gatewayMapUtil';
+import mDnsGatewayMapUtil from '../utils/mDnsGatewayMapUtil';
 import nsPanelProApi from '../api/nsPanelPro';
 import gatewayInfoUtil from '../utils/gatewayInfoUtil';
 import IGatewayInfo from '../ts/interface/IGatewayInfo';
+import _ from 'lodash';
 
 /** 获取局域网内的iHost及NsPanelPro设备(1300) */
 export default async function getSourceGatewayInLan(req: Request, res: Response) {
     try {
-        const mDnsGatewayInfoList = gatewayMapUtil.getMDnsGatewayList();
+        const mDnsGatewayInfoList = mDnsGatewayMapUtil.getMDnsGatewayList();
 
         if (mDnsGatewayInfoList.length === 0) {
             return res.json(toResponse(0, 'success', []));
@@ -36,25 +37,34 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
                 if (!mDnsGatewayInfo) {
                     return;
                 }
+                const { ip, mac, domain } = apiGatewayInfo;
 
-                const obj = {
+                const gatewayInfo = gatewayInfoUtil.getGatewayByMac(mac);
+                const data = {
                     /** ip地址 */
-                    ip: apiGatewayInfo.ip,
+                    ip,
                     /** mac地址 */
-                    mac: apiGatewayInfo.mac,
+                    mac,
                     /** 名称 */
                     name: mDnsGatewayInfo.name,
                     /** 域名 */
-                    domain: apiGatewayInfo.domain,
+                    domain,
                     /** 开始获取token的时间戳，若无获取则为空 */
                     ts: '',
                     /** 是否获取到凭证 */
                     gotToken: false,
                 };
 
-                gatewayInfoUtil.setGatewayInfoByMac(apiGatewayInfo.mac, obj);
+                if (gatewayInfo) {
+                    _.merge(data, {
+                        ts: gatewayInfo.ts,
+                        gotToken: gatewayInfo.gotToken,
+                    });
+                }
 
-                mDnsGatewayInfo && existGatewayInfoList.push(obj);
+                gatewayInfoUtil.setGatewayInfoByMac(apiGatewayInfo.mac, data);
+
+                mDnsGatewayInfo && existGatewayInfoList.push(data);
             }
         });
 

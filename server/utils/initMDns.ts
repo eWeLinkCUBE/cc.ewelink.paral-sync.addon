@@ -33,7 +33,7 @@ mDns.on('response', (response: any) => {
     }
 
     if (gatewayInfo.ip) {
-        mDnsGateway.gatewayMap.set(gatewayInfo.ip, {
+        mDnsGateway.mDnsGatewayMap.set(gatewayInfo.ip, {
             ip: gatewayInfo.ip,
             name: gatewayInfo.name,
         });

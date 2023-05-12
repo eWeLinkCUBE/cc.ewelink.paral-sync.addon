@@ -5,9 +5,9 @@ interface IGatewayMap {
 }
 
 class MDnsGatewayMapClass {
-    public gatewayMap: Map<string, IGatewayMap>;
+    public mDnsGatewayMap: Map<string, IGatewayMap>;
     constructor() {
-        this.gatewayMap = new Map();
+        this.mDnsGatewayMap = new Map();
     }
 }
 export default new MDnsGatewayMapClass();

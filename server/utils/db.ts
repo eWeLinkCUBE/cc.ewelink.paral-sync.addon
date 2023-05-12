@@ -19,6 +19,8 @@ interface IGatewayInfoObj {
         ts?: string;
         /** 是否获取到凭证 */
         gotToken?: boolean;
+        /** 网关凭证 */
+        token: '';
     };
 }
 
