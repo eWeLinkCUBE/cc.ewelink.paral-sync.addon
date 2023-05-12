@@ -3,9 +3,8 @@ import { toResponse } from '../utils/error';
 import logger from '../log';
 import os from 'os';
 import EErrorCode from '../ts/enum/EErrorCode';
-import iHostApi from '../api/iHost';
-import IGatewayInfo from '../ts/interface/IGatewayInfo';
-import gatewayInfoUtil from '../utils/gatewayInfoUtil';
+import _ from 'lodash';
+import getGatewayInfo from './public/getGatewayInfo';
 
 /** 获取本机网关信息(1000) */
 export default async function getTargetGatewayInfo(req: Request, res: Response) {
@@ -17,31 +16,15 @@ export default async function getTargetGatewayInfo(req: Request, res: Response) 
             return res.json(toResponse(EErrorCode.ADDON_NO_IN_IHOST, 'addon not in iHost'));
         }
         //2、接口获取网关信息
-        const iHostRes = await iHostApi.getGatewayInfo(ipAddressInfo.address);
-        logger.info('iHostRes----------------', iHostRes);
+        const gatewayInfo = await getGatewayInfo('192.168.31.116');
 
-        if (iHostRes.error !== 0 || !iHostRes.data) {
-            return res.json(toResponse(EErrorCode.IP_CAN_NOT_CONNECT, 'ip can not connect'));
+        if (typeof gatewayInfo === 'number') {
+            return res.json(toResponse(gatewayInfo));
         }
 
-        const { ip, mac, domain } = iHostRes.data;
+        logger.info('getTargetGatewayInfo api response--------------------', gatewayInfo);
 
-        logger.info('iHostRes----------------------', iHostRes);
-
-        const gatewayInfo = gatewayInfoUtil.getGatewayByMac(mac);
-
-        const data: IGatewayInfo = {
-            ip,
-            mac,
-            domain,
-            name: 'iHost',
-            ts: '',
-            gotToken: !!gatewayInfo?.gotToken,
-        };
-
-        logger.info('getTargetGatewayInfo api response--------------------', data);
-
-        return res.json(toResponse(0, 'success', { data }));
+        return res.json(toResponse(0, 'success', gatewayInfo));
     } catch (error: any) {
         logger.error(`getTargetGatewayInfo code error----------------: ${error.message}`);
         res.json(toResponse(500));
