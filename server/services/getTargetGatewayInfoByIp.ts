@@ -3,7 +3,7 @@ import { toResponse } from '../utils/error';
 import logger from '../log';
 import iHostApi from '../api/iHost';
 import EErrorCode from '../ts/enum/EErrorCode';
-import db from '../utils/db';
+import gatewayInfoUtil from '../utils/gatewayInfoUtil';
 
 /** 通过ip获取相关网关信息(1100) */
 export default async function getTargetGatewayInfoByIp(req: Request, res: Response) {
@@ -17,7 +17,9 @@ export default async function getTargetGatewayInfoByIp(req: Request, res: Respon
 
         logger.info('getTargetGatewayInfoByIp api response--------------------', iHostRes.data);
 
-        db.setDbValue('targetGatewayInfo', iHostRes.data);
+        const gatewayInfo = iHostRes.data;
+
+        gatewayInfoUtil.setGatewayInfoByMac(gatewayInfo.mac, gatewayInfo);
 
         return res.json(toResponse(0, 'success', { data: iHostRes.data }));
     } catch (error: any) {

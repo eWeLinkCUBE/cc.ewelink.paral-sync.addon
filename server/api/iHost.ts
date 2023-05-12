@@ -1,16 +1,10 @@
 import EMethod from '../ts/enum/EMethod';
 import { request, requestNoError } from '../utils/requestIHost';
-import IHostDevice from '../ts/interface/IHostDevice';
+import IGatewayInfo from '../ts/interface/IGatewayInfo';
 export const getPermissionApi = (params: { app_name: string }) => {
     return request<{ token: string }>('/bridge/access_token', EMethod.GET, params);
 };
 
-interface IGatewayInfo {
-    ip: string;
-    mac: string;
-    /** 网关服务域名。 */
-    domain: string;
-}
 /** 获取网关信息
  * ip : xxx.xxx.xxx.xxx
  */

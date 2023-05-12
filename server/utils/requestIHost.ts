@@ -23,13 +23,14 @@ iHostAxiosInstance.interceptors.request.use((request: any) => {
     // 白名单请求路径，不需要添加 Authorization 请求头
     const whitelist = ['/bridge', '/bridge/access_token'];
 
-    const at = db.getDbValue('iHostToken');
+    // const at = db.getDbValue('iHostToken');
 
-    const targetGatewayInfo = db.getDbValue('targetGatewayInfo');
-    request.baseURL = `http://${targetGatewayInfo}/open-api/v1/rest`;
+    // const targetGatewayInfo = db.getDbValue('targetGatewayInfo');
+
+    // request.baseURL = `http://${targetGatewayInfo}/open-api/v1/rest`;
 
     if (request.headers && !whitelist.includes(request.url)) {
-        request.headers['Authorization'] = at ? `Bearer ${at}` : '';
+        // request.headers['Authorization'] = at ? `Bearer ${at}` : '';
     }
 
     return request;
