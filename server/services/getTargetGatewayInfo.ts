@@ -4,16 +4,8 @@ import logger from '../log';
 import os from 'os';
 import EErrorCode from '../ts/enum/EErrorCode';
 import iHostApi from '../api/iHost';
-
-interface IGatewayInfo {
-    /** ip地址 */
-    ip: string;
-    /**  mac地址 */
-    mac: string;
-    /* 域名 */
-    domain: string;
-    name: string;
-}
+import IGatewayInfo from '../ts/interface/IGatewayInfo';
+import gatewayInfoUtil from '../utils/gatewayInfoUtil';
 
 /** 获取本机网关信息(1000) */
 export default async function getTargetGatewayInfo(req: Request, res: Response) {
@@ -36,11 +28,15 @@ export default async function getTargetGatewayInfo(req: Request, res: Response) 
 
         logger.info('iHostRes----------------------', iHostRes);
 
+        const gatewayInfo = gatewayInfoUtil.getGatewayByMac(mac);
+
         const data: IGatewayInfo = {
             ip,
             mac,
             domain,
             name: 'iHost',
+            ts: '',
+            gotToken: !!gatewayInfo?.gotToken,
         };
 
         logger.info('getTargetGatewayInfo api response--------------------', data);

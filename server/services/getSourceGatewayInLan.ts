@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { toResponse } from '../utils/error';
 import logger from '../log';
-import gatewayMapUtil from '../utils/gatewayMapUtil';
+import mDnsGatewayMapUtil from '../utils/mDnsGatewayMapUtil';
 import nsPanelProApi from '../api/nsPanelPro';
 import gatewayInfoUtil from '../utils/gatewayInfoUtil';
 import IGatewayInfo from '../ts/interface/IGatewayInfo';
@@ -9,7 +9,7 @@ import IGatewayInfo from '../ts/interface/IGatewayInfo';
 /** 获取局域网内的iHost及NsPanelPro设备(1300) */
 export default async function getSourceGatewayInLan(req: Request, res: Response) {
     try {
-        const mDnsGatewayInfoList = gatewayMapUtil.getMDnsGatewayList();
+        const mDnsGatewayInfoList = mDnsGatewayMapUtil.getMDnsGatewayList();
 
         if (mDnsGatewayInfoList.length === 0) {
             return res.json(toResponse(0, 'success', []));
