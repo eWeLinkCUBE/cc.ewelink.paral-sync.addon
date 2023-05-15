@@ -70,6 +70,28 @@ export interface GatewaySubDeviceEndpoint {
     third_serial_number: string;
 }
 
+/**
+ * 网关子设备在线数据
+ */
+export interface GatewaySubDeviceOnlineParams {
+    serial_number: string;
+    third_serial_number: string;
+    params: {
+        online: boolean;
+    };
+}
+
+/**
+ * 网关子设备状态数据
+ */
+export interface GatewaySubDeviceStateParams {
+    serial_number: string;
+    third_serial_number: string;
+    params: {
+        state: any;
+    };
+}
+
 export const ApiClient = CubeApi.ihostApi;
 
 /**
@@ -189,5 +211,56 @@ export async function addGatewaySubDeviceList(client: any, deviceList: GatewaySu
         result.data = res.payload;
     }
     logger.info(`(api.addGatewaySubDeviceList) result: ${JSON.stringify(result)}`);
+    return result;
+}
+
+export async function updateGatewaySubDeviceOnline(client: any, onlineParams: GatewaySubDeviceOnlineParams) {
+    logger.info(`(api.updateGatewaySubDeviceOnline) client IP: ${client.getIp()}, client token: ${client.getAt()}, onlineParams: ${JSON.stringify(onlineParams)}`);
+    const result = {
+        error: 0,
+        data: null,
+        msg: 'Success'
+    };
+    const res = await client.updateDeviceOnline(onlineParams);
+    console.log(res);
+    if (res.error === 1000) {
+        result.error = -1;
+        result.msg = 'Timeout';
+    }
+    logger.info(`(api.updateGatewaySubDeviceOnline) result: ${JSON.stringify(result)}`);
+    return result;
+}
+
+export async function updateGatewaySubDeviceState(client: any, updateParams: GatewaySubDeviceStateParams) {
+    logger.info(`(api.updateGatewaySubDeviceState) `);
+    const result = {
+        error: 0,
+        data: null,
+        msg: 'Success'
+    };
+    const res = await client.uploadDeviceState(updateParams);
+    console.log(res);
+    if (res.error === 1000) {
+        result.error = -1;
+        result.msg = 'Timeout';
+    }
+    logger.info(`(api.updateGatewaySubDeviceState) result: ${JSON.stringify(result)}`);
+    return result;
+}
+
+export async function updateGatewayDeviceState(client: any, serialNumber: string, updateParams: any) {
+    logger.info(`(api.updateGatewayDeviceState) `);
+    const result = {
+        error: 0,
+        data: null,
+        msg: 'Success'
+    };
+    const res = await client.updateDeviceState(serialNumber, updateParams);
+    console.log(res);
+    if (res.error === 1000) {
+        result.error = -1;
+        result.msg = 'Timeout';
+    }
+    logger.info(`(api.updateGatewayDeviceState) result: ${JSON.stringify(result)}`);
     return result;
 }

@@ -4,6 +4,7 @@ import {
     getGatewayToken,
     getGatewayDeviceList,
     addGatewaySubDeviceList,
+    updateGatewaySubDeviceOnline,
     ApiClient
 } from '../api';
 
@@ -15,6 +16,7 @@ import {
 const host = process.env.TEST_CUBE_HOST as string;
 const at = process.env.TEST_CUBE_AT as string;
 const subDevice = process.env.TEST_CUBE_SUBDEV as string;
+const onlineParams = process.env.TEST_CUBE_DEV_ONLINE as string;
 
 async function testGetGatewayInfo() {
     const res = await getGatewayInfo(host);
@@ -35,7 +37,14 @@ async function testAddGatewaySubDeviceList() {
     const res = await addGatewaySubDeviceList(client, [dev]);
 }
 
+async function testUpdateGatewaySubDeviceOnline() {
+    const client = new ApiClient({ ip: host, at });
+    const online = JSON.parse(onlineParams);
+    const res = await updateGatewaySubDeviceOnline(client, online);
+}
+
 // testGetGatewayInfo();
 // testGetGatewayToken();
 // testGetGatewayDeviceList();
-testAddGatewaySubDeviceList();
+// testAddGatewaySubDeviceList();
+testUpdateGatewaySubDeviceOnline();
