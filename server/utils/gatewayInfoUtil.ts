@@ -11,8 +11,8 @@ function getGatewayByMac(mac: string) {
 /** 根据mac地址更新网关信息 */
 function setGatewayInfoByMac(mac: string, gatewayInfo: IGatewayInfo) {
     const gatewayInfoObj = db.getDbValue('gatewayInfoObj');
-    _.merge(gatewayInfoObj, gatewayInfo);
-    _.set(gatewayInfoObj, [mac], gatewayInfoObj);
+    _.merge(gatewayInfoObj[mac], gatewayInfo);
+    logger.info('gatewayInfoObj--------------------------------', gatewayInfoObj);
     db.setDbValue('gatewayInfoObj', gatewayInfoObj);
 }
 

@@ -2,10 +2,10 @@ import { Request, Response } from 'express';
 import { toResponse } from '../utils/error';
 import logger from '../log';
 import mDnsGatewayMapUtil from '../utils/mDnsGatewayMapUtil';
-import nsPanelProApi from '../api/nsPanelPro';
 import gatewayInfoUtil from '../utils/gatewayInfoUtil';
 import IGatewayInfo from '../ts/interface/IGatewayInfo';
 import _ from 'lodash';
+import getGatewayInfo from './public/getGatewayInfo';
 
 /** 获取局域网内的iHost及NsPanelPro设备(1300) */
 export default async function getSourceGatewayInLan(req: Request, res: Response) {
@@ -19,53 +19,21 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
         logger.info('getSourceGatewayInLan api response--------------------', mDnsGatewayInfoList);
 
         const requestList = mDnsGatewayInfoList.map((item) => {
-            return nsPanelProApi.getGatewayInfo(item.ip);
+            return getGatewayInfo(item.ip, item.type);
         });
 
         const promiseResList = await Promise.all(requestList);
         logger.info('promiseResList---------------------------------', promiseResList);
         const existGatewayInfoList: IGatewayInfo[] = [];
-        promiseResList.forEach((gatewayRes) => {
-            if (!gatewayRes) {
+        promiseResList.forEach((gatewayInfo) => {
+            if (typeof gatewayInfo === 'number') {
+                return;
+            }
+            if (!gatewayInfo) {
                 return;
             }
 
-            if (gatewayRes.error === 0 && gatewayRes.data) {
-                const apiGatewayInfo = gatewayRes.data;
-
-                const mDnsGatewayInfo = mDnsGatewayInfoList.find((gItem) => gItem.ip === apiGatewayInfo.ip);
-                if (!mDnsGatewayInfo) {
-                    return;
-                }
-                const { ip, mac, domain } = apiGatewayInfo;
-
-                const gatewayInfo = gatewayInfoUtil.getGatewayByMac(mac);
-                const data = {
-                    /** ip地址 */
-                    ip,
-                    /** mac地址 */
-                    mac,
-                    /** 名称 */
-                    name: mDnsGatewayInfo.name,
-                    /** 域名 */
-                    domain,
-                    /** 开始获取token的时间戳，若无获取则为空 */
-                    ts: '',
-                    /** 是否获取到凭证 */
-                    gotToken: false,
-                };
-
-                if (gatewayInfo) {
-                    _.merge(data, {
-                        ts: gatewayInfo.ts,
-                        gotToken: gatewayInfo.gotToken,
-                    });
-                }
-
-                gatewayInfoUtil.setGatewayInfoByMac(apiGatewayInfo.mac, data);
-
-                mDnsGatewayInfo && existGatewayInfoList.push(data);
-            }
+            existGatewayInfoList.push(gatewayInfo);
         });
 
         logger.info('Gateway--------------------------------------------------------', gatewayInfoUtil.getAllGatewayInfoList());

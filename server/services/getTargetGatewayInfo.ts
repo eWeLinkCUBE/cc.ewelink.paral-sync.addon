@@ -5,6 +5,7 @@ import os from 'os';
 import EErrorCode from '../ts/enum/EErrorCode';
 import _ from 'lodash';
 import getGatewayInfo from './public/getGatewayInfo';
+import EGatewayType from '../ts/enum/EGatewayType';
 
 /** 获取本机网关信息(1000) */
 export default async function getTargetGatewayInfo(req: Request, res: Response) {
@@ -16,7 +17,7 @@ export default async function getTargetGatewayInfo(req: Request, res: Response) 
             return res.json(toResponse(EErrorCode.ADDON_NO_IN_IHOST, 'addon not in iHost'));
         }
         //2、接口获取网关信息
-        const gatewayInfo = await getGatewayInfo('192.168.31.116');
+        const gatewayInfo = await getGatewayInfo('192.168.31.211', EGatewayType.IHOST);
 
         if (typeof gatewayInfo === 'number') {
             return res.json(toResponse(gatewayInfo));
