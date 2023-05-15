@@ -29,8 +29,8 @@ export default async (ipAddress: string) => {
             ts: '',
             gotToken: false,
         };
-        const gatewayInfoDb = gatewayInfoUtil.getGatewayByMac(mac);
-        gatewayInfoUtil.setGatewayInfoByMac(mac, gatewayInfo);
+        const gatewayInfoDb = await gatewayInfoUtil.getGatewayByMac(mac);
+        await gatewayInfoUtil.setGatewayInfoByMac(mac, gatewayInfo);
 
         if (gatewayInfoDb) {
             _.merge(gatewayInfo, {

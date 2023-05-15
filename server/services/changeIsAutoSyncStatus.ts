@@ -7,7 +7,7 @@ import db from '../utils/db';
 export default async function changeIsAutoSyncStatus(req: Request, res: Response) {
     try {
         const { autoSync } = req.body;
-        db.setDbValue('autoSync', autoSync);
+        await db.setDbValue('autoSync', autoSync);
         return res.json(toResponse(0));
     } catch (error: any) {
         logger.error(`get iHost token code error----------------: ${error.message}`);

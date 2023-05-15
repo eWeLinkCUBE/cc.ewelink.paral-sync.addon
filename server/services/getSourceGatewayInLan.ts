@@ -25,7 +25,7 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
         const promiseResList = await Promise.all(requestList);
         logger.info('promiseResList---------------------------------', promiseResList);
         const existGatewayInfoList: IGatewayInfo[] = [];
-        promiseResList.forEach((gatewayRes) => {
+        for (const gatewayRes of promiseResList) {
             if (!gatewayRes) {
                 return;
             }
@@ -39,7 +39,7 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
                 }
                 const { ip, mac, domain } = apiGatewayInfo;
 
-                const gatewayInfo = gatewayInfoUtil.getGatewayByMac(mac);
+                const gatewayInfo = await gatewayInfoUtil.getGatewayByMac(mac);
                 const data = {
                     /** ip地址 */
                     ip,
@@ -62,11 +62,53 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
                     });
                 }
 
-                gatewayInfoUtil.setGatewayInfoByMac(apiGatewayInfo.mac, data);
+                await gatewayInfoUtil.setGatewayInfoByMac(apiGatewayInfo.mac, data);
 
                 mDnsGatewayInfo && existGatewayInfoList.push(data);
             }
-        });
+        }
+        // promiseResList.forEach((gatewayRes) => {
+        //     if (!gatewayRes) {
+        //         return;
+        //     }
+
+        //     if (gatewayRes.error === 0 && gatewayRes.data) {
+        //         const apiGatewayInfo = gatewayRes.data;
+
+        //         const mDnsGatewayInfo = mDnsGatewayInfoList.find((gItem) => gItem.ip === apiGatewayInfo.ip);
+        //         if (!mDnsGatewayInfo) {
+        //             return;
+        //         }
+        //         const { ip, mac, domain } = apiGatewayInfo;
+
+        //         const gatewayInfo = await gatewayInfoUtil.getGatewayByMac(mac);
+        //         const data = {
+        //             /** ip地址 */
+        //             ip,
+        //             /** mac地址 */
+        //             mac,
+        //             /** 名称 */
+        //             name: mDnsGatewayInfo.name,
+        //             /** 域名 */
+        //             domain,
+        //             /** 开始获取token的时间戳，若无获取则为空 */
+        //             ts: '',
+        //             /** 是否获取到凭证 */
+        //             gotToken: false,
+        //         };
+
+        //         if (gatewayInfo) {
+        //             _.merge(data, {
+        //                 ts: gatewayInfo.ts,
+        //                 gotToken: gatewayInfo.gotToken,
+        //             });
+        //         }
+
+        //         await gatewayInfoUtil.setGatewayInfoByMac(apiGatewayInfo.mac, data);
+
+        //         mDnsGatewayInfo && existGatewayInfoList.push(data);
+        //     }
+        // });
 
         logger.info('Gateway--------------------------------------------------------', gatewayInfoUtil.getAllGatewayInfoList());
 

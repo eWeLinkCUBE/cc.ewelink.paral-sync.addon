@@ -19,7 +19,7 @@ export default async function getTargetGatewayInfoByIp(req: Request, res: Respon
 
         const gatewayInfo = iHostRes.data;
 
-        gatewayInfoUtil.setGatewayInfoByMac(gatewayInfo.mac, gatewayInfo);
+        await gatewayInfoUtil.setGatewayInfoByMac(gatewayInfo.mac, gatewayInfo);
 
         return res.json(toResponse(0, 'success', { data: iHostRes.data }));
     } catch (error: any) {

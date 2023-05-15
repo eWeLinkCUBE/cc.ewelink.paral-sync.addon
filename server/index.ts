@@ -6,8 +6,7 @@ import info from './middleware/info';
 import router from './routes';
 import { internalError, notFound } from './middleware/error';
 import config from './config';
-import { encode } from 'js-base64';
-import { dbDataTmp } from './utils/db';
+import { initDb } from './utils/db';
 import oauth from './middleware/oauth';
 import _ from 'lodash';
 import gapTimeRun from './utils/gapTimeRun';
@@ -28,7 +27,7 @@ if (!fs.existsSync(dataPath)) {
 }
 
 if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, encode(JSON.stringify(dbDataTmp)), 'utf-8');
+    initDb(dbPath);
 }
 
 logger.info('fs.existsSync(versionPath)------------------', fs.existsSync(versionPath), versionPath);

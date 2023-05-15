@@ -1,8 +1,36 @@
-import fs from 'fs';
 import _ from 'lodash';
 import config from '../config';
-import { encode, decode } from 'js-base64';
 import logger from '../log';
+import KeyV from 'keyv';
+import { KeyvFile } from 'keyv-file';
+import encryption from './encryption';
+
+let store: KeyV | null = null;
+
+export async function initDb(filename: string) {
+    if (!_.isEmpty(store)) return;
+
+    // create store object
+    store = new KeyV({
+        store: new KeyvFile({
+            filename,
+            // encode function 
+            encode: (val: any) => {
+                return encryption.encryptAES(config.auth.appSecret, JSON.stringify(val));
+            },
+            // decode function
+            decode: (val: any) => {
+                return encryption.decryptAES(config.auth.appSecret, JSON.stringify(val));
+            }
+        })
+    });
+
+    // init data
+    for (const key of Object.values(dbDataTmp)) {
+        await store.set(key, dbDataTmp[key as keyof IDbData]);
+    }
+}
+
 
 type DbKey = keyof IDbData;
 interface IGatewayInfoObj {
@@ -36,44 +64,45 @@ export const dbDataTmp: IDbData = {
     autoSync: false,
 };
 
-/** 获取数据库文件所在路径 */
-function getDbPath() {
-    return config.nodeApp.dbPath;
-}
-
 /** 获取所有数据 */
-function getDb() {
-    const data = fs.readFileSync(getDbPath(), 'utf-8');
+async function getDb() {
+    if (!store) return;
     try {
-        return JSON.parse(decode(data)) as IDbData;
+        const res = {};
+        for (const key of Object.keys(dbDataTmp)) {
+            const curVal = await store.get(key);
+            _.assign(res, {
+                [key]: JSON.parse(curVal)
+            })
+        };
+        return res as IDbData;
     } catch (error) {
-        logger.error('get db file---------------', 'error-----', error, 'data--------', data);
+        logger.error('get db file---------------', 'error-----', error);
         return null as unknown as IDbData;
     }
 }
 
 /** 清除所有数据 */
-function clearStore() {
-    fs.writeFileSync(getDbPath(), encode('{}'), 'utf-8');
+async function clearStore() {
+    if (!store) return;
+    await store.clear();
 }
 
 /** 设置指定的数据库数据 */
-function setDbValue(key: 'gatewayInfoObj', v: IDbData['gatewayInfoObj']): void;
-function setDbValue(key: 'autoSync', v: IDbData['autoSync']): void;
-
-function setDbValue(key: DbKey, v: IDbData[DbKey]) {
-    const data = getDb();
-    _.set(data, key, v);
-    fs.writeFileSync(getDbPath(), encode(JSON.stringify(data)), 'utf-8');
+async function setDbValue(key: 'gatewayInfoObj', v: IDbData['gatewayInfoObj']): Promise<void>;
+async function setDbValue(key: 'autoSync', v: IDbData['autoSync']): Promise<void>;
+async function setDbValue(key: DbKey, v: IDbData[DbKey]) {
+    if (!store) return;
+    await store.set(key, v);
 }
 
 /** 获取指定的数据库数据 */
-function getDbValue(key: 'gatewayInfoObj'): IDbData['gatewayInfoObj'];
-function getDbValue(key: 'autoSync'): IDbData['autoSync'];
-
-function getDbValue(key: DbKey) {
-    const data = getDb();
-    return data[key];
+async function getDbValue(key: 'gatewayInfoObj'): Promise<IDbData['gatewayInfoObj']>;
+async function getDbValue(key: 'autoSync'): Promise<IDbData['autoSync']>;
+async function getDbValue(key: DbKey) {
+    if (!store) return null;
+    const res = await store.get(key);
+    return res;
 }
 
 export default {
