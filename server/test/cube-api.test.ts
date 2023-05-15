@@ -1,5 +1,6 @@
 import {
-    getGatewayInfo
+    getGatewayInfo,
+    getGatewayToken
 } from '../api';
 
 async function testGetGatewayInfo() {
@@ -8,4 +9,11 @@ async function testGetGatewayInfo() {
     await getGatewayInfo(host);
 }
 
-testGetGatewayInfo();
+async function testGetGatewayToken() {
+    const host = '192.168.31.114:8081';
+    // const host = '192.168.31.211';
+    await getGatewayToken(host);
+}
+
+// testGetGatewayInfo();
+testGetGatewayToken();
