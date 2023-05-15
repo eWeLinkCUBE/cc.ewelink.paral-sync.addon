@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import logger from '../log';
 import CubeApi from '../lib/cube-api';
 
@@ -17,14 +18,14 @@ export interface GatewayInfo {
     ip: string;
     mac: string;
     domain: string;
-};
+}
 
 /**
  * 网关凭证
  */
 export interface GatewayToken {
     token: string;
-};
+}
 
 /**
  * 网关设备数据
@@ -43,7 +44,31 @@ export interface GatewayDeviceItem {
     tags: any;
     online: boolean;
     subnet: boolean;
-};
+}
+
+/**
+ * 网关子设备数据
+ */
+export interface GatewaySubDeviceItem {
+    name: string,
+    third_serial_number: string;
+    manufacturer: string;
+    model: string;
+    firmware_version: string;
+    display_category: string;
+    capabilities: any;
+    state: any;
+    tags: any;
+    service_address: string;
+}
+
+/**
+ * 网关子设备 endpoint
+ */
+export interface GatewaySubDeviceEndpoint {
+    serial_number: string;
+    third_serial_number: string;
+}
 
 export const ApiClient = CubeApi.ihostApi;
 
@@ -121,11 +146,48 @@ export async function getGatewayDeviceList(client: any): Promise<CubeApiResponse
         result.data = res.data;
     } else if (res.error === 401) {
         result.error = 1;
-        result.msg = 'Wrong token';
+        result.msg = 'Invalid token';
     } else {
         result.error = -1;
         result.msg = 'Timeout';
     }
     logger.info(`(api.getGatewayDeviceList) result: ${JSON.stringify(result)}`);
+    return result;
+}
+
+/**
+ * 添加网关子设备
+ * 如果请求超时，则 error 为 -1，data 为 null
+ * 如果 client 的 token 错误，则 error 为 1，data 为 null
+ * 如果子设备参数错误，则 error 为 2，data 为 null
+ * 否则 error 为 0，data 为子设备的 endpoints 数据
+ *
+ * @param client 网关 API client
+ * @param deviceList 网关子设备列表
+ */
+export async function addGatewaySubDeviceList(client: any, deviceList: GatewaySubDeviceItem[]): Promise<CubeApiResponse<{ endpoints: GatewaySubDeviceEndpoint[] } | null>> {
+    logger.info(`(api.addGatewaySubDeviceList) client IP: ${client.getIp()}, client token: ${client.getAt()}, deviceList: ${JSON.stringify(deviceList)}`);
+    const result = {
+        error: 0,
+        data: null,
+        msg: 'Success'
+    };
+    const res = await client.syncDevices({ devices: deviceList });
+    const resError = _.get(res, 'error');
+    const resType = _.get(res, 'payload.type');
+    const resDesc = _.get(res, 'payload.description');
+    if (resError === 1000) {
+        result.error = -1;
+        result.msg = 'Timeout';
+    } else if (resType === 'AUTH_FAILURE') {
+        result.error = 1;
+        result.msg = resDesc;
+    } else if (resType === 'INVALID_PARAMETERS') {
+        result.error = 2;
+        result.msg = resDesc;
+    } else {
+        result.data = res.payload;
+    }
+    logger.info(`(api.addGatewaySubDeviceList) result: ${JSON.stringify(result)}`);
     return result;
 }
