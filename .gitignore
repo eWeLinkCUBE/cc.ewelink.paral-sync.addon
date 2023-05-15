@@ -28,7 +28,6 @@ web/dist
 server/dist
 server/data
 server/src/public
-server/test/
 
 # dist code
 node-app/
