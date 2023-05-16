@@ -61,6 +61,21 @@ interface IGatewayInfoItem {
     tokenValid: boolean;
 }
 
+/**
+ * 网关设备数据
+ */
+interface IDeviceItem {
+    /** 设备名称 */
+    name: string;
+    /** 设备id */
+    id: string;
+    /** 设备来源，此处为网关的mac地址 */
+    from: string;
+    /** 设备是否已同步 */
+    isSynced: boolean;
+}
+
+// !!!: 已弃用
 interface IGatewayInfoObj {
     [mac: string]: {
         /** ip地址 */
@@ -87,12 +102,15 @@ interface IDbData {
     autoSync: boolean;
     /** 网关信息列表 */
     gatewayInfoList: IGatewayInfoItem[];
+    /** 网关设备列表 */
+    gatewayDeviceList: IDeviceItem[];
 }
 
 export const dbDataTmp: IDbData = {
     gatewayInfoObj: {},
     autoSync: false,
-    gatewayInfoList: []
+    gatewayInfoList: [],
+    gatewayDeviceList: []
 };
 
 /** 获取所有数据 */
@@ -123,6 +141,7 @@ async function clearStore() {
 async function setDbValue(key: 'gatewayInfoObj', v: IDbData['gatewayInfoObj']): Promise<void>;
 async function setDbValue(key: 'autoSync', v: IDbData['autoSync']): Promise<void>;
 async function setDbValue(key: 'gatewayInfoList', v: IDbData['gatewayInfoList']): Promise<void>;
+async function setDbValue(key: 'gatewayDeviceList', v: IDbData['gatewayDeviceList']): Promise<void>;
 async function setDbValue(key: DbKey, v: IDbData[DbKey]) {
     if (!store) return;
     await store.set(key, v);
@@ -132,6 +151,7 @@ async function setDbValue(key: DbKey, v: IDbData[DbKey]) {
 async function getDbValue(key: 'gatewayInfoObj'): Promise<IDbData['gatewayInfoObj']>;
 async function getDbValue(key: 'autoSync'): Promise<IDbData['autoSync']>;
 async function getDbValue(key: 'gatewayInfoList'): Promise<IDbData['gatewayInfoList']>;
+async function getDbValue(key: 'gatewayDeviceList'): Promise<IDbData['gatewayDeviceList']>;
 async function getDbValue(key: DbKey) {
     if (!store) return null;
     const res = await store.get(key);

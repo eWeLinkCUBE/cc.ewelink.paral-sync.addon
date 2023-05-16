@@ -9,7 +9,7 @@ enum EApiPath {
     /** 4、获取局域网内的iHost及NsPanelPro设备 */
     GET_SOURCE_GATEWAY_IN_LAN = '/gateways',
     /** 5、 获取所有网关下的子设备 */
-    GET_SOURCE_GATEWAY_SUB_DEVICE = '/devices',
+    GET_SOURCE_GATEWAY_SUB_DEVICE = '/devices/:mac',
     /** 6、 同步单个设备 */
     SYNC_ONE_DEVICE = '/device/:deviceId',
     /** 7、 同步所有设备 */

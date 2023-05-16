@@ -15,11 +15,17 @@ const ERROR_MAPPING = {
     0: "success",
     500: "Internal Error",
     // 找不到相应 mac 地址的网关信息
-    1200: 'No such gateway',
+    501: 'No such gateway',
     // 相应网关的 IP 地址无效
-    1201: 'Gateway IP address could not be reached',
+    502: 'Gateway IP address could not be reached',
+
     // 请求超时
-    1202: 'Get token timeout',
+    1200: 'Get token timeout',
     // 网关信息被删除
-    1203: 'Gateway has been removed'
+    1201: 'Gateway has been removed',
+
+    // 相应网关的凭证无效
+    1400: 'Gateway token invalid',
+    // 获取设备请求超时
+    1401: 'Get device list timeout'
 }
