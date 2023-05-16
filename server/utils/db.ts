@@ -12,11 +12,13 @@ export async function initDb(filename: string, isDbFileExist: boolean) {
     store = new KeyV({
         store: new KeyvFile({
             filename,
-            // encode function 
+
+            // encode function
             encode: (val: any) => {
                 return encryption.encryptAES(JSON.stringify(val), config.auth.appSecret);
             },
             // encode: JSON.stringify,
+
             // decode function
             decode: (val: any) => {
                 const decryptStr = encryption.decryptAES(val, config.auth.appSecret);
@@ -36,6 +38,29 @@ export async function initDb(filename: string, isDbFileExist: boolean) {
 
 
 type DbKey = keyof IDbData;
+
+/**
+ * 网关信息项目
+ */
+interface IGatewayInfoItem {
+    /** mac地址 */
+    mac: string;
+    /** ip地址 */
+    ip: string;
+    /** 名称 */
+    name: string;
+    /** 域名 */
+    domain: string;
+    /** 凭证 */
+    token: string;
+    /** 获取凭证时间起点 */
+    ts: string;
+    /** ip是否有效 */
+    ipValid: boolean;
+    /** 凭证是否有效 */
+    tokenValid: boolean;
+}
+
 interface IGatewayInfoObj {
     [mac: string]: {
         /** ip地址 */
@@ -60,11 +85,14 @@ interface IDbData {
     gatewayInfoObj: IGatewayInfoObj;
     /** 是否自动 */
     autoSync: boolean;
+    /** 网关信息列表 */
+    gatewayInfoList: IGatewayInfoItem[];
 }
 
 export const dbDataTmp: IDbData = {
     gatewayInfoObj: {},
     autoSync: false,
+    gatewayInfoList: []
 };
 
 /** 获取所有数据 */
@@ -94,6 +122,7 @@ async function clearStore() {
 /** 设置指定的数据库数据 */
 async function setDbValue(key: 'gatewayInfoObj', v: IDbData['gatewayInfoObj']): Promise<void>;
 async function setDbValue(key: 'autoSync', v: IDbData['autoSync']): Promise<void>;
+async function setDbValue(key: 'gatewayInfoList', v: IDbData['gatewayInfoList']): Promise<void>;
 async function setDbValue(key: DbKey, v: IDbData[DbKey]) {
     if (!store) return;
     await store.set(key, v);
@@ -102,6 +131,7 @@ async function setDbValue(key: DbKey, v: IDbData[DbKey]) {
 /** 获取指定的数据库数据 */
 async function getDbValue(key: 'gatewayInfoObj'): Promise<IDbData['gatewayInfoObj']>;
 async function getDbValue(key: 'autoSync'): Promise<IDbData['autoSync']>;
+async function getDbValue(key: 'gatewayInfoList'): Promise<IDbData['gatewayInfoList']>;
 async function getDbValue(key: DbKey) {
     if (!store) return null;
     const res = await store.get(key);
