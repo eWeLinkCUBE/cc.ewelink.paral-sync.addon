@@ -5,6 +5,8 @@ import {
     getGatewayDeviceList,
     addGatewaySubDeviceList,
     updateGatewaySubDeviceOnline,
+    updateGatewaySubDeviceState,
+    updateGatewayDeviceState,
     ApiClient
 } from '../api';
 
@@ -17,6 +19,9 @@ const host = process.env.TEST_CUBE_HOST as string;
 const at = process.env.TEST_CUBE_AT as string;
 const subDevice = process.env.TEST_CUBE_SUBDEV as string;
 const onlineParams = process.env.TEST_CUBE_DEV_ONLINE as string;
+const updateParams = process.env.TEST_CUBE_UPDATE_PARAMS as string;
+const updateParams2 = process.env.TEST_CUBE_UPDATE_PARAMS2 as string;
+const serialNumber = process.env.TEST_CUBE_SERNO as string;
 
 async function testGetGatewayInfo() {
     const res = await getGatewayInfo(host);
@@ -43,8 +48,22 @@ async function testUpdateGatewaySubDeviceOnline() {
     const res = await updateGatewaySubDeviceOnline(client, online);
 }
 
+async function testUpdateGatewaySubDeviceState() {
+    const client = new ApiClient({ ip: host, at });
+    const update = JSON.parse(updateParams);
+    const res = await updateGatewaySubDeviceState(client, update);
+}
+
+async function testUpdateGatewayDeviceState() {
+    const client = new ApiClient({ ip: host, at });
+    const update = JSON.parse(updateParams2);
+    const res = await updateGatewayDeviceState(client, serialNumber, update);
+}
+
 // testGetGatewayInfo();
 // testGetGatewayToken();
 // testGetGatewayDeviceList();
 // testAddGatewaySubDeviceList();
-testUpdateGatewaySubDeviceOnline();
+// testUpdateGatewaySubDeviceOnline();
+// testUpdateGatewaySubDeviceState();
+testUpdateGatewayDeviceState();

@@ -110,6 +110,7 @@ export async function getGatewayInfo(host: string): Promise<CubeApiResponse<Gate
     };
     const client = new ApiClient({ ip: host });
     const res = await client.getBridgeInfo();
+    logger.debug(`(api.getGatewayInfo) res: ${JSON.stringify(res)}`);
     if (res.error === 0) {
         result.data = res.data;
     } else {
@@ -138,6 +139,7 @@ export async function getGatewayToken(host: string, timeout?: number, interval?:
     };
     const client = new ApiClient({ ip: host });
     const res = await client.getBridgeAT({ timeout, interval }) as any;
+    logger.debug(`(api.getGatewayToken) res: ${JSON.stringify(res)}`);
     if (res.error === 0) {
         result.data = res.data;
     } else {
@@ -164,6 +166,7 @@ export async function getGatewayDeviceList(client: any): Promise<CubeApiResponse
         msg: 'Success'
     };
     const res = await client.getDeviceList();
+    logger.debug(`(api.getGatewayDeviceList) res: ${JSON.stringify(res)}`);
     if (res.error === 0) {
         result.data = res.data;
     } else if (res.error === 401) {
@@ -195,6 +198,7 @@ export async function addGatewaySubDeviceList(client: any, deviceList: GatewaySu
         msg: 'Success'
     };
     const res = await client.syncDevices({ devices: deviceList });
+    logger.debug(`(api.addGatewaySubDeviceList) res: ${JSON.stringify(res)}`);
     const resError = _.get(res, 'error');
     const resType = _.get(res, 'payload.type');
     const resDesc = _.get(res, 'payload.description');
@@ -214,6 +218,16 @@ export async function addGatewaySubDeviceList(client: any, deviceList: GatewaySu
     return result;
 }
 
+/**
+ * 更新网关子设备的在线状态
+ * 如果请求超时，则 error 为 -1，data 为 null
+ * 如果 client 的 token 错误，则 error 为 1，data 为 null
+ * 如果子设备参数错误，则 error 为 2，data 为 null
+ * 否则 error 为 0，data 为 null
+ *
+ * @param client 网关 API client
+ * @param onlineParams 网关子设备在线参数
+ */
 export async function updateGatewaySubDeviceOnline(client: any, onlineParams: GatewaySubDeviceOnlineParams) {
     logger.info(`(api.updateGatewaySubDeviceOnline) client IP: ${client.getIp()}, client token: ${client.getAt()}, onlineParams: ${JSON.stringify(onlineParams)}`);
     const result = {
@@ -222,44 +236,92 @@ export async function updateGatewaySubDeviceOnline(client: any, onlineParams: Ga
         msg: 'Success'
     };
     const res = await client.updateDeviceOnline(onlineParams);
-    console.log(res);
-    if (res.error === 1000) {
+    logger.debug(`(api.updateGatewaySubDeviceOnline) res: ${JSON.stringify(res)}`);
+    const resError = _.get(res, 'error');
+    const resType = _.get(res, 'payload.type');
+    const resDesc = _.get(res, 'payload.description');
+    if (resError === 1000) {
         result.error = -1;
         result.msg = 'Timeout';
+    } else if (resType === 'AUTH_FAILURE') {
+        result.error = 1;
+        result.msg = resDesc;
+    } else if (resType === 'INVALID_PARAMETERS') {
+        result.error = 2;
+        result.msg = resDesc;
     }
     logger.info(`(api.updateGatewaySubDeviceOnline) result: ${JSON.stringify(result)}`);
     return result;
 }
 
+/**
+ * 更新网关子设备的设备状态
+ * 如果请求超时，则 error 为 -1，data 为 null
+ * 如果 client 的 token 错误，则 error 为 1，data 为 null
+ * 如果子设备参数错误，则 error 为 2，data 为 null
+ * 否则 error 为 0，data 为 null
+ *
+ * @param client 网关 API client
+ * @param updateParams 网关子设备状态参数
+ */
 export async function updateGatewaySubDeviceState(client: any, updateParams: GatewaySubDeviceStateParams) {
-    logger.info(`(api.updateGatewaySubDeviceState) `);
+    logger.info(`(api.updateGatewaySubDeviceState) client IP: ${client.getIp()}, client token: ${client.getAt()}, updateParams: ${JSON.stringify(updateParams)}`);
     const result = {
         error: 0,
         data: null,
         msg: 'Success'
     };
     const res = await client.uploadDeviceState(updateParams);
-    console.log(res);
-    if (res.error === 1000) {
+    logger.debug(`(api.updateGatewaySubDeviceState) res: ${JSON.stringify(res)}`);
+    const resError = _.get(res, 'error');
+    const resType = _.get(res, 'payload.type');
+    const resDesc = _.get(res, 'payload.description');
+    if (resError === 1000) {
         result.error = -1;
         result.msg = 'Timeout';
+    } else if (resType === 'AUTH_FAILURE') {
+        result.error = 1;
+        result.msg = resDesc;
+    } else if (resType === 'INVALID_PARAMETERS') {
+        result.error = 2;
+        result.msg = resDesc;
     }
     logger.info(`(api.updateGatewaySubDeviceState) result: ${JSON.stringify(result)}`);
     return result;
 }
 
+/**
+ * 更新网关设备的设备状态
+ * 如果请求超时，则 error 为 -1，data 为 null
+ * 如果 client 的 token 错误，则 error 为 1，data 为 null
+ * 如果子设备参数错误，则 error 为 2，data 为 null
+ * 否则 error 为 0，data 为 null
+ *
+ * @param client 网关 API client
+ * @param serialNumber 网关设备的 serial_number
+ * @param updateParams 网关设备的状态参数
+ */
 export async function updateGatewayDeviceState(client: any, serialNumber: string, updateParams: any) {
-    logger.info(`(api.updateGatewayDeviceState) `);
+    logger.info(`(api.updateGatewayDeviceState) client IP: ${client.getIp()}, client token: ${client.getAt()}, serialNumber: ${serialNumber}, updateParams: ${JSON.stringify(updateParams)}`);
     const result = {
         error: 0,
         data: null,
         msg: 'Success'
     };
     const res = await client.updateDeviceState(serialNumber, updateParams);
-    console.log(res);
-    if (res.error === 1000) {
+    logger.debug(`(api.updateGatewayDeviceState) res: ${JSON.stringify(res)}`);
+    const resError = _.get(res, 'error');
+    const resType = _.get(res, 'payload.type');
+    const resDesc = _.get(res, 'payload.description');
+    if (resError === 1000) {
         result.error = -1;
         result.msg = 'Timeout';
+    } else if (resType === 'AUTH_FAILURE') {
+        result.error = 1;
+        result.msg = resDesc;
+    } else if (resType === 'INVALID_PARAMETERS') {
+        result.error = 2;
+        result.msg = resDesc;
     }
     logger.info(`(api.updateGatewayDeviceState) result: ${JSON.stringify(result)}`);
     return result;
