@@ -2,6 +2,7 @@ import makeMDns from 'multicast-dns';
 import _ from 'lodash';
 import logger from '../log';
 import mDnsGateway from '../ts/class/mDnsGatewayClass';
+import whichGatewayType from './whichGatewayType';
 
 const mDns = makeMDns();
 
@@ -32,10 +33,13 @@ mDns.on('response', (response: any) => {
         }
     }
 
-    if (gatewayInfo.ip) {
+    const { ip, name } = gatewayInfo;
+
+    if (ip) {
         mDnsGateway.mDnsGatewayMap.set(gatewayInfo.ip, {
-            ip: gatewayInfo.ip,
-            name: gatewayInfo.name,
+            ip,
+            name,
+            type: whichGatewayType(name),
         });
     }
 });
