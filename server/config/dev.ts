@@ -12,8 +12,8 @@ export const devConf = {
         appSecret: '',
     },
     auth: {
-        appId: '',
-        appSecret: '',
+        appId: 'DP1ydXVV50xwj9Pi',
+        appSecret: 'gHDu79PCw*yR%wtfmy5YUzo!yknm74xz',
     },
     timeConfig: {
         mDnsGapTime: 30, //s

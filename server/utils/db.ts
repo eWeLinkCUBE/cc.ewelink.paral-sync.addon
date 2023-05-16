@@ -7,27 +7,30 @@ import encryption from './encryption';
 
 let store: KeyV | null = null;
 
-export async function initDb(filename: string) {
-    if (!_.isEmpty(store)) return;
-
+export async function initDb(filename: string, isDbFileExist: boolean) {
     // create store object
     store = new KeyV({
         store: new KeyvFile({
             filename,
             // encode function 
             encode: (val: any) => {
-                return encryption.encryptAES(config.auth.appSecret, JSON.stringify(val));
+                return encryption.encryptAES(JSON.stringify(val), config.auth.appSecret);
             },
+            // encode: JSON.stringify,
             // decode function
             decode: (val: any) => {
-                return encryption.decryptAES(config.auth.appSecret, JSON.stringify(val));
+                const decryptStr = encryption.decryptAES(val, config.auth.appSecret);
+                return JSON.parse(decryptStr);
             }
+            // decode: JSON.parse
         })
     });
 
-    // init data
-    for (const key of Object.values(dbDataTmp)) {
-        await store.set(key, dbDataTmp[key as keyof IDbData]);
+    // first init should init data
+    if (!isDbFileExist) {
+        for (const key of Object.keys(dbDataTmp)) {
+            await store.set(key, dbDataTmp[key as keyof IDbData]);
+        }
     }
 }
 
@@ -72,7 +75,7 @@ async function getDb() {
         for (const key of Object.keys(dbDataTmp)) {
             const curVal = await store.get(key);
             _.assign(res, {
-                [key]: JSON.parse(curVal)
+                [key]: curVal
             })
         };
         return res as IDbData;

@@ -26,9 +26,8 @@ if (!fs.existsSync(dataPath)) {
     fs.mkdirSync(dataPath);
 }
 
-if (!fs.existsSync(dbPath)) {
-    initDb(dbPath);
-}
+const isDbFileExist = fs.existsSync(dbPath);
+initDb(dbPath, isDbFileExist);
 
 logger.info('fs.existsSync(versionPath)------------------', fs.existsSync(versionPath), versionPath);
 // 获取当前版本号
