@@ -1,52 +1,68 @@
 import _ from 'lodash';
 import { Request, Response } from 'express';
-import { toResponse } from '../utils/error';
+import {
+    ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT,
+    ERR_GATEWAY_IP_INVALID,
+    ERR_NO_SUCH_GATEWAY,
+    ERR_SUCCESS,
+    toResponse
+} from '../utils/error';
 import logger from '../log';
 import DB from '../utils/db';
-import { getGatewayToken as CubeApiGetGatewayToken } from '../api';
+import CubeApi from '../lib/cube-api';
 
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
     try {
-        // 根据 mac 地址查找相应的网关信息
-        const mac = req.params.mac.trim();
-        const gatewayInfoList = await DB.getDbValue('gatewayInfoList');
-        const i = _.findIndex(gatewayInfoList, { mac });
-        logger.info(`(service.getGatewayToken) mac: ${mac}, gatewayInfoList: ${JSON.stringify(gatewayInfoList)}, i: ${i}`);
-        if (i === -1) {
-            return res.json(toResponse(501));
+        /** 请求的网关 MAC 地址 */
+        const reqGatewayMac = req.params.mac;
+        /** 本地存储的网关信息列表 */
+        const localGatewayInfoList = await DB.getDbValue('gatewayInfoList');
+        /** 请求的网关信息 */
+        const reqGatewayInfo = _.find(localGatewayInfoList, { mac: reqGatewayMac });
+
+        logger.info(`(service.getGatewayToken) reqGatewayMac: ${reqGatewayMac}`);
+        logger.info(`(service.getGatewayToken) localGatewayInfoList: ${JSON.stringify(localGatewayInfoList)}`);
+        logger.info(`(service.getGatewayToken) reqGatewayInfo: ${JSON.stringify(reqGatewayInfo)}`);
+
+        if (!reqGatewayInfo) {
+            logger.info(`(service.getGatewayToken) response: ERR_NO_SUCH_GATEWAY`);
+            return res.json(toResponse(ERR_NO_SUCH_GATEWAY));
+        }
+        if (!reqGatewayInfo.ipValid) {
+            logger.info(`(service.getGatewayToken) response: ERR_GATEWAY_IP_INVALID`);
+            return res.json(toResponse(ERR_GATEWAY_IP_INVALID));
         }
 
-        // 如果网关的 IP 无效，则返回报错信息
-        const gatewayInfo = _.cloneDeep(gatewayInfoList[i]);
-        logger.debug(`(service.getGatewayToken) gatewayInfo: ${JSON.stringify(gatewayInfo)}`);
-        if (!gatewayInfo.ipValid) {
-            return res.json(toResponse(502));
-        }
+        if (!reqGatewayInfo.tokenValid) {
+            // 如果请求的网关凭证无效，则调用获取网关凭证接口
+            const ApiClient = CubeApi.ihostApi;
+            const reqGatewayClient = new ApiClient({ ip: reqGatewayInfo.ip });
+            let cubeApiRes = null;
+            // TODO: 添加 timeout, interval 的配置
+            cubeApiRes = await reqGatewayClient.getBridgeAT({});
+            logger.info(`(service.getGatewayToken) reqGatewayClient.getBridgeAT() res: ${JSON.stringify(cubeApiRes)}`);
 
-        // 如果网关的凭证无效，则调用 eWeLink Cube API 的获取凭证接口并更新网关信息
-        if (!gatewayInfo.tokenValid) {
-            const tokenRes = await CubeApiGetGatewayToken(gatewayInfo.ip);
-            if (tokenRes.error === -1) {
-                return res.json(toResponse(1200));
+            const resError = _.get(cubeApiRes, 'error');
+            const resData = _.get(cubeApiRes, 'data') as any;
+            if (resError === 0) {
+                // 请求成功更新本地存储的数据
+                logger.info(`(service.getGatewayToken) before update -> localGatewayInfoList: ${JSON.stringify(localGatewayInfoList)}`);
+                reqGatewayInfo.token = resData.token;
+                reqGatewayInfo.tokenValid = true;
+                reqGatewayInfo.ts = `${Date.now()}`;
+                logger.info(`(service.getGatewayToken) after update -> localGatewayInfoList: ${JSON.stringify(localGatewayInfoList)}`);
+                // TODO: acquire lock
+                await DB.setDbValue('gatewayInfoList', localGatewayInfoList);
+                logger.info(`(service.getGatewayToken) response: Success`);
+                return res.json(toResponse(ERR_SUCCESS, 'Success', reqGatewayInfo));
+            } else {
+                logger.info(`(service.getGatewayToken) response: ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT`);
+                return res.json(toResponse(ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT));
             }
-
-            // TODO: 上锁
-            // TODO: 如果上锁了，不用重新获取数据
-            const preUpdateList = await DB.getDbValue('gatewayInfoList');
-            const updateIndex = _.findIndex(preUpdateList, { mac });
-            logger.debug(`(service.getGatewayToken) before -> preUpdateList: ${JSON.stringify(preUpdateList)}, updateIndex: ${updateIndex}`);
-            if (updateIndex === -1) {
-                return res.json(toResponse(1201));
-            }
-            preUpdateList[updateIndex].token = tokenRes.data?.token as string;
-            preUpdateList[updateIndex].tokenValid = true;
-            preUpdateList[updateIndex].ts = `${Date.now()}`;
-            await DB.setDbValue('gatewayInfoList', preUpdateList);
-            logger.debug(`(service.getGatewayToken) after -> preUpdateList: ${JSON.stringify(preUpdateList)}`);
-            return res.json(toResponse(0, 'Success', preUpdateList[updateIndex]));
         } else {
-            return res.json(toResponse(0, 'Success', gatewayInfo));
+            logger.info(`(service.getGatewayToken) response: Success`);
+            return res.json(toResponse(ERR_SUCCESS, 'Success', reqGatewayInfo));
         }
     } catch (error: any) {
         logger.error(`get iHost token code error----------------: ${error.message}`);

@@ -44,6 +44,13 @@ export const ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID = 602;
 export const ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT = 603;
 /** eWeLink Cube API 添加第三方设备参数错误 */
 export const ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID = 604;
+/** eWeLink Cube API 获取网关凭证超时 */
+export const ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT = 605;
+
+/** 无相应的网关信息 */
+export const ERR_NO_SUCH_GATEWAY = 501;
+/** 请求网关的 IP 无效 */
+export const ERR_GATEWAY_IP_INVALID = 502;
 
 
 // 错误映射
@@ -65,7 +72,10 @@ ERROR_MAPPING[ERR_CUBEAPI_GET_DEVICE_TIMEOUT] = 'eWeLink Cube API - getDeviceLis
 ERROR_MAPPING[ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID] = 'eWeLink Cube API - syncDevice error: token invalid';
 ERROR_MAPPING[ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT] = 'eWeLink Cube API - syncDevice error: timeout';
 ERROR_MAPPING[ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID] = 'eWeLink Cube API - syncDevice error: params invalid';
+ERROR_MAPPING[ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT] = 'eWeLink Cube API - getGatewayToken error: token invalid';
 
+ERROR_MAPPING[ERR_NO_SUCH_GATEWAY] = 'No such gateway';
+ERROR_MAPPING[ERR_GATEWAY_IP_INVALID] = 'Gateway IP invalid';
 
 //{
 //    0: "success",
