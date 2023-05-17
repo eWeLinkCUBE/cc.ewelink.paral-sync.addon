@@ -22,6 +22,7 @@ import logger from '../log';
 import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
+import CONFIG from '../config';
 
 /**
  * 创建设备的 tags
@@ -30,7 +31,7 @@ import { GatewayDeviceItem } from '../ts/interface/CubeApi';
  * @param srcGatewayMac 同步来源网关的 MAC 地址
  * @returns 合并后的 tags
  */
-function createDeviceTags(device: GatewayDeviceItem, srcGatewayMac: string) {
+export function createDeviceTags(device: GatewayDeviceItem, srcGatewayMac: string) {
     let result = {};
     if (device.tags) {
         result = { ...device.tags };
@@ -45,9 +46,8 @@ function createDeviceTags(device: GatewayDeviceItem, srcGatewayMac: string) {
 /**
  * 创建设备的 service address
  */
-function createDeviceServiceAddr() {
-    // TODO: fix this address
-    return 'http://'
+export function createDeviceServiceAddr(deviceId: string) {
+    return `${CONFIG.localIp}/devices/${deviceId}`;
 }
 
 /** 同步单个设备(1500) */
@@ -163,7 +163,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
                     capabilities: willSyncDeviceData.capabilities,
                     state: willSyncDeviceData.state,
                     tags: createDeviceTags(willSyncDeviceData, srcGatewayMac),
-                    service_address: createDeviceServiceAddr()
+                    service_address: createDeviceServiceAddr(willSyncDeviceId)
                 }
             ];
             logger.info(`(service.syncOneDevice) syncDevices: ${JSON.stringify(syncDevices)}`);
