@@ -132,8 +132,10 @@ export default async function syncOneDevice(req: Request, res: Response) {
                 const deviceFromSrcGateway = device.from === srcGatewayMac;
                 if (deviceFromSrcGateway && !deviceInSrcGateway) {
                     // 设备已不在来源网关设备列表中，删除它
-                    cubeApiRes = await srcGatewayApiClient.deleteDevice(willSyncDeviceId);
-                    logger.info(`(service.syncOneDevice) srcGatewayApiClient.deleteDevice() res: ${JSON.stringify(cubeApiRes)}`);
+                    if (device.isSynced) {
+                        cubeApiRes = await destGatewayApiClient.deleteDevice(device.id);
+                        logger.info(`(service.syncOneDevice) srcGatewayApiClient.deleteDevice() res: ${JSON.stringify(cubeApiRes)}`);
+                    }
                 } else {
                     localDeviceListUpdate.push(device);
                 }

@@ -42,7 +42,7 @@ type DbKey = keyof IDbData;
 /**
  * 网关信息项目
  */
-interface IGatewayInfoItem {
+export interface IGatewayInfoItem {
     /** mac地址 */
     mac: string;
     /** ip地址 */
@@ -64,7 +64,7 @@ interface IGatewayInfoItem {
 /**
  * 网关设备数据
  */
-interface IDeviceItem {
+export interface IDeviceItem {
     /** 设备名称 */
     name: string;
     /** 设备id */

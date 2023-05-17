@@ -5,7 +5,7 @@ export function toResponse(error: number, msg?: string, data?: any) {
 
     const res = {
         error,
-        msg: errorMsg || msg || "Internal Error",
+        msg: msg || errorMsg || "Internal Error",
     }
 
     return data ? Object.assign(res, { data }) : res;
@@ -51,6 +51,8 @@ export const ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT = 605;
 export const ERR_NO_SUCH_GATEWAY = 501;
 /** 请求网关的 IP 无效 */
 export const ERR_GATEWAY_IP_INVALID = 502;
+/** 请求网关的凭证无效 */
+export const ERR_GATEWAY_TOKEN_INVALID = 503;
 
 
 // 错误映射
@@ -76,26 +78,4 @@ ERROR_MAPPING[ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT] = 'eWeLink Cube API - getGa
 
 ERROR_MAPPING[ERR_NO_SUCH_GATEWAY] = 'No such gateway';
 ERROR_MAPPING[ERR_GATEWAY_IP_INVALID] = 'Gateway IP invalid';
-
-//{
-//    0: "success",
-//    500: "Internal Error",
-//    // 找不到相应 mac 地址的网关信息
-//    501: 'No such gateway',
-//    // 相应网关的 IP 地址无效
-//    502: 'Gateway IP address could not be reached',
-//    // 找不到相应 mac 地址的网关同步记录
-//    503: 'No such gateway sync record',
-//    // 相应网关的凭证无效
-//    504: 'Gateway token invalid',
-//
-//    // 请求超时
-//    1200: 'Get token timeout',
-//    // 网关信息被删除
-//    1201: 'Gateway has been removed',
-//
-//    // 获取设备请求超时
-//    1400: 'Get device list timeout',
-//
-//    // 同步目标网关不存在
-//}
+ERROR_MAPPING[ERR_GATEWAY_TOKEN_INVALID] = 'Gateway token invalid';
