@@ -30,16 +30,16 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
         // 如果网关的凭证无效，则返回报错信息
         if (!gatewayInfo.tokenValid) {
-            return res.json(toResponse(1400));
+            return res.json(toResponse(504));
         }
 
         // 发送请求，获取网关的设备数据
         const apiClient = new ApiClient({ ip: gatewayInfo.ip, at: gatewayInfo.token });
         const deviceListRes = await CubeApiGetGatewayDeviceList(apiClient);
         if (deviceListRes.error === -1) {
-            return res.json(toResponse(1401));
-        } else if (deviceListRes.error === 1) {
             return res.json(toResponse(1400));
+        } else if (deviceListRes.error === 1) {
+            return res.json(toResponse(504));
         }
 
         // TODO: 上锁
@@ -53,8 +53,8 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
         const result = [];
         logger.debug(`(service.getSourceGatewaySubDevices) before -> localDeviceList: ${JSON.stringify(localDeviceList)}`);
         for (const device of reqDeviceList) {
-            const deviceId = `${device.serial_number}_${mac}`;
-            const found = _.find(updateDeviceList, { id: deviceId });
+            const deviceId = device.serial_number;
+            const found = _.find(updateDeviceList, { id: deviceId, mac });
             if (found) {
                 result.push(found);
             } else {

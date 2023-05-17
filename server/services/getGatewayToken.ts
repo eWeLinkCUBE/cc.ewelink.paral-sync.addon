@@ -32,6 +32,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
             }
 
             // TODO: 上锁
+            // TODO: 如果上锁了，不用重新获取数据
             const preUpdateList = await DB.getDbValue('gatewayInfoList');
             const updateIndex = _.findIndex(preUpdateList, { mac });
             logger.debug(`(service.getGatewayToken) before -> preUpdateList: ${JSON.stringify(preUpdateList)}, updateIndex: ${updateIndex}`);
