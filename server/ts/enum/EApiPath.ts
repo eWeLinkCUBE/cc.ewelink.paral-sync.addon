@@ -16,6 +16,8 @@ enum EApiPath {
     SYNC_ALL_DEVICES = '/devices',
     /** 8、 开关新增设备自动同步 */
     CHANGE_IS_AUTO_SYNC_STATUS = '/auto-sync',
+    /** 9、sse */
+    SSE = '/sse',
 }
 
 export default EApiPath;
