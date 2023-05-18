@@ -3,12 +3,13 @@ import { Request, Response } from 'express';
 import {
     ERR_GATEWAY_IP_INVALID,
     ERR_GATEWAY_TOKEN_INVALID,
+    ERR_NO_DEST_GATEWAY_INFO,
     ERR_NO_SUCH_GATEWAY,
     ERR_SUCCESS,
     toResponse
 } from '../utils/error';
 import logger from '../log';
-import DB, { IGatewayInfoItem } from '../utils/db';
+import DB, { IDeviceItem, IGatewayInfoItem } from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import { ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID } from '../utils/error';
@@ -29,6 +30,22 @@ function createDestGatewayClient(gatewayList: IGatewayInfoItem[], destMac: strin
             return null;
         }
     }
+}
+
+/**
+ * 判断本地设备是否还在同步目标网关中
+ *
+ * @param destDeviceList 同步目标网关的设备列表
+ * @param localDevice 本地设备
+ */
+function deviceInDestGateway(destDeviceList: GatewayDeviceItem[], localDevice: IDeviceItem) {
+    for (const destDevice of destDeviceList) {
+        const id = _.get(destDevice, 'tags.__nsproAddonData.deviceId');
+        if (id === localDevice.id) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /** 获取指定网关下的子设备列表(1400) */
@@ -63,7 +80,12 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
         const ApiClient = CubeApi.ihostApi;
         const reqGatewayClient = new ApiClient({ ip: reqGatewayInfo.ip, at: reqGatewayInfo.token });
-        let destGatewayClient = createDestGatewayClient(localGatewayInfoList, destGatewayMac);
+        const destGatewayClient = createDestGatewayClient(localGatewayInfoList, destGatewayMac);
+        // 有中间件的保障，此处 client 大概率不为 null
+        if (!destGatewayClient) {
+            logger.info(`(service.getSourceGatewaySubDevices) response: ERR_NO_DEST_GATEWAY_INFO`);
+            return res.json(toResponse(ERR_NO_DEST_GATEWAY_INFO));
+        }
         let cubeApiRes = null;
         cubeApiRes = await reqGatewayClient.getDeviceList();
         logger.info(`(service.getSourceGatewaySubDevices) reqGatewayClient.getDeviceList() res: ${JSON.stringify(cubeApiRes)}`);
@@ -82,9 +104,17 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
             logger.info(`(service.getSourceGatewaySubDevices) before update -> localDeviceList: ${JSON.stringify(localDeviceList)}`);
 
-            // TODO: 拉目标网关的设备，修改 localDeviceList 的同步字段
+            // TODO: check cubeApiRes
+            cubeApiRes = await destGatewayClient.getDeviceList();
+            /** 同步目标网关的设备列表 */
+            const destGatewayDeviceList = cubeApiRes.data.device_list as GatewayDeviceItem[];
 
             for (const device of localDeviceList) {
+                if (!deviceInDestGateway(destGatewayDeviceList, device)) {
+                    // 如果设备已经不在同步目标网关中了，则将 isSynced 字段置为 false
+                    device.isSynced = false;
+                }
+
                 const deviceInReqGateway = _.find(reqGatewayList, { serial_number: device.id });
                 const deviceFromReqGateway = device.from === reqGatewayMac;
                 if (deviceFromReqGateway && !deviceInReqGateway) {

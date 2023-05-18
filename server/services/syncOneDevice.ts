@@ -37,7 +37,8 @@ export function createDeviceTags(device: GatewayDeviceItem, srcGatewayMac: strin
         result = { ...device.tags };
     }
     const additionalData = {
-        srcGatewayMac
+        srcGatewayMac,
+        deviceId: device.serial_number
     };
     _.set(result, '__nsproAddonData', additionalData);
     return result;
