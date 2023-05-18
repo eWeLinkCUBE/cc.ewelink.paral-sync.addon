@@ -43,6 +43,8 @@ export default async function syncAllDevices(req: Request, res: Response) {
         const localDeviceList = await DB.getDbValue('gatewayDeviceList');
         /** 本地存储的网关信息列表 */
         const localGatewayInfoList = await DB.getDbValue('gatewayInfoList');
+        logger.info(`(service.syncAllDevices) localDeviceList: ${JSON.stringify(localDeviceList)}`);
+        logger.info(`(service.syncAllDevices) localGatewayInfoList: ${JSON.stringify(localGatewayInfoList)}`);
 
         /** 可达的本地设备列表 */
         const localDeviceListA = [];
@@ -53,16 +55,19 @@ export default async function syncAllDevices(req: Request, res: Response) {
                 localDeviceListA.push(device);
             }
         }
+        logger.info(`(service.syncAllDevices) localDeviceListA: ${JSON.stringify(localDeviceListA)}`);
 
         /** 校准完 isSynced 后的本地设备列表 */
         const localDeviceListB = [];
         const destGatewayMac = await DB.getDbValue('destGatewayMac');
+        logger.info(`(service.syncAllDevices) destGatewayMac: ${JSON.stringify(destGatewayMac)}`);
         const destGatewayInfo = _.find(localGatewayInfoList, { mac: destGatewayMac });
         const destGatewayClient = new ApiClient({ ip: destGatewayInfo!.ip, at: destGatewayInfo!.token });
         let cubeApiRes = null;
         cubeApiRes = await destGatewayClient.getDeviceList();
         // TODO: handle res
         const destGatewayDeviceList = cubeApiRes.data.device_list as GatewayDeviceItem[];
+        logger.info(`(service.syncAllDevices) destGatewayDeviceList: ${JSON.stringify(destGatewayDeviceList)}`);
         // 校准 isSynced 字段
         for (const device of localDeviceListA) {
             if (deviceInDestGateway(destGatewayDeviceList, device)) {
@@ -72,6 +77,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
             }
             localDeviceListB.push(device);
         }
+        logger.info(`(service.syncAllDevices) localDeviceListB: ${JSON.stringify(localDeviceListB)}`);
 
         /** 同步来源网关的设备列表缓存 */
         const srcGatewayDeviceCache: { srcGatewayClient: any; srcGatewayMac: string; deviceList: GatewayDeviceItem[]; }[] = [];
@@ -112,9 +118,12 @@ export default async function syncAllDevices(req: Request, res: Response) {
                 }
             }
         }
+        logger.info(`(service.syncAllDevices) srcGatewayDeviceCache: ${JSON.stringify(srcGatewayDeviceCache)}`);
+        logger.info(`(service.syncAllDevices) deviceRecord: ${JSON.stringify(deviceRecord)}`);
 
-        // TODO: 调用接口
+        // TODO: 根据返回值修改 isSynced 值
         cubeApiRes = await destGatewayClient.syncDevices({ devices: deviceRecord as any });
+        logger.info(`(service.syncAllDevices) destGatewayClient.syncDevices() res: ${JSON.stringify(cubeApiRes)}`);
 
         // TODO: 更新本地数据
         return res.json(toResponse(0));
