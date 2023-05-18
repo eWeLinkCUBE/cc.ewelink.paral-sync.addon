@@ -47,7 +47,7 @@ export function createDeviceTags(device: GatewayDeviceItem, srcGatewayMac: strin
  * 创建设备的 service address
  */
 export function createDeviceServiceAddr(deviceId: string) {
-    return `${CONFIG.localIp}/devices/${deviceId}`;
+    return `${CONFIG.localIp}/api/v1/open/device/${deviceId}`;
 }
 
 /** 同步单个设备(1500) */

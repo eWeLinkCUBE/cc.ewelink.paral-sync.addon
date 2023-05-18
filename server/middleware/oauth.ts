@@ -14,7 +14,6 @@ function getSign(params: any, appSecret: string) {
                 const value = _.get(params, key);
                 sign += `${key}${typeof value === 'object' ? JSON.stringify(value) : value}`;
             });
-        ``;
         sign = cryptoJS
             .MD5(`${appSecret}${encodeURIComponent(sign)}${appSecret}`)
             .toString()

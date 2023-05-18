@@ -8,6 +8,7 @@ import { internalError, notFound } from './middleware/error';
 import config from './config';
 import { initDb } from './utils/db';
 import oauth from './middleware/oauth';
+import { checkDestGateway } from './middleware/checkDestGateway';
 import _ from 'lodash';
 import gapTimeRun from './utils/gapTimeRun';
 
@@ -44,6 +45,9 @@ app.use(info);
 
 // 鉴权校验
 // app.use(oauth);
+
+// 检查同步目标网关有效性
+// app.use(checkDestGateway);
 
 // 路由处理
 app.use('/api/v1', router);
