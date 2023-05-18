@@ -17,22 +17,26 @@ export const ERR_SUCCESS = 0;
 /** 内部错误 */
 export const ERR_INTERNAL_ERROR = 500;
 
+/** 请求的网关 MAC 地址与同步目标网关 MAC 地址不一样 */
+export const ERR_NOT_MATCH_DEST_MAC = 1200;
+
 /** 无同步目标网关的 MAC 地址 */
-export const ERR_NO_DEST_GATEWAY_MAC = 1500;
+export const ERR_NO_DEST_GATEWAY_MAC = 700;
 /** 无同步目标网关的信息 */
-export const ERR_NO_DEST_GATEWAY_INFO = 1501;
+export const ERR_NO_DEST_GATEWAY_INFO = 701;
 /** 同步目标网关的 IP 不可用 */
-export const ERR_DEST_GATEWAY_IP_INVALID = 1502;
+export const ERR_DEST_GATEWAY_IP_INVALID = 702;
 /** 同步目标网关的凭证不可用 */
-export const ERR_DEST_GATEWAY_TOKEN_INVALID = 1503;
+export const ERR_DEST_GATEWAY_TOKEN_INVALID = 703;
+
 /** 无同步来源网关的信息 */
-export const ERR_NO_SRC_GATEWAY_INFO = 1504;
+export const ERR_NO_SRC_GATEWAY_INFO = 1500;
 /** 同步来源网关的 IP 不可用 */
-export const ERR_SRC_GATEWAY_IP_INVALID = 1505;
+export const ERR_SRC_GATEWAY_IP_INVALID = 1501;
 /** 同步来源网关的凭证不可用 */
-export const ERR_SRC_GATEWAY_TOKEN_INVALID = 1506;
+export const ERR_SRC_GATEWAY_TOKEN_INVALID = 1502;
 /** 同步设备不在同步来源网关中 */
-export const ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY = 1507;
+export const ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY = 1503;
 
 /** eWeLink Cube API 获取设备列表凭证无效 */
 export const ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID = 600;
@@ -60,10 +64,13 @@ const ERROR_MAPPING: any = {};
 ERROR_MAPPING[ERR_SUCCESS] = 'Success';
 ERROR_MAPPING[ERR_INTERNAL_ERROR] = 'Internal Error';
 
+ERROR_MAPPING[ERR_NOT_MATCH_DEST_MAC] = 'Not match dest gateway MAC address';
+
 ERROR_MAPPING[ERR_NO_DEST_GATEWAY_MAC] = 'No dest gateway MAC address';
 ERROR_MAPPING[ERR_NO_DEST_GATEWAY_INFO] = 'No dest gateway info';
 ERROR_MAPPING[ERR_DEST_GATEWAY_IP_INVALID] = 'Dest gateway IP invalid';
 ERROR_MAPPING[ERR_DEST_GATEWAY_TOKEN_INVALID] = 'Dest gateway token invalid';
+
 ERROR_MAPPING[ERR_NO_SRC_GATEWAY_INFO] = 'No src gateway info';
 ERROR_MAPPING[ERR_SRC_GATEWAY_IP_INVALID] = 'Src gateway IP invalid';
 ERROR_MAPPING[ERR_SRC_GATEWAY_TOKEN_INVALID] = 'Src gateway token invalid';

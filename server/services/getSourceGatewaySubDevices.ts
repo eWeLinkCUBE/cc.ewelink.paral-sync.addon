@@ -82,6 +82,8 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
             logger.info(`(service.getSourceGatewaySubDevices) before update -> localDeviceList: ${JSON.stringify(localDeviceList)}`);
 
+            // TODO: 拉目标网关的设备
+
             for (const device of localDeviceList) {
                 const deviceInReqGateway = _.find(reqGatewayList, { serial_number: device.id });
                 const deviceFromReqGateway = device.from === reqGatewayMac;
