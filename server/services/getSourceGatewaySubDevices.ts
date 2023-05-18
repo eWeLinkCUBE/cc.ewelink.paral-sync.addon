@@ -38,7 +38,7 @@ function createDestGatewayClient(gatewayList: IGatewayInfoItem[], destMac: strin
  * @param destDeviceList 同步目标网关的设备列表
  * @param localDevice 本地设备
  */
-function deviceInDestGateway(destDeviceList: GatewayDeviceItem[], localDevice: IDeviceItem) {
+export function deviceInDestGateway(destDeviceList: GatewayDeviceItem[], localDevice: IDeviceItem) {
     for (const destDevice of destDeviceList) {
         const id = _.get(destDevice, 'tags.__nsproAddonData.deviceId');
         if (id === localDevice.id) {
