@@ -8,8 +8,8 @@ import CryptoJS from 'crypto-js';
  * @param {string} key
  * @returns {*}  {string}
  */
-function decryptAES(str: string, key: string): string {
-    const decrypted = CryptoJS.AES.decrypt(str, key, {
+function decryptAES(decryptStr: string, key: string): string {
+    const decrypted = CryptoJS.AES.decrypt(decryptStr, key, {
         mode: CryptoJS.mode.ECB,
         padding: CryptoJS.pad.Pkcs7
     })
