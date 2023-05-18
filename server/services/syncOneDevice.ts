@@ -31,7 +31,7 @@ import CONFIG from '../config';
  * @param srcGatewayMac 同步来源网关的 MAC 地址
  * @returns 合并后的 tags
  */
-export function createDeviceTags(device: GatewayDeviceItem, srcGatewayMac: string) {
+export function createDeviceTags(device: any, srcGatewayMac: string) {
     let result = {};
     if (device.tags) {
         result = { ...device.tags };

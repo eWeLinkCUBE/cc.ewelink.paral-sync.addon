@@ -4,6 +4,7 @@ import logger from '../log';
 import KeyV from 'keyv';
 import { KeyvFile } from 'keyv-file';
 import encryption from './encryption';
+import { ServerSentEvent } from '../ts/class/fromSse';
 
 let store: KeyV | null = null;
 
@@ -106,6 +107,7 @@ interface IDbData {
     gatewayDeviceList: IDeviceItem[];
     /** 被同步目标网关的 mac 地址 */
     destGatewayMac: string;
+    ssePool: Map<string, ServerSentEvent>
 }
 
 export const dbDataTmp: IDbData = {
@@ -113,7 +115,8 @@ export const dbDataTmp: IDbData = {
     autoSync: false,
     gatewayInfoList: [],
     gatewayDeviceList: [],
-    destGatewayMac: ''
+    destGatewayMac: '',
+    ssePool: new Map()
 };
 
 /** 获取所有数据 */
@@ -146,6 +149,7 @@ async function setDbValue(key: 'autoSync', v: IDbData['autoSync']): Promise<void
 async function setDbValue(key: 'gatewayInfoList', v: IDbData['gatewayInfoList']): Promise<void>;
 async function setDbValue(key: 'gatewayDeviceList', v: IDbData['gatewayDeviceList']): Promise<void>;
 async function setDbValue(key: 'destGatewayMac', v: IDbData['destGatewayMac']): Promise<void>;
+async function setDbValue(key: 'ssePool', v: IDbData['ssePool']): Promise<void>;
 async function setDbValue(key: DbKey, v: IDbData[DbKey]) {
     if (!store) return;
     await store.set(key, v);
@@ -157,6 +161,7 @@ async function getDbValue(key: 'autoSync'): Promise<IDbData['autoSync']>;
 async function getDbValue(key: 'gatewayInfoList'): Promise<IDbData['gatewayInfoList']>;
 async function getDbValue(key: 'gatewayDeviceList'): Promise<IDbData['gatewayDeviceList']>;
 async function getDbValue(key: 'destGatewayMac'): Promise<IDbData['destGatewayMac']>;
+async function getDbValue(key: 'ssePool'): Promise<IDbData['ssePool']>;
 async function getDbValue(key: DbKey) {
     if (!store) return null;
     const res = await store.get(key);
