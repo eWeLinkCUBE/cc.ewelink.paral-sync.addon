@@ -71,7 +71,7 @@ export class ServerSentEvent {
                 logger.info('init sse error', event)
                 // TODO 重连并且将设备相关所有设备全部下线
                 this.status = ESseStatus.RECONNECTING;
-                this._reconnectSse();
+                await this._reconnectSse();
                 resolve(false);
             }
         })
@@ -85,30 +85,34 @@ export class ServerSentEvent {
         /** 新增设备 */
         this.source.addEventListener('device#v1#addDevice', (event) => {
             const { payload } = JSON.parse(event.data) as IAddDevice;
+            logger.info(`sse ${this.connectionId} trigger new device ${payload.serial_number} added`)
             // 同步设备
-            sseUtils.syncOneDevice(payload);
+            sseUtils.syncOneDevice(payload, this.sseInitParams.mac);
         })
 
         /** 设备状态更新 */
         this.source.addEventListener('device#v1#updateDeviceState', (event) => {
             const { payload } = JSON.parse(event.data) as IDeviceStateUpdate;
+            sseUtils.updateOneDevice({ type: 'state', payload });
         })
 
         /** 设备信息更新 */
         this.source.addEventListener('device#v1#updateDeviceInfo', (event) => {
             const { payload } = JSON.parse(event.data) as IDeviceInfoUpdate;
-
+            sseUtils.updateOneDevice({ type: 'info', payload });
         })
 
         /** 设备上下线 */
         this.source.addEventListener('device#v1#updateDeviceOnline', (event) => {
             const { payload } = JSON.parse(event.data) as IDeviceOnOrOffline;
+            sseUtils.updateOneDevice({ type: 'online', payload });
         })
 
         /** 设备被删除 */
         this.source.addEventListener('device#v1#deleteDevice', (event) => {
             const { endpoint } = JSON.parse(event.data) as IDeviceDeleted;
             // 取消同步设备
+            sseUtils.deleteOneDevice(endpoint);
         })
     }
     /**
@@ -156,15 +160,14 @@ export class ServerSentEvent {
             this.source.close();
         }
     }
-
     /**
      * @description 生成重试间隔
      * @private
      * @param {number} retryInterval
-     * @returns {*} 
+     * @returns {number} 
      * @memberof ServerSentEvent
      */
-    private _getRetryInterval(retryInterval: number) {
+    private _getRetryInterval(retryInterval: number): number {
         const TWO_HOURS = 7200000;
         const retryCount = this.retryCount + 1;
         let interval = retryInterval;
@@ -175,6 +178,14 @@ export class ServerSentEvent {
         const userInterval = retryCount * interval * 1000;
         // 最大重试间隔不超过2小时
         return userInterval >= TWO_HOURS ? TWO_HOURS : userInterval;
+    }
+    /**
+     * @description 更新sse连接参数
+     * @param {ISseParams} params
+     * @memberof ServerSentEvent
+     */
+    updateSseParams(params: ISseParams) {
+        this.sseInitParams = params;
     }
 }
 
