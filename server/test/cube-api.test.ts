@@ -62,8 +62,8 @@ async function testUpdateGatewayDeviceState() {
 
 // testGetGatewayInfo();
 // testGetGatewayToken();
-// testGetGatewayDeviceList();
+testGetGatewayDeviceList();
 // testAddGatewaySubDeviceList();
 // testUpdateGatewaySubDeviceOnline();
 // testUpdateGatewaySubDeviceState();
-testUpdateGatewayDeviceState();
+// testUpdateGatewayDeviceState();
