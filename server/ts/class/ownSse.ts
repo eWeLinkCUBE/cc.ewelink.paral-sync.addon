@@ -27,6 +27,7 @@ class ServerSendStream {
         this.heartbeat = null;
         this.req = req;
         this.res = res;
+        this.configureLifecycle();
     }
     configureLifecycle() {
         this.heartbeat = setInterval(() => {

@@ -60,11 +60,14 @@ interface IDbData {
     gatewayInfoObj: IGatewayInfoObj;
     /** 是否自动 */
     autoSync: boolean;
+    /** sse池 */
+    ssePool: Map<string, string>;
 }
 
 export const dbDataTmp: IDbData = {
     gatewayInfoObj: {},
     autoSync: false,
+    ssePool: new Map()
 };
 
 /** 获取所有数据 */

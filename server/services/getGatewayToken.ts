@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { toResponse } from '../utils/error';
 import logger from '../log';
 import db from '../utils/db';
-import sse from '../ts/class/sse';
 
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
