@@ -1,38 +1,38 @@
-import { IThirdpartyDevice } from "../../lib/cube-api";
+import { ECategory } from "../../lib/cube-api";
 import { ICapability } from "../../lib/cube-api/ts/interface/IDevice";
-import ECapability from "../enum/ECapability";
+// import ECapability from "../enum/ECapability";
 import { IHostStateInterface } from "./IHostState";
 
 export interface IAddDevice {
-    payload: IThirdpartyDevice;
+    payload: IAddDevicePayload;
 }
 
-// export interface IAddDevicePayload {
-//     /** 设备id */
-//     serial_number: string;
-//     /** 第三方设备id */
-//     third_serial_number: string;
-//     /** 设备名称 */
-//     name: string;
-//     /** 厂商 */
-//     manufacturer: string;
-//     /** 设备产品型号 */
-//     model: string;
-//     /** 固件版本 */
-//     firmware_version: string;
-//     /** 设备分类 */
-//     display_category: ECapability;
-//     /** 能力列表 */
-//     capabilities: ICapability[];
-//     /** 设备协议 */
-//     protocol: 'zigbee' | 'onvif' | 'rtsp' | 'esp32-cam';
-//     /** 能力具体属性 */
-//     state: IHostStateInterface;
-//     /** tag */
-//     tags: Object;
-//     /** 是否在线 */
-//     online: boolean;
-// }
+export interface IAddDevicePayload {
+    /** 设备id */
+    serial_number: string;
+    /** 第三方设备id */
+    third_serial_number: string;
+    /** 设备名称 */
+    name: string;
+    /** 厂商 */
+    manufacturer: string;
+    /** 设备产品型号 */
+    model: string;
+    /** 固件版本 */
+    firmware_version: string;
+    /** 设备分类 */
+    display_category: ECategory;
+    /** 能力列表 */
+    capabilities: ICapability[];
+    /** 设备协议 */
+    protocol: 'zigbee' | 'onvif' | 'rtsp' | 'esp32-cam';
+    /** 能力具体属性 */
+    state: any;
+    /** tag */
+    tags: any;
+    /** 是否在线 */
+    online: boolean;
+}
 
 // interface Capability {
 //     /** 设备能力 */
