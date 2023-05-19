@@ -3,11 +3,9 @@ import { Request, Response } from 'express';
 import {
     ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT,
     ERR_DEST_GATEWAY_IP_INVALID,
-    ERR_GATEWAY_IP_INVALID,
     ERR_INTERNAL_ERROR,
-    ERR_NOT_MATCH_DEST_MAC,
-    ERR_NO_DEST_GATEWAY_INFO,
-    ERR_NO_SUCH_GATEWAY,
+    ERR_NO_SRC_GATEWAY_INFO,
+    ERR_SRC_GATEWAY_IP_INVALID,
     ERR_SUCCESS,
     toResponse
 } from '../utils/error';
@@ -19,115 +17,98 @@ import CONFIG from '../config';
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
     try {
-        /** 请求的网关 MAC 地址 */
+
+        const ApiClient = CubeApi.ihostApi;
+
+        /** 请求凭证的网关 MAC 地址 */
         const reqGatewayMac = req.params.mac;
-        /** 请求的网关 MAC 地址是同步目标网关 */
-        const reqMacIsDest = req.query.isSyncTarget === '1';
-        /** 本地存储的网关信息列表 */
-        const localGatewayInfoList = await DB.getDbValue('gatewayInfoList');
-        /** 请求的网关信息 */
-        const reqGatewayInfo = _.find(localGatewayInfoList, { mac: reqGatewayMac });
+        /** 请求凭证的网关可能是同步目标网关 */
+        const reqGatewayMaybeDest = req.query.isSyncTarget === '1';
 
         logger.info(`(service.getGatewayToken) reqGatewayMac: ${reqGatewayMac}`);
-        logger.info(`(service.getGatewayToken) localGatewayInfoList: ${JSON.stringify(localGatewayInfoList)}`);
-        logger.info(`(service.getGatewayToken) reqMacIsDest: ${reqMacIsDest}`);
-        logger.info(`(service.getGatewayToken) reqGatewayInfo: ${JSON.stringify(reqGatewayInfo)}`);
+        logger.info(`(service.getGatewayToken) reqGatewayMaybeDest: ${reqGatewayMaybeDest}`);
 
-        if (reqMacIsDest) {
-            /** 本地存储的同步目标网关 MAC 地址 */
-            const localDestGatewayMac = await DB.getDbValue('destGatewayMac');
-            logger.info(`(service.getGatewayToken) localDestGatewayMac: ${localDestGatewayMac}`);
-            if (localDestGatewayMac) {
-                // 本地有同步目标网关的 MAC 地址
-                if (localDestGatewayMac !== reqGatewayMac) {
-                    logger.info(`(service.getGatewayToken) response: ERR_NOT_MATCH_DEST_MAC`);
-                    return res.json(toResponse(ERR_NOT_MATCH_DEST_MAC));
-                } else {
-                    const destGatewayData = _.find(localGatewayInfoList, { mac: localDestGatewayMac });
-                    logger.info(`(service.getGatewayToken) destGatewayData: ${JSON.stringify(destGatewayData)}`);
+        if (reqGatewayMaybeDest) { // 请求凭证的网关可能是同步目标网关
+            /** 本地存储的同步目标网关信息 */
+            const localDestGatewayInfo = await DB.getDbValue('destGatewayInfo');
+            logger.info(`(service.getGatewayToken) localDestGatewayInfo: ${localDestGatewayInfo}`);
+            if (localDestGatewayInfo) { // 前端访问该接口时，同步目标网关信息一定存在
+                if (!localDestGatewayInfo.ipValid) {
+                    logger.info(`(service.getGatewayToken) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
+                    return res.json(toResponse(ERR_DEST_GATEWAY_IP_INVALID));
+                }
 
-                    if (!destGatewayData) {
-                        logger.info(`(service.getGatewayToken) response: ERR_NO_DEST_GATEWAY_INFO`);
-                        return res.json(toResponse(ERR_NO_DEST_GATEWAY_INFO));
-                    }
+                if (!localDestGatewayInfo.tokenValid) { // 如果同步目标网关的凭证已失效，则需要重新获取
+                    const destApiClient = new ApiClient({ ip: localDestGatewayInfo.ip });
+                    const cubeApiRes = await destApiClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
+                    logger.info(`(service.getGatewayToken) destApiClient.getBridgeAT() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
 
-                    if (!destGatewayData.ipValid) {
-                        logger.info(`(service.getGatewayToken) response: ERR_DEST_GATEWAY_IP_INVALID`);
-                        return res.json(toResponse(ERR_DEST_GATEWAY_IP_INVALID));
-                    }
+                    const resError = _.get(cubeApiRes, 'error');
+                    const resData = _.get(cubeApiRes, 'data') as any;
+                    if (resError === 0) {
+                        // 更新本地存储的同步目标网关信息
+                        localDestGatewayInfo.token = resData.token;
+                        localDestGatewayInfo.tokenValid = true;
+                        localDestGatewayInfo.ts = `${Date.now()}`;
+                        logger.info(`(service.getGatewayToken) after update localDestGatewayInfo: ${JSON.stringify(localDestGatewayInfo)}`);
+                        // TODO: acquire lock
+                        await DB.setDbValue('destGatewayInfo', localDestGatewayInfo);
 
-                    if (!destGatewayData.tokenValid) {
-                        const ApiClient = CubeApi.ihostApi;
-                        const destGatewayClient = new ApiClient({ ip: destGatewayData.ip });
-                        let cubeApiRes = null;
-                        cubeApiRes = await destGatewayClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
-                        logger.info(`(service.getGatewayToken) destGatewayClient.getBridgeAT() res: ${JSON.stringify(cubeApiRes)}`);
-
-                        const resError = _.get(cubeApiRes, 'error');
-                        const resData = _.get(cubeApiRes, 'data') as any;
-                        if (resError === 0) {
-                            // 请求成功更新本地存储的数据
-                            logger.info(`(service.getGatewayToken) before update -> localGatewayInfoList: ${JSON.stringify(localGatewayInfoList)}`);
-                            destGatewayData.token = resData.token;
-                            destGatewayData.tokenValid = true;
-                            destGatewayData.ts = `${Date.now()}`;
-                            logger.info(`(service.getGatewayToken) after update -> localGatewayInfoList: ${JSON.stringify(localGatewayInfoList)}`);
-                            // TODO: acquire lock
-                            await DB.setDbValue('gatewayInfoList', localGatewayInfoList);
-                            logger.info(`(service.getGatewayToken) response: Success`);
-                            return res.json(toResponse(ERR_SUCCESS, 'Success', destGatewayData));
-                        } else {
-                            logger.info(`(service.getGatewayToken) response: ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT`);
-                            return res.json(toResponse(ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT));
-                        }
+                        logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
+                        return res.json(toResponse(ERR_SUCCESS, 'Success', localDestGatewayInfo));
                     } else {
-                        return res.json(toResponse(ERR_SUCCESS, 'Success', destGatewayData));
+                        logger.info(`(service.getGatewayToken) RESPONSE: ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT`);
+                        return res.json(toResponse(ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT));
                     }
+                } else { // 同步目标网关的凭证未失效，直接返回给前端
+                    logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
+                    return res.json(toResponse(ERR_SUCCESS, 'Success', localDestGatewayInfo));
                 }
+            }
+        } else { // 请求凭证的网关是同步来源网关
+            /** 本地存储的同步来源网关信息列表 */
+            const localSrcGatewayInfoList = await DB.getDbValue('srcGatewayInfoList');
+            const i = _.findIndex(localSrcGatewayInfoList, { mac: reqGatewayMac });
+            if (i === -1) {
+                logger.info(`(service.getGatewayToken) RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
+                return res.json(toResponse(ERR_NO_SRC_GATEWAY_INFO));
+            }
+
+            /** 本地存储的同步来源网关信息 */
+            const localSrcGatewayInfo = localSrcGatewayInfoList[i];
+            if (!localSrcGatewayInfo.ipValid) {
+                logger.info(`(service.getGatewayToken) RESPONSE: ERR_SRC_GATEWAY_IP_INVALID`);
+                return res.json(toResponse(ERR_SRC_GATEWAY_IP_INVALID));
+            }
+
+            if (!localSrcGatewayInfo.tokenValid) { // 同步来源网关的凭证已失效，重新获取
+                const srcApiClient = new ApiClient({ ip: localSrcGatewayInfo.ip });
+                const cubeApiRes = await srcApiClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
+                logger.info(`(service.getGatewayToken) srcApiClient.getBridgeAT() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+
+                const resError = _.get(cubeApiRes, 'error');
+                const resData = _.get(cubeApiRes, 'data') as any;
+                if (resError === 0) {
+                    // 更新本地存储的同步来源网关信息
+                    localSrcGatewayInfo.token = resData.token;
+                    localSrcGatewayInfo.tokenValid = true;
+                    localSrcGatewayInfo.ts = `${Date.now()}`;
+                    logger.info(`(service.getGatewayToken) after update localSrcGatewayInfoList: ${JSON.stringify(localSrcGatewayInfoList)}`);
+                    // TODO: acquire lock
+                    await DB.setDbValue('srcGatewayInfoList', localSrcGatewayInfoList);
+
+                    logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
+                    return res.json(toResponse(ERR_SUCCESS, 'Success', localSrcGatewayInfo));
+                } else {
+                    logger.info(`(service.getGatewayToken) RESPONSE: ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT`);
+                    return res.json(toResponse(ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT));
+                }
+            } else { // 同步来源网关的凭证未失效，直接返回给前端
+                logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
+                return res.json(toResponse(ERR_SUCCESS, 'Success', localSrcGatewayInfo));
             }
         }
 
-        if (!reqGatewayInfo) {
-            logger.info(`(service.getGatewayToken) response: ERR_NO_SUCH_GATEWAY`);
-            return res.json(toResponse(ERR_NO_SUCH_GATEWAY));
-        }
-        if (!reqGatewayInfo.ipValid) {
-            logger.info(`(service.getGatewayToken) response: ERR_GATEWAY_IP_INVALID`);
-            return res.json(toResponse(ERR_GATEWAY_IP_INVALID));
-        }
-
-        if (!reqGatewayInfo.tokenValid) {
-            // 如果请求的网关凭证无效，则调用获取网关凭证接口
-            const ApiClient = CubeApi.ihostApi;
-            const reqGatewayClient = new ApiClient({ ip: reqGatewayInfo.ip });
-            let cubeApiRes = null;
-            cubeApiRes = await reqGatewayClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
-            logger.info(`(service.getGatewayToken) reqGatewayClient.getBridgeAT() res: ${JSON.stringify(cubeApiRes)}`);
-
-            const resError = _.get(cubeApiRes, 'error');
-            const resData = _.get(cubeApiRes, 'data') as any;
-            if (resError === 0) {
-                // 请求成功更新本地存储的数据
-                logger.info(`(service.getGatewayToken) before update -> localGatewayInfoList: ${JSON.stringify(localGatewayInfoList)}`);
-                reqGatewayInfo.token = resData.token;
-                reqGatewayInfo.tokenValid = true;
-                reqGatewayInfo.ts = `${Date.now()}`;
-                logger.info(`(service.getGatewayToken) after update -> localGatewayInfoList: ${JSON.stringify(localGatewayInfoList)}`);
-                // TODO: acquire lock
-                await DB.setDbValue('gatewayInfoList', localGatewayInfoList);
-                if (reqMacIsDest) {
-                    await DB.setDbValue('destGatewayMac', reqGatewayMac);
-                }
-                logger.info(`(service.getGatewayToken) response: Success`);
-                return res.json(toResponse(ERR_SUCCESS, 'Success', reqGatewayInfo));
-            } else {
-                logger.info(`(service.getGatewayToken) response: ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT`);
-                return res.json(toResponse(ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT));
-            }
-        } else {
-            logger.info(`(service.getGatewayToken) response: Success`);
-            return res.json(toResponse(ERR_SUCCESS, 'Success', reqGatewayInfo));
-        }
     } catch (error: any) {
         logger.error(`get iHost token code error----------------: ${error.message}`);
         res.json(toResponse(ERR_INTERNAL_ERROR));

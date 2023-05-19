@@ -25,14 +25,14 @@ export const ERR_NO_DEST_GATEWAY_MAC = 700;
 /** 无同步目标网关的信息 */
 export const ERR_NO_DEST_GATEWAY_INFO = 701;
 /** 同步目标网关的 IP 不可用 */
-export const ERR_DEST_GATEWAY_IP_INVALID = 702;
+export const ERR_DEST_GATEWAY_IP_INVALID = 702; // 1
 /** 同步目标网关的凭证不可用 */
 export const ERR_DEST_GATEWAY_TOKEN_INVALID = 703;
 
 /** 无同步来源网关的信息 */
-export const ERR_NO_SRC_GATEWAY_INFO = 1500;
+export const ERR_NO_SRC_GATEWAY_INFO = 1500; // 1
 /** 同步来源网关的 IP 不可用 */
-export const ERR_SRC_GATEWAY_IP_INVALID = 1501;
+export const ERR_SRC_GATEWAY_IP_INVALID = 1501; // 1
 /** 同步来源网关的凭证不可用 */
 export const ERR_SRC_GATEWAY_TOKEN_INVALID = 1502;
 /** 同步设备不在同步来源网关中 */
@@ -49,7 +49,7 @@ export const ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT = 603;
 /** eWeLink Cube API 添加第三方设备参数错误 */
 export const ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID = 604;
 /** eWeLink Cube API 获取网关凭证超时 */
-export const ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT = 605;
+export const ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT = 605; // 1
 
 /** 无相应的网关信息 */
 export const ERR_NO_SUCH_GATEWAY = 501;
