@@ -113,7 +113,7 @@ export function createNoce() {
     return result;
 }
 
-export function createCommonHeader(type: EReqMethod, params: object, at: string | null) {
+export function createCommonHeader(type: EReqMethod, params: object) {
     // const auth = at ? `Bearer ${at}` : `Sign ` + getAuthSign(params); //登陆后 使用Bearer //登录前 使用Sign 当前只有post,没有get,get的处理方式不一样
 
     // const auth = at ? `Bearer ${at}` : '';
@@ -123,24 +123,14 @@ export function createCommonHeader(type: EReqMethod, params: object, at: string 
         'Cache-Control': 'no-store',
         sign: `Sign ${getAuthSign(params)}`,
     };
-    if (at) data.Authorization = `Bearer ${at}`;
     return data;
 }
 
-export function beforeLoginRequest<T>(url: string, params: object, methodType: EReqMethod) {
+export function request<T>(url: string, params: object, methodType: EReqMethod) {
     return _httpGetPOSTPutDeleteRequest<T>(url, params, methodType);
 }
 
-export function afterLoginRequest<T>(url: string, params: object, methodType: EReqMethod) {
-    const at = api.getAt();
-
-    if (!at) {
-        console.warn(`调用此接口(${url})，必须先登录 或者 登录才能获取完整数据!`);
-    }
-    return _httpGetPOSTPutDeleteRequest<T>(url, params, methodType, at);
-}
-
-async function _httpGetPOSTPutDeleteRequest<T>(url: string, params: object, methodType: EReqMethod, at: string | null = null) {
+async function _httpGetPOSTPutDeleteRequest<T>(url: string, params: object, methodType: EReqMethod) {
     const axiosConfig = {
         url,
         method: methodType,
@@ -155,7 +145,7 @@ async function _httpGetPOSTPutDeleteRequest<T>(url: string, params: object, meth
         axiosConfig.params = Object.assign(axiosConfig.params, { ts, appid: appId });
     }
 
-    let headers = createCommonHeader(methodType, params, at);
+    let headers = createCommonHeader(methodType, params);
     axiosConfig.headers = headers;
 
     if (methodType === EReqMethod.POST || methodType === EReqMethod.PUT || methodType === EReqMethod.DELETE) {
@@ -174,7 +164,7 @@ async function _httpGetPOSTPutDeleteRequest<T>(url: string, params: object, meth
             if (axiosConfig.url === '/user' && axiosConfig.method === 'PUT') {
                 return result ? (result.data as IResponse<T>) : ({} as IResponse<T>);
             }
-            etcStore.atPastDue();
+            // etcStore.atPastDue();
         }
         // if (result.data.error === 500) {
         //     message.error(i18n.global.t('ERROR_500'))
