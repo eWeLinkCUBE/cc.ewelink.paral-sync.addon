@@ -31,13 +31,13 @@ export const useDeviceStore = defineStore('addon_device', {
     },
     actions: {
         async getBeforeLoginDeviceList() {
-            const res = await api.smartHome.getAllLanDeviceBeforeLogin();
+            const res = await api.NSPanelPro.getAllLanDeviceBeforeLogin();
             if (res.data && res.error === 0) {
                 this.beforeLoginDeviceList = res.data.deviceList;
             }
         },
         async getAfterLoginDeviceList(forceRefresh:boolean = false) {
-            const res = await api.smartHome.getAllLanDeviceAfterLogin(forceRefresh);
+            const res = await api.NSPanelPro.getAllLanDeviceAfterLogin(forceRefresh);
             
             if (res.data && res.error === 0) {
                 const isMyAccountDeviceList = res.data.deviceList.filter((item) => {
