@@ -14,6 +14,7 @@ import {
 import logger from '../log';
 import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
+import CONFIG from '../config';
 
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
@@ -59,8 +60,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                         const ApiClient = CubeApi.ihostApi;
                         const destGatewayClient = new ApiClient({ ip: destGatewayData.ip });
                         let cubeApiRes = null;
-                        // TODO: 添加 timeout, interval 的配置
-                        cubeApiRes = await destGatewayClient.getBridgeAT({});
+                        cubeApiRes = await destGatewayClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
                         logger.info(`(service.getGatewayToken) destGatewayClient.getBridgeAT() res: ${JSON.stringify(cubeApiRes)}`);
 
                         const resError = _.get(cubeApiRes, 'error');
@@ -101,8 +101,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
             const ApiClient = CubeApi.ihostApi;
             const reqGatewayClient = new ApiClient({ ip: reqGatewayInfo.ip });
             let cubeApiRes = null;
-            // TODO: 添加 timeout, interval 的配置
-            cubeApiRes = await reqGatewayClient.getBridgeAT({});
+            cubeApiRes = await reqGatewayClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
             logger.info(`(service.getGatewayToken) reqGatewayClient.getBridgeAT() res: ${JSON.stringify(cubeApiRes)}`);
 
             const resError = _.get(cubeApiRes, 'error');

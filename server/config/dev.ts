@@ -30,4 +30,6 @@ export const devConf = {
     },
     /** 启动的ip */
     localIp: 'http://192.168.31.194:8322',
+    /** 获取网关凭证的等待时长 */
+    getGatewayTokenTimeout: 300000,
 };

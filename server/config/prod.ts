@@ -30,4 +30,6 @@ export const prodConf = {
     },
     /** 启动的ip */
     localIp: 'http://ihost:8322',
+    /** 获取网关凭证的等待时长 */
+    getGatewayTokenTimeout: 300000,
 };
