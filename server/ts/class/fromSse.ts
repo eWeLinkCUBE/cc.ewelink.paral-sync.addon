@@ -89,27 +89,27 @@ export class ServerSentEvent {
 
         /** 设备状态更新 */
         this.source.addEventListener('device#v1#updateDeviceState', (event) => {
-            const { payload } = JSON.parse(event.data) as IDeviceStateUpdate;
-            sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload });
+            const { payload, endpoint } = JSON.parse(event.data) as IDeviceStateUpdate;
+            sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload, endpoint }, this.sseInitParams.mac);
         })
 
         /** 设备信息更新 */
         this.source.addEventListener('device#v1#updateDeviceInfo', (event) => {
-            const { payload } = JSON.parse(event.data) as IDeviceInfoUpdate;
-            sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload });
+            const { payload, endpoint } = JSON.parse(event.data) as IDeviceInfoUpdate;
+            sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload, endpoint }, this.sseInitParams.mac);
         })
 
         /** 设备上下线 */
         this.source.addEventListener('device#v1#updateDeviceOnline', (event) => {
-            const { payload } = JSON.parse(event.data) as IDeviceOnOrOffline;
-            sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload });
+            const { payload, endpoint } = JSON.parse(event.data) as IDeviceOnOrOffline;
+            sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload, endpoint }, this.sseInitParams.mac);
         })
 
         /** 设备被删除 */
         this.source.addEventListener('device#v1#deleteDevice', (event) => {
             const { endpoint } = JSON.parse(event.data) as IDeviceDeleted;
             // 取消同步设备
-            sseUtils.deleteOneDevice(endpoint, this.connectionId);
+            sseUtils.deleteOneDevice(endpoint);
         })
     }
     /**

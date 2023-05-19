@@ -1,5 +1,6 @@
 import { ECategory } from "../../lib/cube-api";
 import { ICapability } from "../../lib/cube-api/ts/interface/IDevice";
+import { IEndpoint } from "../../lib/cube-api/ts/interface/IThirdParty";
 // import ECapability from "../enum/ECapability";
 import { IHostStateInterface } from "./IHostState";
 
@@ -44,22 +45,15 @@ export interface IAddDevicePayload {
 
 export interface IDeviceStateUpdate {
     /** 更新源信息 */
-    endpoint: Endpoint;
+    endpoint: IEndpoint;
     /** 能力更新数据 */
     payload: IHostStateInterface;
-}
-
-export interface Endpoint {
-    /** 设备id */
-    serial_number: string;
-    /** 第三方设备id */
-    third_serial_number: string;
 }
 
 
 export interface IDeviceInfoUpdate {
     /** 更新源信息 */
-    endpoint: Endpoint;
+    endpoint: IEndpoint;
     /** 能力更新数据 */
     payload: IDeviceInfoUpdatePayload;
 }
@@ -71,12 +65,12 @@ export interface IDeviceInfoUpdatePayload {
 
 export interface IDeviceDeleted {
     /** 更新源信息 */
-    endpoint: Endpoint;
+    endpoint: IEndpoint;
 }
 
 export interface IDeviceOnOrOffline {
     /** 更新源信息 */
-    endpoint: Endpoint;
+    endpoint: IEndpoint;
     /** 能力更新数据 */
     payload: IDeviceOnOrOfflinePayload;
 }
