@@ -79,8 +79,6 @@ export const useEtcStore = defineStore('addon_etc', {
         },
         atPastDue(){
             const deviceStore = useDeviceStore()
-            clearInterval(deviceStore.afterLoginDeviceListInterval);
-            clearInterval(this.getUserInfoInterval);
             return new Promise((resolve) => {
                 setTimeout(() => {
                     window.localStorage.removeItem('addon_etc');
@@ -94,12 +92,6 @@ export const useEtcStore = defineStore('addon_etc', {
                     resolve(1);
                 }, 1500);
             });
-        },
-        async logOut() {
-            const res = await api.smartHome.logOut();
-            if (res.error === 0) {
-                this.atPastDue()
-            }
         },
         setAutoSyncStatus(state: boolean) {
             this.userInfo.autoSyncStatus = state;
