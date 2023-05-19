@@ -24,9 +24,9 @@ export async function initDb(filename: string, isDbFileExist: boolean) {
             decode: (val: any) => {
                 const decryptStr = encryption.decryptAES(val, config.auth.appSecret);
                 return JSON.parse(decryptStr);
-            }
+            },
             // decode: JSON.parse
-        })
+        }),
     });
 
     // first init should init data
@@ -133,9 +133,9 @@ async function getDb() {
         for (const key of Object.keys(dbDataTmp)) {
             const curVal = await store.get(key);
             _.assign(res, {
-                [key]: curVal
-            })
-        };
+                [key]: curVal,
+            });
+        }
         return res as IDbData;
     } catch (error) {
         logger.error('get db file---------------', 'error-----', error);
