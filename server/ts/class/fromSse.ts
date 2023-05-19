@@ -1,11 +1,8 @@
-import { Request, Response } from "express";
 import _ from "lodash";
-import { v4 as uuid } from 'uuid';
 import logger from "../../log";
 import EventSource from "eventsource";
 import { IAddDevice, IDeviceDeleted, IDeviceInfoUpdate, IDeviceOnOrOffline, IDeviceStateUpdate } from "../interface/ISse";
 import sseUtils from "../../utils/sseUtils";
-import IGatewayInfo from "../interface/IGatewayInfo";
 import tools from "../../utils/tools";
 import db, { IGatewayInfoItem } from "../../utils/db";
 
@@ -92,20 +89,20 @@ export class ServerSentEvent {
 
         /** 设备状态更新 */
         this.source.addEventListener('device#v1#updateDeviceState', (event) => {
-            const { payload } = JSON.parse(event.data) as IDeviceStateUpdate;
-            sseUtils.updateOneDevice({ type: 'state', payload });
+            const { payload, endpoint } = JSON.parse(event.data) as IDeviceStateUpdate;
+            sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload, endpoint }, this.sseInitParams.mac);
         })
 
         /** 设备信息更新 */
         this.source.addEventListener('device#v1#updateDeviceInfo', (event) => {
-            const { payload } = JSON.parse(event.data) as IDeviceInfoUpdate;
-            sseUtils.updateOneDevice({ type: 'info', payload });
+            const { payload, endpoint } = JSON.parse(event.data) as IDeviceInfoUpdate;
+            sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload, endpoint }, this.sseInitParams.mac);
         })
 
         /** 设备上下线 */
         this.source.addEventListener('device#v1#updateDeviceOnline', (event) => {
-            const { payload } = JSON.parse(event.data) as IDeviceOnOrOffline;
-            sseUtils.updateOneDevice({ type: 'online', payload });
+            const { payload, endpoint } = JSON.parse(event.data) as IDeviceOnOrOffline;
+            sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload, endpoint }, this.sseInitParams.mac);
         })
 
         /** 设备被删除 */
