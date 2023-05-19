@@ -12,25 +12,9 @@ import {
     toResponse
 } from '../utils/error';
 import logger from '../log';
-import DB, { IDeviceItem } from '../utils/db';
+import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
-
-/**
- * 判断本地设备是否还在同步目标网关中
- *
- * @param destDeviceList 同步目标网关的设备列表
- * @param localDevice 本地设备
- */
-export function deviceInDestGateway(destDeviceList: GatewayDeviceItem[], localDevice: IDeviceItem) {
-    for (const destDevice of destDeviceList) {
-        const id = _.get(destDevice, 'tags.__nsproAddonData.deviceId');
-        if (id === localDevice.id) {
-            return true;
-        }
-    }
-    return false;
-}
 
 /**
  * 判断同步来源网关的设备是否在同步目标网关中

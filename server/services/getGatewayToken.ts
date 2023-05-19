@@ -3,9 +3,9 @@ import { Request, Response } from 'express';
 import {
     ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT,
     ERR_DEST_GATEWAY_IP_INVALID,
+    ERR_GATEWAY_IP_INVALID,
     ERR_INTERNAL_ERROR,
-    ERR_NO_SRC_GATEWAY_INFO,
-    ERR_SRC_GATEWAY_IP_INVALID,
+    ERR_NO_SUCH_GATEWAY,
     ERR_SUCCESS,
     toResponse
 } from '../utils/error';
@@ -70,15 +70,15 @@ export default async function getGatewayToken(req: Request, res: Response) {
             const localSrcGatewayInfoList = await DB.getDbValue('srcGatewayInfoList');
             const i = _.findIndex(localSrcGatewayInfoList, { mac: reqGatewayMac });
             if (i === -1) {
-                logger.info(`(service.getGatewayToken) RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
-                return res.json(toResponse(ERR_NO_SRC_GATEWAY_INFO));
+                logger.info(`(service.getGatewayToken) RESPONSE: ERR_NO_SUCH_GATEWAY`);
+                return res.json(toResponse(ERR_NO_SUCH_GATEWAY));
             }
 
             /** 本地存储的同步来源网关信息 */
             const localSrcGatewayInfo = localSrcGatewayInfoList[i];
             if (!localSrcGatewayInfo.ipValid) {
-                logger.info(`(service.getGatewayToken) RESPONSE: ERR_SRC_GATEWAY_IP_INVALID`);
-                return res.json(toResponse(ERR_SRC_GATEWAY_IP_INVALID));
+                logger.info(`(service.getGatewayToken) RESPONSE: ERR_GATEWAY_IP_INVALID`);
+                return res.json(toResponse(ERR_GATEWAY_IP_INVALID));
             }
 
             if (!localSrcGatewayInfo.tokenValid) { // 同步来源网关的凭证已失效，重新获取
