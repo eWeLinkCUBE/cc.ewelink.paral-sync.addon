@@ -18,40 +18,40 @@ export const ERR_SUCCESS = 0;
 export const ERR_INTERNAL_ERROR = 500;
 
 /** 无同步目标网关的信息 */
-export const ERR_NO_DEST_GATEWAY_INFO = 701; // m
+export const ERR_NO_DEST_GATEWAY_INFO = 701;
 /** 同步目标网关的 IP 不可用 */
-export const ERR_DEST_GATEWAY_IP_INVALID = 702; // 1 2 3
+export const ERR_DEST_GATEWAY_IP_INVALID = 702;
 /** 同步目标网关的凭证不可用 */
-export const ERR_DEST_GATEWAY_TOKEN_INVALID = 703; // 2 3
+export const ERR_DEST_GATEWAY_TOKEN_INVALID = 703;
 
 /** 无同步来源网关的信息 */
-export const ERR_NO_SRC_GATEWAY_INFO = 800; // 3
+export const ERR_NO_SRC_GATEWAY_INFO = 1500;
 /** 同步来源网关的 IP 不可用 */
-export const ERR_SRC_GATEWAY_IP_INVALID = 801; // 3
+export const ERR_SRC_GATEWAY_IP_INVALID = 1501;
 /** 同步来源网关的凭证不可用 */
-export const ERR_SRC_GATEWAY_TOKEN_INVALID = 802; // 3
+export const ERR_SRC_GATEWAY_TOKEN_INVALID = 1502;
 /** 同步设备不在同步来源网关中 */
-export const ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY = 803; // 3
+export const ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY = 1503;
 
 /** eWeLink Cube API 获取设备列表凭证无效 */
-export const ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID = 600; // 2 3
+export const ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID = 600;
 /** eWeLink Cube API 获取设备列表请求超时 */
-export const ERR_CUBEAPI_GET_DEVICE_TIMEOUT = 601; // 2 3
+export const ERR_CUBEAPI_GET_DEVICE_TIMEOUT = 601;
 /** eWeLink Cube API 添加第三方设备凭证无效 */
-export const ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID = 602; // 3
+export const ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID = 602;
 /** eWeLink Cube API 添加第三方设备请求超时 */
-export const ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT = 603; // 3
+export const ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT = 603;
 /** eWeLink Cube API 添加第三方设备参数错误 */
-export const ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID = 604; // 3
+export const ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID = 604;
 /** eWeLink Cube API 获取网关凭证超时 */
-export const ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT = 605; // 1
+export const ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT = 605;
 
 /** 无相应的网关信息 */
-export const ERR_NO_SUCH_GATEWAY = 501; // 2 1
+export const ERR_NO_SUCH_GATEWAY = 501;
 /** 请求网关的 IP 无效 */
-export const ERR_GATEWAY_IP_INVALID = 502; // 2 1
+export const ERR_GATEWAY_IP_INVALID = 502;
 /** 请求网关的凭证无效 */
-export const ERR_GATEWAY_TOKEN_INVALID = 503; // 2
+export const ERR_GATEWAY_TOKEN_INVALID = 503;
 
 
 // 错误映射

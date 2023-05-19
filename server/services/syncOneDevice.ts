@@ -97,27 +97,27 @@ export default async function syncOneDevice(req: Request, res: Response) {
 
         // 获取同步来源网关的设备列表
         cubeApiRes = await srcGatewayClient.getDeviceList();
-        logger.info(`(service.getSourceGatewaySubDevices) srcGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+        logger.info(`(service.syncOneDevice) srcGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
         if (cubeApiRes.error === 0) {
             srcGatewayDeviceList = cubeApiRes.data.device_list;
         } else if (cubeApiRes.error === 401) {
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
+            logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
         } else {
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
+            logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
         }
 
         // 获取同步目标网关的设备列表
         cubeApiRes = await destGatewayClient.getDeviceList();
-        logger.info(`(service.getSourceGatewaySubDevices) destGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+        logger.info(`(service.syncOneDevice) destGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
         if (cubeApiRes.error === 0) {
             destGatewayDeviceList = cubeApiRes.data.device_list;
         } else if (cubeApiRes.error === 401) {
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
+            logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
         } else {
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
+            logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
         }
 

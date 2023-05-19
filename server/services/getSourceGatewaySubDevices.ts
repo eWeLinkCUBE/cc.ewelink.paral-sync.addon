@@ -123,8 +123,8 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
             const srcGatewayDeviceId = _.get(device, 'tags.__nsproAddonData.deviceId');
             const found = _.find(srcGatewayDeviceList, { serial_number: srcGatewayDeviceId });
             if (!found) {
-                // TODO: handle res and log it
                 cubeApiRes = await destGatewayClient.deleteDevice(device.serial_number);
+                logger.info(`(service.getSourceGatewaySubDevices) destGatewayClient.deleteDevice() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
             }
         }
 
