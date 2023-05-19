@@ -4,31 +4,25 @@ import logger from '../log';
 import KeyV from 'keyv';
 import { KeyvFile } from 'keyv-file';
 import encryption from './encryption';
-import { ServerSentEvent } from '../ts/class/fromSse';
-
 let store: KeyV | null = null;
-
 export async function initDb(filename: string, isDbFileExist: boolean) {
     // create store object
     store = new KeyV({
         store: new KeyvFile({
             filename,
-
             // encode function
             encode: (val: any) => {
                 return encryption.encryptAES(JSON.stringify(val), config.auth.appSecret);
             },
             // encode: JSON.stringify,
-
             // decode function
             decode: (val: any) => {
                 const decryptStr = encryption.decryptAES(val, config.auth.appSecret);
                 return JSON.parse(decryptStr);
-            }
+            },
             // decode: JSON.parse
-        })
+        }),
     });
-
     // first init should init data
     if (!isDbFileExist) {
         for (const key of Object.keys(dbDataTmp)) {
@@ -36,10 +30,7 @@ export async function initDb(filename: string, isDbFileExist: boolean) {
         }
     }
 }
-
-
 type DbKey = keyof IDbData;
-
 /**
  * 网关信息项目
  */
@@ -61,7 +52,6 @@ export interface IGatewayInfoItem {
     /** 凭证是否有效 */
     tokenValid: boolean;
 }
-
 /**
  * 网关设备数据
  */
@@ -75,7 +65,6 @@ export interface IDeviceItem {
     /** 设备是否已同步 */
     isSynced: boolean;
 }
-
 // !!!: 已弃用
 interface IGatewayInfoObj {
     [mac: string]: {
@@ -95,7 +84,6 @@ interface IGatewayInfoObj {
         token: '';
     };
 }
-
 interface IDbData {
     /** iHost的信息 */
     gatewayInfoObj: IGatewayInfoObj;
@@ -107,18 +95,20 @@ interface IDbData {
     gatewayDeviceList: IDeviceItem[];
     /** 被同步目标网关的 mac 地址 */
     destGatewayMac: string;
-    ssePool: Map<string, ServerSentEvent>
+    /** 被同步设备目标网关的信息 */
+    destGatewayInfo: null | IGatewayInfoItem;
+    /** 同步设备来源网关的信息列表 */
+    srcGatewayInfoList: IGatewayInfoItem[];
 }
-
 export const dbDataTmp: IDbData = {
     gatewayInfoObj: {},
     autoSync: false,
     gatewayInfoList: [],
     gatewayDeviceList: [],
     destGatewayMac: '',
-    ssePool: new Map()
+    destGatewayInfo: null,
+    srcGatewayInfoList: [],
 };
-
 /** 获取所有数据 */
 async function getDb() {
     if (!store) return;
@@ -127,47 +117,45 @@ async function getDb() {
         for (const key of Object.keys(dbDataTmp)) {
             const curVal = await store.get(key);
             _.assign(res, {
-                [key]: curVal
-            })
-        };
+                [key]: curVal,
+            });
+        }
         return res as IDbData;
     } catch (error) {
         logger.error('get db file---------------', 'error-----', error);
         return null as unknown as IDbData;
     }
 }
-
 /** 清除所有数据 */
 async function clearStore() {
     if (!store) return;
     await store.clear();
 }
-
 /** 设置指定的数据库数据 */
 async function setDbValue(key: 'gatewayInfoObj', v: IDbData['gatewayInfoObj']): Promise<void>;
 async function setDbValue(key: 'autoSync', v: IDbData['autoSync']): Promise<void>;
 async function setDbValue(key: 'gatewayInfoList', v: IDbData['gatewayInfoList']): Promise<void>;
 async function setDbValue(key: 'gatewayDeviceList', v: IDbData['gatewayDeviceList']): Promise<void>;
 async function setDbValue(key: 'destGatewayMac', v: IDbData['destGatewayMac']): Promise<void>;
-async function setDbValue(key: 'ssePool', v: IDbData['ssePool']): Promise<void>;
+async function setDbValue(key: 'destGatewayInfo', v: IDbData['destGatewayInfo']): Promise<void>;
+async function setDbValue(key: 'srcGatewayInfoList', v: IDbData['srcGatewayInfoList']): Promise<void>;
 async function setDbValue(key: DbKey, v: IDbData[DbKey]) {
     if (!store) return;
     await store.set(key, v);
 }
-
 /** 获取指定的数据库数据 */
 async function getDbValue(key: 'gatewayInfoObj'): Promise<IDbData['gatewayInfoObj']>;
 async function getDbValue(key: 'autoSync'): Promise<IDbData['autoSync']>;
 async function getDbValue(key: 'gatewayInfoList'): Promise<IDbData['gatewayInfoList']>;
 async function getDbValue(key: 'gatewayDeviceList'): Promise<IDbData['gatewayDeviceList']>;
 async function getDbValue(key: 'destGatewayMac'): Promise<IDbData['destGatewayMac']>;
-async function getDbValue(key: 'ssePool'): Promise<IDbData['ssePool']>;
+async function getDbValue(key: 'destGatewayInfo'): Promise<IDbData['destGatewayInfo']>;
+async function getDbValue(key: 'srcGatewayInfoList'): Promise<IDbData['srcGatewayInfoList']>;
 async function getDbValue(key: DbKey) {
     if (!store) return null;
     const res = await store.get(key);
     return res;
 }
-
 export default {
     getDb,
     clearStore,
