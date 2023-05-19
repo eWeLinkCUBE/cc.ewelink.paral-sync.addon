@@ -23,7 +23,7 @@ export const ERR_NOT_MATCH_DEST_MAC = 1200;
 /** 无同步目标网关的 MAC 地址 */
 export const ERR_NO_DEST_GATEWAY_MAC = 700;
 /** 无同步目标网关的信息 */
-export const ERR_NO_DEST_GATEWAY_INFO = 701;
+export const ERR_NO_DEST_GATEWAY_INFO = 701; // m
 /** 同步目标网关的 IP 不可用 */
 export const ERR_DEST_GATEWAY_IP_INVALID = 702; // 1
 /** 同步目标网关的凭证不可用 */
