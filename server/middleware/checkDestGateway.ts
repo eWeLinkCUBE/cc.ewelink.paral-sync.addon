@@ -2,10 +2,7 @@ import _ from 'lodash';
 import { Request, Response, NextFunction } from 'express';
 import DB from '../utils/db';
 import {
-    ERR_NO_DEST_GATEWAY_MAC,
     ERR_NO_DEST_GATEWAY_INFO,
-    ERR_DEST_GATEWAY_IP_INVALID,
-    ERR_DEST_GATEWAY_TOKEN_INVALID,
     toResponse
 } from '../utils/error';
 import logger from '../log';
@@ -18,39 +15,23 @@ export async function checkDestGateway(req: Request, res: Response, next: NextFu
     const method = req.method;
     const url = req.url;
 
+    // 获取网关凭证接口
+    const match1 = (method === 'GET') && (url.includes('/api/v1/token'));
     // 获取所有设备的接口
-    const match1 = (method === 'GET') && (url.includes('/api/v1/devices'));
+    const match2 = (method === 'GET') && (url.includes('/api/v1/devices'));
     // 同步一个设备接口
-    const match2 = (method === 'POST') && (url.includes('/api/v1/device'));
+    const match3 = (method === 'POST') && (url.includes('/api/v1/device'));
     // 同步所有设备接口
-    const match3 = (method === 'POST') && (url.includes('/api/v1/devices'));
+    const match4 = (method === 'POST') && (url.includes('/api/v1/devices'));
 
-    if (match1 || match2 || match3) {
+    if (match1 || match2 || match3 || match4) {
         logger.info(`(middle.checkDestGateway) matched`);
-        // 检查同步目标网关
-        const destGatewayMac = await DB.getDbValue('destGatewayMac');
-        logger.info(`(middle.checkDestGateway) destGatewayMac: ${destGatewayMac}`);
-        if (!destGatewayMac) {
-            logger.info(`(middle.checkDestGateway) response: ERR_NO_DEST_GATEWAY_MAC`);
-            return res.json(toResponse(ERR_NO_DEST_GATEWAY_MAC));
-        }
 
-        const localGatewayList = await DB.getDbValue('gatewayInfoList');
-        logger.info(`(middle.checkDestGateway) localGatewayList: ${JSON.stringify(localGatewayList)}`);
-        const destGatewayData = _.find(localGatewayList, { mac: destGatewayMac });
-        if (!destGatewayData) {
+        /** 本地同步目标网关信息 */
+        const localDestGatewayInfo = await DB.getDbValue('destGatewayInfo');
+        if (!localDestGatewayInfo) {
             logger.info(`(middle.checkDestGateway) response: ERR_NO_DEST_GATEWAY_INFO`);
             return res.json(toResponse(ERR_NO_DEST_GATEWAY_INFO));
-        }
-
-        if (!destGatewayData.ipValid) {
-            logger.info(`(middle.checkDestGateway) response: ERR_DEST_GATEWAY_IP_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_IP_INVALID));
-        }
-
-        if (!destGatewayData.tokenValid) {
-            logger.info(`(middle.checkDestGateway) response: ERR_DEST_GATEWAY_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_TOKEN_INVALID));
         }
     }
 

@@ -17,11 +17,6 @@ export const ERR_SUCCESS = 0;
 /** 内部错误 */
 export const ERR_INTERNAL_ERROR = 500;
 
-/** 请求的网关 MAC 地址与同步目标网关 MAC 地址不一样 */
-export const ERR_NOT_MATCH_DEST_MAC = 1200;
-
-/** 无同步目标网关的 MAC 地址 */
-export const ERR_NO_DEST_GATEWAY_MAC = 700;
 /** 无同步目标网关的信息 */
 export const ERR_NO_DEST_GATEWAY_INFO = 701;
 /** 同步目标网关的 IP 不可用 */
@@ -64,9 +59,6 @@ const ERROR_MAPPING: any = {};
 ERROR_MAPPING[ERR_SUCCESS] = 'Success';
 ERROR_MAPPING[ERR_INTERNAL_ERROR] = 'Internal Error';
 
-ERROR_MAPPING[ERR_NOT_MATCH_DEST_MAC] = 'Not match dest gateway MAC address';
-
-ERROR_MAPPING[ERR_NO_DEST_GATEWAY_MAC] = 'No dest gateway MAC address';
 ERROR_MAPPING[ERR_NO_DEST_GATEWAY_INFO] = 'No dest gateway info';
 ERROR_MAPPING[ERR_DEST_GATEWAY_IP_INVALID] = 'Dest gateway IP invalid';
 ERROR_MAPPING[ERR_DEST_GATEWAY_TOKEN_INVALID] = 'Dest gateway token invalid';
