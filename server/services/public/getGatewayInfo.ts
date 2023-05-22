@@ -1,24 +1,24 @@
 import _ from 'lodash';
 import logger from '../../log';
-import iHostApi from '../../api/iHost';
 import EErrorCode from '../../ts/enum/EErrorCode';
-import IGatewayInfo from '../../ts/interface/IGatewayInfo';
-import gatewayInfoUtil from '../../utils/gatewayInfoUtil';
-import nsPanelPro from '../../api/nsPanelPro';
 import EGatewayType from '../../ts/enum/EGatewayType';
 import db from '../../utils/db';
+import CubeApi from '../../lib/cube-api';
 
 /** 接口获取网关信息并存储到数据库中 */
 export default async (ipAddress: string, type: EGatewayType) => {
     try {
-        let request: any = iHostApi.getGatewayInfo;
+        let temIp = ipAddress;
         if (type === EGatewayType.IHOST) {
-            request = iHostApi.getGatewayInfo;
+            temIp = ipAddress;
         } else if (type === EGatewayType.NS_PANEL_PRO) {
-            request = nsPanelPro.getGatewayInfo;
+            temIp = ipAddress + ':8081';
         }
+        const ApiClient = CubeApi.ihostApi;
+        const gatewayClient = new ApiClient({ ip: temIp });
 
-        const gatewayRes = await request(ipAddress);
+        const gatewayRes = await gatewayClient.getBridgeInfo();
+
         logger.info('gatewayRes----------------', gatewayRes);
 
         if (gatewayRes.error !== 0 || !gatewayRes.data) {
@@ -41,7 +41,7 @@ export default async (ipAddress: string, type: EGatewayType) => {
             /** 获取凭证时间起点 */
             ts: '',
             /** ip是否有效 */
-            ipValid: false,
+            ipValid: true,
             /** 凭证是否有效 */
             tokenValid: false,
         };
