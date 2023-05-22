@@ -13,10 +13,20 @@ import logger from '../log';
 import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import CONFIG from '../config';
+import ownSse from '../ts/class/ownSse';
 
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
     try {
+
+        ownSse.send({
+            name: "test",
+            data: {
+                payload: {
+                    "age": 18
+                }
+            }
+        })
 
         const ApiClient = CubeApi.ihostApi;
 

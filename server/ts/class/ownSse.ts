@@ -30,6 +30,13 @@ class ServerSendStream {
         this.configureLifecycle();
     }
     configureLifecycle() {
+        this.res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+            'Connection': 'keep-alive'
+        });
+
         this.heartbeat = setInterval(() => {
             this.res.write(`data:\n\n`);
         }, this.retryInterval);
@@ -58,16 +65,13 @@ class ServerSendStream {
 }
 
 function buildStreamContext(req: Request, res: Response) {
-    const stream = new ServerSendStream(req, res);
-    res.set({
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'X-Accel-Buffering': 'no',
-        'Connection': 'keep-alive'
-    });
-    res.flushHeaders();
-    ssePool.set(stream.connectionId, stream);
-    logger.info(`sse connections count:${ssePool.size}`);
+    try {
+        const stream = new ServerSendStream(req, res);
+        ssePool.set(stream.connectionId, stream);
+        logger.info(`sse connections count:${ssePool.size}`);
+    } catch (err) {
+        logger.info(`sse connections error!!:${err}`);
+    }
 }
 
 /**
@@ -79,7 +83,7 @@ function buildStreamContext(req: Request, res: Response) {
 function send(event: ISendEvent) {
     //广播数据
     for (const entry of ssePool.entries()) {
-        let sse = entry[1];
+        const sse = entry[1];
         try {
             logger.debug(`connectionId:${entry[0]} - data:${JSON.stringify(event)}`);
             sse.publish(event);

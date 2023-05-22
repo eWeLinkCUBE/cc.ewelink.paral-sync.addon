@@ -107,6 +107,7 @@ interface IDbData {
     gatewayDeviceList: IDeviceItem[];
     /** 被同步目标网关的 mac 地址 */
     destGatewayMac: string;
+    /** sse信息池 */
     ssePool: Map<string, ServerSentEvent>;
     /** 被同步设备目标网关的信息 */
     destGatewayInfo: null | IGatewayInfoItem;
