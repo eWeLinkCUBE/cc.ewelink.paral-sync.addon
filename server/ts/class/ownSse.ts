@@ -81,7 +81,7 @@ function buildStreamContext(req: Request, res: Response) {
 function send(event: ISendEvent) {
     //广播数据
     for (const entry of ssePool.entries()) {
-        let sse = entry[1];
+        const sse = entry[1];
         try {
             logger.debug(`connectionId:${entry[0]} - data:${JSON.stringify(event)}`);
             sse.publish(event);

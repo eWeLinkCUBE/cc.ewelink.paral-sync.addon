@@ -13,8 +13,9 @@ function getMDnsGatewayList() {
 /** 局域网设备加入 */
 async function setMDnsGateway(gatewayInfo: { ip: string; name: string; deviceId: string }) {
     mDnsGatewayClass.mDnsGatewayMap.set(gatewayInfo.deviceId, gatewayInfo);
-
+    logger.info('sse 2--------------------------------------------------------');
     const nsProGatewayInfo = await getGatewayInfo(gatewayInfo.ip, EGatewayType.NS_PANEL_PRO);
+    logger.info('sse 3--------------------------------------------------------');
     ownSse.send({
         name: 'gateway_info_report',
         data: nsProGatewayInfo,

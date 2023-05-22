@@ -15,7 +15,7 @@ axios.defaults.timeout = 60000;
 
 const nsProAxiosInstance = axios.create({
     baseURL: config.nsPro.api, //基本请求路径
-    timeout: 5000, //超时设定
+    timeout: 60000, //超时设定
 });
 
 // 请求拦截器，在请求发出之前添加 Authorization 请求头

@@ -1,7 +1,6 @@
 import makeMDns from 'multicast-dns';
 import _ from 'lodash';
 import logger from '../log';
-import mDnsGatewayClass from '../ts/class/mDnsGatewayClass';
 import mDnsGatewayMapUtil from './mDnsGatewayMapUtil';
 
 const mDns = makeMDns();
@@ -15,9 +14,11 @@ mDns.on('response', (response: any) => {
     if (!Array.isArray(answers)) return;
     const responseDataList = [...answers, ...additionals];
 
+    logger.info('responseDataList--------------------------------------------------------', responseDataList);
+
     if (responseDataList.length === 0) return;
 
-    const reg = RegExp(/NSPanelPro.local/gi);
+    const reg = RegExp(/NSPanelPro/gi);
     const gatewayInfo = {
         ip: '',
         name: '',
@@ -48,13 +49,11 @@ mDns.on('response', (response: any) => {
         return;
     }
     const mDnsGatewayList = mDnsGatewayMapUtil.getMDnsGatewayList();
-    const isExistInMdns = mDnsGatewayList.some((item) => item.deviceId === gatewayInfo.deviceId && item.ip === gatewayInfo.ip);
-    if (isExistInMdns) {
+    const isExistInMDns = mDnsGatewayList.some((item) => item.deviceId === gatewayInfo.deviceId && item.ip === gatewayInfo.ip);
+    if (isExistInMDns) {
         return;
     }
     mDnsGatewayMapUtil.setMDnsGateway(gatewayInfo);
-
-    logger.info('responseDataList--------------------------------------------------------', responseDataList);
 
     logger.info('gatewayInfo--------------------------------------------------------', gatewayInfo);
 });
