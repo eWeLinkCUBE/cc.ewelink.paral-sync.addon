@@ -1,8 +1,7 @@
-import { Request, Response } from "express";
-import _ from "lodash";
+import { Request, Response } from 'express';
+import _ from 'lodash';
 import { v4 as uuid } from 'uuid';
-import logger from "../../log";
-
+import logger from '../../log';
 
 interface ISendEvent {
     /** 事件名称 例如：change_report */
@@ -58,7 +57,7 @@ class ServerSendStream {
         this.res.write(`retry: ${this.retryInterval}\n\n`);
     }
     publish(event: any) {
-        const formattedData = (typeof event.data === 'string') ? event.data : JSON.stringify(event.data);
+        const formattedData = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
         const payload = `event: ${event.name}\ndata: ${formattedData}\n\n`;
         this.res.write(payload);
     }
@@ -92,5 +91,5 @@ function send(event: ISendEvent) {
 
 export default {
     buildStreamContext,
-    send
-}
+    send,
+};

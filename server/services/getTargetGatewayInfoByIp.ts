@@ -9,7 +9,7 @@ export default async function getTargetGatewayInfoByIp(req: Request, res: Respon
     try {
         const paramsIp = req.params.ip;
 
-        //2、接口获取网关信息
+        //接口获取网关信息
         const gatewayInfo = await getGatewayInfo(paramsIp, EGatewayType.NS_PANEL_PRO);
 
         if (typeof gatewayInfo === 'number') {
