@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 import config from '../config';
 import logger from '../log';
@@ -6,6 +7,113 @@ import { KeyvFile } from 'keyv-file';
 import encryption from './encryption';
 
 let store: KeyV | null = null;
+
+/** 是否上锁 */
+let lock = false;
+/** 当前锁的 ID */
+let lockId: string | null = null;
+
+/**
+ * 程序等待 ms 的时间
+ *
+ * @param ms 等待的时长
+ */
+export function wait(ms: number) {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve(true);
+        }, ms);
+    });
+}
+
+/**
+ * 加锁参数
+ *
+ * @param retryCount 重试次数
+ */
+export interface AcquireLockParams {
+    retryCount: number;
+}
+
+/**
+ * 加锁，加锁成功返回当前锁的 ID，否则返回 null
+ *
+ * @param params 加锁参数
+ */
+export async function acquireLock(params: AcquireLockParams) {
+    const retryCount = params.retryCount || 20;
+    let step = 100;
+
+    logger.info(`(acquireLock) retryCount: ${retryCount}`);
+
+    for (let i = 0; i < retryCount; i++) {
+        if (lock) {
+            logger.info(`(acquireLock) i: ${i}, step: ${step}`);
+            // 当前锁被占用
+            await wait(step);
+            if (step < 10000) {
+                step *= 2;
+            }
+        } else {
+            // 锁未被占用
+            const curLockId = uuidv4();
+            lock = true;
+            lockId = curLockId;
+            logger.info(`(acquireLock) i: ${i}, lockId: ${curLockId}`);
+            return lockId;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * 解锁参数
+ *
+ * @param lockId 当前锁的 ID
+ * @param retryCount 重试次数
+ */
+export interface ReleaseLockParams {
+    lockId: string;
+    retryCount: number;
+}
+
+/**
+ * 解锁，解锁成功返回 true，否则返回 false
+ *
+ * @param params 解锁参数
+ */
+export async function releaseLock(params: ReleaseLockParams) {
+    const curLockId = params.lockId;
+    const retryCount = params.retryCount || 20;
+    let step = 100;
+
+    logger.info(`(releaseLock) curLockId: ${curLockId}`);
+    logger.info(`(releaseLock) retryCount: ${retryCount}`);
+
+    if (!curLockId) {
+        return false;
+    }
+
+    for (let i = 0; i < retryCount; i++) {
+        if (lock && lockId === curLockId) {
+            logger.info(`(releaseLock) unlock i: ${i}`);
+            // 尝试解锁成功
+            lock = false;
+            lockId = null;
+            return true;
+        } else {
+            logger.info(`(releaseLock) i: ${i}, step: ${step}`);
+            // 尝试解锁失败
+            await wait(step);
+            if (step < 10000) {
+                step *= 2;
+            }
+        }
+    }
+
+    return false;
+}
 
 export async function initDb(filename: string, isDbFileExist: boolean) {
     // create store object

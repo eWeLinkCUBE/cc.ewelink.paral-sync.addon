@@ -52,6 +52,8 @@ export const ERR_NO_SUCH_GATEWAY = 501;
 export const ERR_GATEWAY_IP_INVALID = 502;
 /** 请求网关的凭证无效 */
 export const ERR_GATEWAY_TOKEN_INVALID = 503;
+/** 数据库锁繁忙 */
+export const ERR_DB_LOCK_BUSY = 504;
 
 
 // 错误映射
@@ -78,3 +80,4 @@ ERROR_MAPPING[ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT] = 'eWeLink Cube API - getGa
 ERROR_MAPPING[ERR_NO_SUCH_GATEWAY] = 'No such gateway';
 ERROR_MAPPING[ERR_GATEWAY_IP_INVALID] = 'Gateway IP invalid';
 ERROR_MAPPING[ERR_GATEWAY_TOKEN_INVALID] = 'Gateway token invalid';
+ERROR_MAPPING[ERR_DB_LOCK_BUSY] = 'DB lock busy';

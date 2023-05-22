@@ -2,6 +2,7 @@ import _ from 'lodash';
 import { Request, Response } from 'express';
 import {
     ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT,
+    ERR_DB_LOCK_BUSY,
     ERR_DEST_GATEWAY_IP_INVALID,
     ERR_GATEWAY_IP_INVALID,
     ERR_INTERNAL_ERROR,
@@ -10,13 +11,20 @@ import {
     toResponse
 } from '../utils/error';
 import logger from '../log';
-import DB from '../utils/db';
+import DB, { acquireLock, releaseLock } from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import CONFIG from '../config';
 
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
+    let lockId: string | null = null;
+
     try {
+        lockId = await acquireLock({ retryCount: 20 });
+        if (!lockId) {
+            logger.info(`(service.getGatewayToken) RESPONSE: ERR_DB_LOCK_BUSY`);
+            return res.json(toResponse(ERR_DB_LOCK_BUSY));
+        }
 
         const ApiClient = CubeApi.ihostApi;
 
@@ -51,7 +59,6 @@ export default async function getGatewayToken(req: Request, res: Response) {
                         localDestGatewayInfo.tokenValid = true;
                         localDestGatewayInfo.ts = `${Date.now()}`;
                         logger.info(`(service.getGatewayToken) after update localDestGatewayInfo: ${JSON.stringify(localDestGatewayInfo)}`);
-                        // TODO: acquire lock
                         await DB.setDbValue('destGatewayInfo', localDestGatewayInfo);
 
                         logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
@@ -94,7 +101,6 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     localSrcGatewayInfo.tokenValid = true;
                     localSrcGatewayInfo.ts = `${Date.now()}`;
                     logger.info(`(service.getGatewayToken) after update localSrcGatewayInfoList: ${JSON.stringify(localSrcGatewayInfoList)}`);
-                    // TODO: acquire lock
                     await DB.setDbValue('srcGatewayInfoList', localSrcGatewayInfoList);
 
                     logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
@@ -112,5 +118,9 @@ export default async function getGatewayToken(req: Request, res: Response) {
     } catch (error: any) {
         logger.error(`get iHost token code error----------------: ${error.message}`);
         res.json(toResponse(ERR_INTERNAL_ERROR));
+    } finally {
+        if (lockId) {
+            await releaseLock({ lockId, retryCount: 20 });
+        }
     }
 }
