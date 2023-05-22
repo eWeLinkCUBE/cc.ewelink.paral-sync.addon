@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia';
 import type { IBeforeLoginDevice, IAfterLoginDevice } from '@/ts/interface/IDevice';
+import {stepsList} from '@/api/ts/interface/IGateWay';
 import api from '../api';
 import _ from 'lodash';
+import type { IGateWayInfoData} from '@/api/ts/interface/IGateWay';
 
 interface IDeviceState {
     /** 登录前的设备列表 */
@@ -16,6 +18,12 @@ interface IDeviceState {
     isFilter: boolean;
     /** 网关缺少凭证时弹框后确认凭证重启调用同步接口需要的设备Id */
     waitSyncDeviceId: string;
+    /** 用户所处的步骤 */
+    step:stepsList,
+    /** Ihost数据 */
+    iHostList:IGateWayInfoData[],
+    /** nspro 数据 */
+    nsProList:IGateWayInfoData[]
 }
 
 export const useDeviceStore = defineStore('addon_device', {
@@ -27,18 +35,21 @@ export const useDeviceStore = defineStore('addon_device', {
             afterLoginDeviceListInterval: 0,
             isFilter: false,
             waitSyncDeviceId: '',
+            step:stepsList.FIRST,
+            iHostList:[],
+            nsProList:[],
         };
     },
     actions: {
         async getBeforeLoginDeviceList() {
-            const res = await api.NSPanelPro.getAllLanDeviceBeforeLogin();
-            if (res.data && res.error === 0) {
-                this.beforeLoginDeviceList = res.data.deviceList;
-            }
+            // const res = await api.NSPanelPro.getAllLanDeviceBeforeLogin();
+            // if (res.data && res.error === 0) {
+            //     this.beforeLoginDeviceList = res.data.deviceList;
+            // }
         },
         async getAfterLoginDeviceList(forceRefresh:boolean = false) {
             const res = await api.NSPanelPro.getAllLanDeviceAfterLogin(forceRefresh);
-            
+
             if (res.data && res.error === 0) {
                 const isMyAccountDeviceList = res.data.deviceList.filter((item) => {
                     return item.isMyAccount&&item.isSupported;
@@ -69,6 +80,26 @@ export const useDeviceStore = defineStore('addon_device', {
         setWaitSyncDeviceId(deviceId: string) {
             this.waitSyncDeviceId = deviceId;
         },
+        setStep(step:stepsList){
+            this.step = step;
+        },
+        /**获取iHost本机的网关信息*/
+        async getIHostGateWatList(){
+            const res = await api.NSPanelPro.getOurselfGateWayInfo();
+            if(res.error === 0 && res.data){
+                this.iHostList = [res.data];
+            }else{
+                this.iHostList = [];
+            }
+            console.log('res',res);
+        },
+        /** 获取nspro  */
+        async getNsProGateWayInfo(){
+            const res = await api.NSPanelPro.getNsProGateWayInfo();
+            if(res.error === 0 && res.data){
+                this.nsProList = res.data;
+            }
+        }
     },
 
     getters: {

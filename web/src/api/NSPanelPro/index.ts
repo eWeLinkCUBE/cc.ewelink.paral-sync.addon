@@ -1,5 +1,6 @@
 import { request } from '../public';
 import type { IBeforeLoginDevice, IAfterLoginDevice } from '@/ts/interface/IDevice';
+import type { IGateWayInfoData } from '@/api/ts/interface/IGateWay';
 import type { IUser, ILoginWithAccountParams } from '@/ts/interface/IUser';
 import EReqMethod from '../ts/enum/EReqMethod';
 
@@ -22,11 +23,48 @@ interface IGetLoginStatusData {
 }
 
 /**
+ * 获取网关token
+ */
+async function getToken(ip:string){
+    return await request<any>(`/gateway/${ip}`,{}, EReqMethod.GET);
+}
+
+/**通过ip获取网关信息 接口暂无*/
+async function linkNsProGateWay(ip:string){
+    return await request<IGateWayInfoData>(`/gateway/${ip}`,{}, EReqMethod.GET);
+}
+
+/**
+ * 获取本机网关信息
+ */
+async function getOurselfGateWayInfo(){
+    return await request<IGateWayInfoData>(`/gateway`,{}, EReqMethod.GET);
+}
+
+/**
+ * 获取所有的nsPro
+ */
+async function getNsProGateWayInfo(){
+    return await request<IGateWayInfoData[]>(`/gateways`,{}, EReqMethod.GET);
+}
+
+/**
  * 获取所有网关下的子设备
  */
 async function getDeviceList() {
     return await request<IBeforeLoginDeviceListData>(`/devices`, {}, EReqMethod.GET);
 }
+
+
+
+
+
+
+
+
+
+
+
 
 /**
  * 账号登录
@@ -110,4 +148,8 @@ export default {
     cancelSyncAllDevice,
     autoSyncAllDevice,
     logOut,
+    getToken,
+    linkNsProGateWay,
+    getOurselfGateWayInfo,
+    getNsProGateWayInfo
 };

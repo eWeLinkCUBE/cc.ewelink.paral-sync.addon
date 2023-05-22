@@ -19,7 +19,8 @@ const PROD_APPID = 'DP1ydXVV50xwj9Pi';
 const PROD_SECRET = 'gHDu79PCw*yR%wtfmy5YUzo!yknm74xz';
 const appId = isTestEnv() ? TEST_APPID : PROD_APPID;
 const appSecret = isTestEnv() ? TEST_SECRET : PROD_SECRET;
+const sseUrl = isTestEnv() ? `//${NSPanelProIp}/api/v1/sse` : '/api/v1/sse';
 
 console.log(`当前版本为 ${version}`);
 
-export { apiUrl, appSecret, appId, env };
+export { apiUrl, appSecret, appId, env ,sseUrl};
