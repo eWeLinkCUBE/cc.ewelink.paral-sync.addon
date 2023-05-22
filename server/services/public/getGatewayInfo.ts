@@ -25,7 +25,12 @@ export default async (ipAddress: string, type: EGatewayType) => {
             return EErrorCode.IP_CAN_NOT_CONNECT;
         }
 
-        const { ip, mac, domain } = gatewayRes.data;
+        const { mac, domain } = gatewayRes.data;
+        let ip = gatewayRes.data.ip;
+
+        if (type === EGatewayType.NS_PANEL_PRO) {
+            ip = ip + ':8081';
+        }
 
         const defaultGatewayInfo = {
             /** mac地址 */
