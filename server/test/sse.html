@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>sse test</title>
+    </head>
+    <body></body>
+
+    <script>
+        const source = new EventSource('http://localhost:8322/api/v1/sse');
+
+        source.onopen = () => {
+            console.log('sse open!!!');
+        };
+
+        source.onerror = (e) => {
+            source.close();
+            console.log('error e', e);
+        };
+
+        // source.onmessage = (e) => {
+        //     console.log('message e', e);
+        // };
+
+        // source.addEventListener('event_test', function (e) {
+        //     console.log('source receive => ', e.data);
+        // });
+    </script>
+</html>

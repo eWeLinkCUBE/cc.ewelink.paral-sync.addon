@@ -1,8 +1,7 @@
-import { Request, Response } from "express";
-import _ from "lodash";
+import { Request, Response } from 'express';
+import _ from 'lodash';
 import { v4 as uuid } from 'uuid';
-import logger from "../../log";
-
+import logger from '../../log';
 
 interface ISendEvent {
     /** 事件名称 例如：change_report */
@@ -10,7 +9,6 @@ interface ISendEvent {
     /** 时间数据 例如 {设备数据} */
     data: any;
 }
-
 
 const ssePool = new Map();
 class ServerSendStream {
@@ -30,6 +28,13 @@ class ServerSendStream {
         this.configureLifecycle();
     }
     configureLifecycle() {
+        this.res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+            Connection: 'keep-alive',
+        });
+
         this.heartbeat = setInterval(() => {
             this.res.write(`data:\n\n`);
         }, this.retryInterval);
@@ -51,28 +56,25 @@ class ServerSendStream {
         this.res.write(`retry: ${this.retryInterval}\n\n`);
     }
     publish(event: any) {
-        const formattedData = (typeof event.data === 'string') ? event.data : JSON.stringify(event.data);
+        const formattedData = typeof event.data === 'string' ? event.data : JSON.stringify(event.data);
         const payload = `event: ${event.name}\ndata: ${formattedData}\n\n`;
         this.res.write(payload);
     }
 }
 
 function buildStreamContext(req: Request, res: Response) {
-    const stream = new ServerSendStream(req, res);
-    res.set({
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'X-Accel-Buffering': 'no',
-        'Connection': 'keep-alive'
-    });
-    res.flushHeaders();
-    ssePool.set(stream.connectionId, stream);
-    logger.info(`sse connections count:${ssePool.size}`);
+    try {
+        const stream = new ServerSendStream(req, res);
+        ssePool.set(stream.connectionId, stream);
+        logger.info(`sse connections count:${ssePool.size}`);
+    } catch (err) {
+        logger.info(`sse connections error!!:${err}`);
+    }
 }
 
 /**
- * 
- * @param {object} event 
+ *
+ * @param {object} event
  * @param {String} event.name  事件名称 例如：change_report
  * @param {Object} event.data  时间数据 例如 {设备数据}
  */
@@ -89,8 +91,7 @@ function send(event: ISendEvent) {
     }
 }
 
-
 export default {
     buildStreamContext,
-    send
-}
+    send,
+};

@@ -9,6 +9,7 @@ import mDns from '../utils/initMDns';
 export default async function getSourceGatewayInLan(req: Request, res: Response) {
     try {
         queryMDns();
+
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
 
         return res.json(toResponse(0, 'success', srcGatewayInfoList));
@@ -22,9 +23,18 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
 function queryMDns() {
     mDns.query({
         questions: [
+            // {
+            //     name: 'nspanelpro.local',
+            //     type: 'A',
+            // },
+            // {
+            //     name: 'nspanelpro.local',
+            //     type: 'PTR',
+            // },
+
             {
-                name: 'nspanelpro.local',
-                type: 'A',
+                name: '_ewelink._tcp.local',
+                type: 'PTR',
             },
         ],
     });
