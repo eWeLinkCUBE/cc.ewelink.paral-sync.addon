@@ -18,16 +18,6 @@ import ownSse from '../ts/class/ownSse';
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
     try {
-
-        ownSse.send({
-            name: "test",
-            data: {
-                payload: {
-                    "age": 18
-                }
-            }
-        })
-
         const ApiClient = CubeApi.ihostApi;
 
         /** 请求凭证的网关 MAC 地址 */

@@ -65,13 +65,9 @@ class ServerSendStream {
 }
 
 function buildStreamContext(req: Request, res: Response) {
-    try {
-        const stream = new ServerSendStream(req, res);
-        ssePool.set(stream.connectionId, stream);
-        logger.info(`sse connections count:${ssePool.size}`);
-    } catch (err) {
-        logger.info(`sse connections error!!:${err}`);
-    }
+    const stream = new ServerSendStream(req, res);
+    ssePool.set(stream.connectionId, stream);
+    logger.info(`sse connections count:${ssePool.size}`);
 }
 
 /**
