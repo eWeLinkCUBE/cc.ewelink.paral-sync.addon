@@ -50,8 +50,6 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     };
     /** 同步目标网关的 MAC 地址 */
     const destGatewayInfo = await db.getDbValue('destGatewayInfo');
-    /** 本地存储的所有网关设备列表 */
-    const localDeviceList = await db.getDbValue('gatewayDeviceList');
     if (!destGatewayInfo) {
         logger.info(`[sse sync new device] target gateway missing`);
         return;
@@ -95,15 +93,7 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     } else if (resType === 'INVALID_PARAMETERS') {
         logger.info(`[sse sync new device]  sync device params invalid`);
     } else {
-        localDeviceList.push({
-            name,
-            id: serial_number,
-            from: mac,
-            isSynced: true
-        })
-        // 同步成功，更新本地存储的设备列表数据
-        // TODO: acquire lock
-        await db.setDbValue('gatewayDeviceList', localDeviceList);
+        // TODO SSE推送前端设备名称改变
         logger.info(`[sse sync new device]  sync success`);
     }
 }
@@ -117,11 +107,7 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
 async function deleteOneDevice(payload: IEndpoint) {
     const { serial_number } = payload;
     /** 同步目标网关的 MAC 地址 */
-    const destGatewayMac = await db.getDbValue('destGatewayMac');
-    /** 本地存储的网关信息列表 */
-    const gatewayInfoList = await db.getDbValue('gatewayInfoList');
-    /** 同步目标网关的信息 */
-    const destGatewayInfo = _.find(gatewayInfoList, { mac: destGatewayMac });
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     if (!destGatewayInfo) {
         logger.info(`[sse delete device] target gateway missing`);
         return;
@@ -174,11 +160,7 @@ async function updateOneDevice(params: IUpdateOneDevice, mac: string) {
     const { type, payload, endpoint } = params;
     const { serial_number, third_serial_number } = endpoint;
     /** 同步目标网关的 MAC 地址 */
-    const destGatewayMac = await db.getDbValue('destGatewayMac');
-    /** 本地存储的网关信息列表 */
-    const gatewayInfoList = await db.getDbValue('gatewayInfoList');
-    /** 同步目标网关的信息 */
-    const destGatewayInfo = _.find(gatewayInfoList, { mac: destGatewayMac });
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     if (!destGatewayInfo) {
         logger.info(`[sse update device online] target gateway missing`);
         return;
