@@ -14,8 +14,10 @@ import i18n from '@/i18n';
 import api from '@/api';
 import { useDeviceStore } from '@/store/device';
 import router from '@/router';
+import type { INsProDeviceData} from '@/api/ts/interface/IGateWay';
 const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
+
 
 onMounted(async () => {
     // 语言跟随浏览器
@@ -34,26 +36,7 @@ onMounted(async () => {
         etcStore.languageChange('en-us');
     }
     console.log(etcStore.language, '当前语言');
-
-    getDeviceList();
-    // await getUserInfo();
-    // getDeviceListInfo();
-    // const getUserInfoInterval = setInterval(async () => getUserInfo(), 10000);
-    // etcStore.setGetUserInfoInterval(getUserInfoInterval);
 });
-
-const getDeviceList = async () => {
-   const res = await api.NSPanelPro.getDeviceList()
-   console.log(res,'res');
-   if(res.error===0){
-    console.log("获取设备列表成功");
-    
-   }
-   if(res.error===1401){
-    router.push('/setting')
-   }
-};
-
 
 
 </script>

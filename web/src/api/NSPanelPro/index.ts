@@ -1,6 +1,6 @@
 import { request } from '../public';
 import type { IBeforeLoginDevice, IAfterLoginDevice } from '@/ts/interface/IDevice';
-import type { IGateWayInfoData } from '@/api/ts/interface/IGateWay';
+import type { IGateWayInfoData , INsProDeviceData} from '@/api/ts/interface/IGateWay';
 import type { IUser, ILoginWithAccountParams } from '@/ts/interface/IUser';
 import EReqMethod from '../ts/enum/EReqMethod';
 
@@ -25,8 +25,8 @@ interface IGetLoginStatusData {
 /**
  * 获取网关token
  */
-async function getToken(ip:string){
-    return await request<any>(`/gateway/${ip}`,{}, EReqMethod.GET);
+async function getToken(mac:string,isSyncTarget:number){
+    return await request<any>(`/token/${mac}`,{isSyncTarget}, EReqMethod.GET);
 }
 
 /**通过ip获取网关信息 接口暂无*/
@@ -51,8 +51,22 @@ async function getNsProGateWayInfo(){
 /**
  * 获取所有网关下的子设备
  */
-async function getDeviceList() {
-    return await request<IBeforeLoginDeviceListData>(`/devices`, {}, EReqMethod.GET);
+async function getDeviceList(mac:string) {
+    return await request<INsProDeviceData[]>(`/devices/${mac}`, {}, EReqMethod.GET);
+}
+
+/**
+ * 同步单个设备
+ */
+async function syncSingleDevice(deviceId:string,from:string){
+    return await request<any>(`/device/${deviceId}/sync`, {from}, EReqMethod.POST);
+}
+
+/**
+ * 取消同步单个设备
+ */
+async function cancelSyncSingleDevice(deviceId: string) {
+    return await request(`/device/${deviceId}`, {}, EReqMethod.GET);
 }
 
 
@@ -104,9 +118,9 @@ async function getIhostAccessToken() {
 /**
  * 同步单个设备
  */
-async function syncSingleDevice(deviceId: string) {
-    return await request(`/device/${deviceId}/sync`, {}, EReqMethod.POST);
-}
+// async function syncSingleDevice(deviceId: string) {
+//     return await request(`/device/${deviceId}/sync`, {}, EReqMethod.POST);
+// }
 
 /**
  * 自动同步所有设备
@@ -115,12 +129,12 @@ async function syncAllDevice() {
     return await request(`/device/sync`, {}, EReqMethod.POST);
 }
 
-/**
- * 取消同步单个设备
- */
-async function cancelSyncSingleDevice(deviceId: string) {
-    return await request(`/device/${deviceId}`, {}, EReqMethod.DELETE);
-}
+// /**
+//  * 取消同步单个设备
+//  */
+// async function cancelSyncSingleDevice(deviceId: string) {
+//     return await request(`/device/${deviceId}`, {}, EReqMethod.DELETE);
+// }
 
 /**
  * 取消同步所有设备

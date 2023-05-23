@@ -3,7 +3,8 @@ import type { IBeforeLoginDevice, IAfterLoginDevice } from '@/ts/interface/IDevi
 import {stepsList} from '@/api/ts/interface/IGateWay';
 import api from '../api';
 import _ from 'lodash';
-import type { IGateWayInfoData} from '@/api/ts/interface/IGateWay';
+import type { IGateWayInfoData , INsProDeviceData} from '@/api/ts/interface/IGateWay';
+import router from '@/router';
 
 interface IDeviceState {
     /** 登录前的设备列表 */
@@ -23,7 +24,9 @@ interface IDeviceState {
     /** Ihost数据 */
     iHostList:IGateWayInfoData[],
     /** nspro 数据 */
-    nsProList:IGateWayInfoData[]
+    nsProList:IGateWayInfoData[],
+    /** 网关下所有的子设备 */
+    deviceList: INsProDeviceData[],
 }
 
 export const useDeviceStore = defineStore('addon_device', {
@@ -38,6 +41,7 @@ export const useDeviceStore = defineStore('addon_device', {
             step:stepsList.FIRST,
             iHostList:[],
             nsProList:[],
+            deviceList:[],
         };
     },
     actions: {
@@ -98,6 +102,31 @@ export const useDeviceStore = defineStore('addon_device', {
             const res = await api.NSPanelPro.getNsProGateWayInfo();
             if(res.error === 0 && res.data){
                 this.nsProList = res.data;
+            }
+        },
+        /** 设置卡片的倒计时时间 */
+        setCountDownTime(time:number){
+
+        },
+        /** 获取网关下所有的子设备 */
+        async getDeviceList(){
+            let mac = '';
+            this.nsProList.map((item)=>{
+                if(item.tokenValid && item.token){
+                    mac = item.mac;
+                }
+            });
+
+            if(!mac)return;
+
+            const res = await api.NSPanelPro.getDeviceList(mac);
+
+            if (res.error === 0 && res.data) {
+                this.deviceList = res.data;
+            }
+
+            if (res.error === 1401) {
+                router.push('/setting');
             }
         }
     },

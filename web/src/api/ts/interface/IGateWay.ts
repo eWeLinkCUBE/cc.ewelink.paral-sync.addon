@@ -9,14 +9,22 @@ export interface IGateWayInfoData{
     /** 域名 */
     domain: string;
     /** 开始获取token的时间戳 */
-    ts: string;
+    ts: string | number;
     /** 加密后凭证 */
     token: string;
     /** ip是否有效 */
     ipValid: boolean;
     /** 凭证是否有效 */
     tokenValid: boolean;
+    /** 获取token的时间 */
+    countDownTime?:number,
+}
 
+export interface INsProDeviceData{
+    from:string,
+    id:string,
+    isSynced:boolean,
+    name:string
 }
 
 export enum stepsList{
