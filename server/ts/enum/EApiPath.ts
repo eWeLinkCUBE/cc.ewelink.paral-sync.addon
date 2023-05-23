@@ -14,6 +14,8 @@ enum EApiPath {
     SYNC_ONE_DEVICE = '/device/:deviceId/sync',
     /** 7、 同步所有设备 */
     SYNC_ALL_DEVICES = '/devices/sync',
+    /** 9. 取消同步单个设备 */
+    UNSYNC_ONE_DEVICE = '/device/:deviceId/un-sync',
     /** 8、 开关新增设备自动同步 */
     CHANGE_IS_AUTO_SYNC_STATUS = '/auto-sync',
     /** (6) 获取设备自动同步开关状态(1500) */
