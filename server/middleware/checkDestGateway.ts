@@ -23,8 +23,10 @@ export async function checkDestGateway(req: Request, res: Response, next: NextFu
     const match3 = (method === 'POST') && (url.includes('/api/v1/device'));
     // 同步所有设备接口
     const match4 = (method === 'POST') && (url.includes('/api/v1/devices'));
+    // 取消同步一个设备接口
+    const match5 = (method === 'DELETE') && (url.includes('/api/v1/device'));
 
-    if (match1 || match2 || match3 || match4) {
+    if (match1 || match2 || match3 || match4 || match5) {
         logger.info(`(middle.checkDestGateway) matched`);
 
         /** 本地同步目标网关信息 */

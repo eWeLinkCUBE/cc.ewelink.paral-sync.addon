@@ -18,14 +18,14 @@ import SSE from '../ts/class/ownSse';
 
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
-    let lockId: string | null = null;
+    // let lockId: string | null = null;
 
     try {
-        lockId = await acquireLock({ retryCount: 20 });
-        if (!lockId) {
-            logger.info(`(service.getGatewayToken) RESPONSE: ERR_DB_LOCK_BUSY`);
-            return res.json(toResponse(ERR_DB_LOCK_BUSY));
-        }
+        // lockId = await acquireLock({ retryCount: 20 });
+        // if (!lockId) {
+            // logger.info(`(service.getGatewayToken) RESPONSE: ERR_DB_LOCK_BUSY`);
+            // return res.json(toResponse(ERR_DB_LOCK_BUSY));
+        // }
 
         const ApiClient = CubeApi.ihostApi;
 
@@ -153,8 +153,8 @@ export default async function getGatewayToken(req: Request, res: Response) {
         logger.error(`get iHost token code error----------------: ${error.message}`);
         res.json(toResponse(ERR_INTERNAL_ERROR));
     } finally {
-        if (lockId) {
-            await releaseLock({ lockId, retryCount: 20 });
-        }
+        // if (lockId) {
+            // await releaseLock({ lockId, retryCount: 20 });
+        // }
     }
 }
