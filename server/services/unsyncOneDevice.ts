@@ -100,6 +100,6 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
         }
     } catch (error: any) {
         logger.error(`get iHost token code error----------------: ${error.message}`);
-        res.json(toResponse(500));
+        return res.json(toResponse(500));
     }
 }

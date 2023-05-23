@@ -64,6 +64,9 @@ export const ERR_DB_LOCK_BUSY = 504;
 /** 取消同步的设备不存在 */
 export const ERR_UNSYNC_DEVICE_NOT_FOUND = 1800;
 
+/** 删除的网关不存在 */
+export const ERR_DELETE_GATEWAY_NOT_FOUND = 2000;
+
 
 // 错误映射
 const ERROR_MAPPING: any = {};
@@ -95,3 +98,5 @@ ERROR_MAPPING[ERR_GATEWAY_TOKEN_INVALID] = 'Gateway token invalid';
 ERROR_MAPPING[ERR_DB_LOCK_BUSY] = 'DB lock busy';
 
 ERROR_MAPPING[ERR_UNSYNC_DEVICE_NOT_FOUND] = 'Unsync device not found';
+
+ERROR_MAPPING[ERR_DELETE_GATEWAY_NOT_FOUND] = 'Delete gateway not found';

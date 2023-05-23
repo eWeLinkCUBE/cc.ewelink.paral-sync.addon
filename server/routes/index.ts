@@ -12,6 +12,7 @@ import unsyncOneDevice from '../services/unsyncOneDevice';
 import getSourceGatewaySubDevices from '../services/getSourceGatewaySubDevices';
 import changeIsAutoSyncStatus from '../services/changeIsAutoSyncStatus';
 import getAutoSyncStatus from '../services/getAutoSyncStatus';
+import deleteGateway from '../services/deleteGateway';
 import sse from '../services/sse';
 
 const router = express.Router();
@@ -27,6 +28,7 @@ router.post(EApiPath.SYNC_ALL_DEVICES, checkSchema({}), syncAllDevices);
 router.post(EApiPath.CHANGE_IS_AUTO_SYNC_STATUS, checkSchema({}), changeIsAutoSyncStatus);
 router.get(EApiPath.GET_AUTO_SYNC_STATUS, checkSchema({}), getAutoSyncStatus);
 router.delete(EApiPath.UNSYNC_ONE_DEVICE, checkSchema({}), unsyncOneDevice);
+router.delete(EApiPath.DELETE_GATEWAY, checkSchema({}), deleteGateway);
 
 router.get(EApiPath.SSE, checkSchema({}), sse);
 
