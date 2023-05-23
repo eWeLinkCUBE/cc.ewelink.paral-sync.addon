@@ -46,6 +46,10 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     return res.json(toResponse(ERR_DEST_GATEWAY_IP_INVALID));
                 }
 
+                // 将当前请求时间写入网关信息中
+                localDestGatewayInfo.ts = `${Date.now()}`;
+                await DB.setDbValue('destGatewayInfo', localDestGatewayInfo);
+
                 if (!localDestGatewayInfo.tokenValid) { // 如果同步目标网关的凭证已失效，则需要重新获取
                     const destApiClient = new ApiClient({ ip: localDestGatewayInfo.ip });
                     const cubeApiRes = await destApiClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
@@ -57,7 +61,6 @@ export default async function getGatewayToken(req: Request, res: Response) {
                         // 更新本地存储的同步目标网关信息
                         localDestGatewayInfo.token = resData.token;
                         localDestGatewayInfo.tokenValid = true;
-                        localDestGatewayInfo.ts = `${Date.now()}`;
                         logger.info(`(service.getGatewayToken) after update localDestGatewayInfo: ${JSON.stringify(localDestGatewayInfo)}`);
                         await DB.setDbValue('destGatewayInfo', localDestGatewayInfo);
 
@@ -88,6 +91,10 @@ export default async function getGatewayToken(req: Request, res: Response) {
                 return res.json(toResponse(ERR_GATEWAY_IP_INVALID));
             }
 
+            // 将当前请求时间写入网关信息中
+            localSrcGatewayInfo.ts = `${Date.now()}`;
+            await DB.setDbValue('srcGatewayInfoList', localSrcGatewayInfoList);
+
             if (!localSrcGatewayInfo.tokenValid) { // 同步来源网关的凭证已失效，重新获取
                 const srcApiClient = new ApiClient({ ip: localSrcGatewayInfo.ip });
                 const cubeApiRes = await srcApiClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
@@ -99,7 +106,6 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     // 更新本地存储的同步来源网关信息
                     localSrcGatewayInfo.token = resData.token;
                     localSrcGatewayInfo.tokenValid = true;
-                    localSrcGatewayInfo.ts = `${Date.now()}`;
                     logger.info(`(service.getGatewayToken) after update localSrcGatewayInfoList: ${JSON.stringify(localSrcGatewayInfoList)}`);
                     await DB.setDbValue('srcGatewayInfoList', localSrcGatewayInfoList);
 

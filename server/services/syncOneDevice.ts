@@ -57,7 +57,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
         /** 将要被同步的设备 ID */
         const willSyncDeviceId = req.params.deviceId;
         /** 同步来源网关的 MAC 地址 */
-        const srcGatewayMac = req.params.from;
+        const srcGatewayMac = req.body.from;
         logger.info(`(service.syncOneDevice) willSyncDeviceId: ${willSyncDeviceId}`);
         logger.info(`(service.syncOneDevice) srcGatewayMac: ${srcGatewayMac}`);
 
