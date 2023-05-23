@@ -52,6 +52,16 @@ export const useSseStore = defineStore('sse', {
                 }
             });
 
+            source.addEventListener('begin_obtain_token_report', async (event: any) => {
+                const data = JSON.parse(event.data);
+                console.log('begin_obtain_token_report-------------> success',data);
+            });
+
+            source.addEventListener('obtain_token_success', async (event: any) => {
+                const data = JSON.parse(event.data);
+                console.log('obtain_token_success-------------> success',data);
+            });
+
             source.addEventListener('error', async (event: any) => {
                 console.log('SSE connect error, reboot');
                 await this.startSse();

@@ -102,8 +102,20 @@ const linkNsProGateWay = async () =>{
 
 /**下一步 */
 const nextStep = () =>{
-    deviceStore.setStep(stepsList.SECOND);
-    deviceStore.getNsProGateWayInfo();
+    if(steps.value === stepsList.FIRST){
+        //获取iHost token
+        if(!deviceStore.iHostList.some((item) => item.tokenValid)){
+            return message.info('lack of IHost token');
+        }
+        deviceStore.setStep(stepsList.SECOND);
+        deviceStore.getNsProGateWayInfo();
+    }else{
+        //获取nsPro token
+        if(!deviceStore.nsProList.some((item) => item.tokenValid)){
+            return message.info('lack of nsPro token');
+        }
+    }
+
 }
 /** 点击完成 */
 const goDeviceListPage = () =>{

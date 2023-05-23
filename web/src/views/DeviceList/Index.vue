@@ -17,6 +17,7 @@ import i18n from '@/i18n';
 import api from '@/api';
 import { useDeviceStore } from '@/store/device';
 import router from '@/router';
+import type { INsProDeviceData} from '@/api/ts/interface/IGateWay';
 const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
 const indicator = h(LoadingOutlined, {
@@ -64,16 +65,16 @@ const getAutoSyncState = async () => {
     }
 };
 
-const getDeviceList = async () => {
-    const res = await api.NSPanelPro.getDeviceList();
-    console.log(res, 'res');
-    if (res.error === 0) {
-        console.log('获取设备列表成功');
-    }
-    if (res.error === 1401) {
-        router.push('/setting');
-    }
-};
+// const getDeviceList = async () => {
+//     const res = await api.NSPanelPro.getDeviceList();
+//     console.log(res, 'res');
+//     if (res.error === 0) {
+//         console.log('获取设备列表成功');
+//     }
+//     if (res.error === 1401) {
+//         router.push('/setting');
+//     }
+// };
 </script>
 
 <style scoped lang="scss"></style>
