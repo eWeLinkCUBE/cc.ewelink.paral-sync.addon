@@ -25,27 +25,27 @@ interface IGetLoginStatusData {
 /**
  * 获取网关token
  */
-async function getToken(ip:string){
-    return await request<any>(`/gateway/${ip}`,{}, EReqMethod.GET);
+async function getToken(ip: string) {
+    return await request<any>(`/gateway/${ip}`, {}, EReqMethod.GET);
 }
 
 /**通过ip获取网关信息 接口暂无*/
-async function linkNsProGateWay(ip:string){
-    return await request<IGateWayInfoData>(`/gateway/${ip}`,{}, EReqMethod.GET);
+async function linkNsProGateWay(ip: string) {
+    return await request<IGateWayInfoData>(`/gateway/${ip}`, {}, EReqMethod.GET);
 }
 
 /**
  * 获取本机网关信息
  */
-async function getOurselfGateWayInfo(){
-    return await request<IGateWayInfoData>(`/gateway`,{}, EReqMethod.GET);
+async function getOurselfGateWayInfo() {
+    return await request<IGateWayInfoData>(`/gateway`, {}, EReqMethod.GET);
 }
 
 /**
  * 获取所有的nsPro
  */
-async function getNsProGateWayInfo(){
-    return await request<IGateWayInfoData[]>(`/gateways`,{}, EReqMethod.GET);
+async function getNsProGateWayInfo() {
+    return await request<IGateWayInfoData[]>(`/gateways`, {}, EReqMethod.GET);
 }
 
 /**
@@ -55,101 +55,34 @@ async function getDeviceList() {
     return await request<IBeforeLoginDeviceListData>(`/devices`, {}, EReqMethod.GET);
 }
 
-
-
-
-
-
-
-
-
-
-
-
 /**
- * 账号登录
+ * 自动同步新设备
  */
-async function loginWithAccount(params: ILoginWithAccountParams) {
-    return await request<ILoginWithAccountData>(`/user/${params.account}/account`, params, EReqMethod.POST);
+async function autoSync(params: { autoSync: boolean }) {
+    return await request(`/auto-sync`, params, EReqMethod.POST);
 }
 
 /**
- * 获取登录状态
+ * 获取自动同步新设备状态
  */
-async function getLoginStatus() {
-    return await request<IGetLoginStatusData>(`/user/status`, {}, EReqMethod.GET);
+async function getAutoSyncState() {
+    return await request<{ autoSync: boolean }>(`/auto-sync`, {}, EReqMethod.GET);
 }
 
 /**
- * 获取所有局域网设备(登录后)
- */
-async function getAllLanDeviceAfterLogin(forceRefresh: boolean) {
-    return await request<IAfterLoginDeviceListData>(`/device`, { forceRefresh }, EReqMethod.GET);
-}
-
-/**
- * 账号退出
- */
-async function logOut() {
-    return await request(`/user`, {}, EReqMethod.PUT);
-}
-
-/**
- * 获取 iHost 网关凭证
- */
-async function getIhostAccessToken() {
-    return await request(`/user/access-token`, {}, EReqMethod.GET);
-}
-
-/**
- * 同步单个设备
- */
-async function syncSingleDevice(deviceId: string) {
-    return await request(`/device/${deviceId}/sync`, {}, EReqMethod.POST);
-}
-
-/**
- * 自动同步所有设备
+ * 自动同步新设备
  */
 async function syncAllDevice() {
-    return await request(`/device/sync`, {}, EReqMethod.POST);
-}
-
-/**
- * 取消同步单个设备
- */
-async function cancelSyncSingleDevice(deviceId: string) {
-    return await request(`/device/${deviceId}`, {}, EReqMethod.DELETE);
-}
-
-/**
- * 取消同步所有设备
- */
-async function cancelSyncAllDevice() {
-    return await request(`/device`, {}, EReqMethod.DELETE);
-}
-
-/**
- * 取消同步单个设备
- */
-async function autoSyncAllDevice(state: boolean) {
-    return await request(`/device/sync-status`, { autoSyncStatus: state }, EReqMethod.PUT);
+    return await request(`/devices/sync`, {}, EReqMethod.POST);
 }
 
 export default {
     getDeviceList,
-    loginWithAccount,
-    getLoginStatus,
-    getAllLanDeviceAfterLogin,
-    getIhostAccessToken,
-    syncSingleDevice,
-    syncAllDevice,
-    cancelSyncSingleDevice,
-    cancelSyncAllDevice,
-    autoSyncAllDevice,
-    logOut,
+    getAutoSyncState,
+    autoSync,
     getToken,
+    syncAllDevice,
     linkNsProGateWay,
     getOurselfGateWayInfo,
-    getNsProGateWayInfo
+    getNsProGateWayInfo,
 };

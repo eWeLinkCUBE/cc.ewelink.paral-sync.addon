@@ -2,23 +2,53 @@
     <div class="header">
         <div class="header-left">
             <div class="name">设备列表</div>
+            <div class="warning-tip"><warning-outlined /><span> 网关name IP无法连接，请到设置页面检查并更新</span></div>
             <div class="description">设备将从 NSPanelPro 同步到iHost</div>
         </div>
 
-        <div class="header-right">
+        <div class="header-right" ref="headerRightRef">
             <div class="auto-sync">
                 新增设备自动同步
-                <a-switch v-model:checked="autoSync" />
+                <a-switch @change="handleAutoSync" :checked="etcStore.autoSync" />
             </div>
-            <img class="all-sync" src="@/assets/img/sync-all-device.png" />
-            <img class="setting" src="@/assets/img/setting.png" />
+            <a-popover trigger="hover" :getPopupContainer="() => headerRightRef">
+                <template #content>
+                    <span>一键同步所有设备</span>
+                </template>
+                <img @click="syncAllDevice" class="all-sync" src="@/assets/img/sync-all-device.png" />
+            </a-popover>
+            <img class="setting" @click="goSetting" src="@/assets/img/setting.png" />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import api from '@/api';
 import { ref } from 'vue';
-const autoSync = ref(false);
+import { WarningOutlined } from '@ant-design/icons-vue';
+import router from '@/router';
+import { useEtcStore } from '@/store/etc';
+const headerRightRef = ref();
+const etcStore = useEtcStore();
+const handleAutoSync = async (e: boolean) => {
+    const params = {
+        autoSync: e,
+    };
+    const res = await api.NSPanelPro.autoSync(params);
+    if (res.error === 0) {
+        etcStore.setAutoSyncStatus(e);
+    }
+};
+
+const syncAllDevice = async () => {
+    etcStore.setIsLoading(true);
+    await api.NSPanelPro.syncAllDevice();
+    etcStore.setIsLoading(false);
+};
+
+const goSetting = () => {
+    router.push('/setting');
+};
 </script>
 
 <style scoped lang="scss">
@@ -27,6 +57,14 @@ const autoSync = ref(false);
     padding: 16px;
     justify-content: space-between;
     .header-left {
+        width: 420px;
+        position: relative;
+        .warning-tip {
+            position: absolute;
+            left: 86px;
+            top: 4px;
+            color: #ff5c5b;
+        }
         .name {
             font-size: 18px;
             font-weight: 600;
@@ -61,6 +99,12 @@ const autoSync = ref(false);
             width: 27px;
             cursor: pointer;
             margin-left: 28px;
+        }
+        &:deep(.ant-popover-inner) {
+            border-radius: 4px;
+        }
+        &:deep(.ant-popover-inner-content) {
+            padding: 8px 12px;
         }
     }
 }
