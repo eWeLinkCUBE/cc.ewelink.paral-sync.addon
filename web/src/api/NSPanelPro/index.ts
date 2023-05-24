@@ -64,10 +64,10 @@ async function getAutoSyncState() {
 }
 
 /**
- * 自动同步所有设备
+ * 同步所有设备
  */
 async function syncAllDevice() {
-    return await request(`/device/sync`, {}, EReqMethod.POST);
+    return await request(`/devices/sync`, {}, EReqMethod.POST);
 }
 
 /**

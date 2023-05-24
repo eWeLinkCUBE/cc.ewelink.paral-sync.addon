@@ -55,22 +55,26 @@ export const useSseStore = defineStore('sse', {
             // 开始获取token
             source.addEventListener('begin_obtain_token_report', async (event: any) => {
                 const data = JSON.parse(event.data);
-                console.log('begin_obtain_token_report-------------> success',data);
+                console.log('begin_obtain_token_report-------------> success', data);
 
                 const deviceStore = useDeviceStore();
                 deviceStore.getIHostGateWatList();
                 deviceStore.getNsProGateWayInfo();
             });
             // 成功获取token
-            source.addEventListener('obtain_token_success', async (event: any) => {
+            source.addEventListener('obtain_token_success_report', async (event: any) => {
                 const data = JSON.parse(event.data);
-                console.log('obtain_token_success-------------> success',data);
+                console.log('obtain_token_success-------------> success', data);
 
                 const deviceStore = useDeviceStore();
                 deviceStore.getIHostGateWatList();
                 deviceStore.getNsProGateWayInfo();
             });
-
+            // 获取token失败
+            source.addEventListener('obtain_token_fail_report', async (event: any) => {
+                const data = JSON.parse(event.data);
+                console.log('obtain_token_success-------------> success', data);
+            });
             // 网关信息推送
             source.addEventListener('gateway_info_report', async (event: any) => {
                 const data = JSON.parse(event.data);
@@ -80,16 +84,31 @@ export const useSseStore = defineStore('sse', {
             source.addEventListener('device_info_change_report', async (event: any) => {
                 const data = JSON.parse(event.data);
                 console.log('device_info_change_report-------------> success', data);
+                const deviceStore = useDeviceStore();
+                deviceStore.deviceList = deviceStore.deviceList.map((item) => {
+                    return item.id === data.id ? data : item;
+                });
+                // let changeItem = deviceStore.deviceList.find((item) => {
+                //     return item.id === data.id;
+                // });
+                // changeItem = data;
             });
             // 子设备删除
             source.addEventListener('device_deleted_report', async (event: any) => {
                 const data = JSON.parse(event.data);
                 console.log('device_deleted_report-------------> success', data);
+                const deviceStore = useDeviceStore();
+                const deleteIndex = deviceStore.deviceList.findIndex((item) => {
+                    return item.id === data.id;
+                });
+                deviceStore.deviceList.splice(deleteIndex, 1);
             });
             // 子设备新增
             source.addEventListener('device_added_report', async (event: any) => {
                 const data = JSON.parse(event.data);
                 console.log('device_added_report-------------> success', data);
+                const deviceStore = useDeviceStore();
+                deviceStore.deviceList.push(data);
             });
             source.addEventListener('error', async (event: any) => {
                 console.log('SSE connect error, reboot');
