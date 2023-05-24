@@ -6,7 +6,7 @@ import mDnsGatewayMapUtil from './mDnsGatewayMapUtil';
 const mDns = makeMDns();
 
 mDns.on('query', function (query) {
-    console.log('got a query packet:', query);
+    // console.log('got a query packet:', query);
 });
 
 mDns.on('response', (response: any) => {
