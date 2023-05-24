@@ -64,9 +64,9 @@ const btnStatus = computed<boolean>(() => {
 /**有一个nsPro在获取token倒计时或者已经获取token,按钮禁用*/
 const disabledBtn = computed(() => {
     const hasOneTokenItem = deviceStore.nsProList.find((item) => item.token || item.ts);
-    let notSelf = false;
+    let notSelf = true;
     if (hasOneTokenItem && hasOneTokenItem.mac === props.gateWayData.mac) {
-        notSelf = true;
+        notSelf = false;
     }
     return deviceStore.hasTokenOrTs && notSelf;
 });
