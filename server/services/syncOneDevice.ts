@@ -57,7 +57,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
         /** 将要被同步的设备 ID */
         const willSyncDeviceId = req.params.deviceId;
         /** 同步来源网关的 MAC 地址 */
-        const srcGatewayMac = req.params.from;
+        const srcGatewayMac = req.body.from;
         logger.info(`(service.syncOneDevice) willSyncDeviceId: ${willSyncDeviceId}`);
         logger.info(`(service.syncOneDevice) srcGatewayMac: ${srcGatewayMac}`);
 
@@ -168,7 +168,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
         }
 
     } catch (error: any) {
-        logger.error(`get iHost token code error----------------: ${error.message}`);
-        res.json(toResponse(ERR_INTERNAL_ERROR));
+        logger.error(`(service.syncOneDevice) error: ${error.message}`);
+        return res.json(toResponse(ERR_INTERNAL_ERROR));
     }
 }
