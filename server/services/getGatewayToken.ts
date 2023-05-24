@@ -14,8 +14,9 @@ import logger from '../log';
 import DB, { acquireLock, releaseLock } from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import CONFIG from '../config';
-import SSE from '../ts/class/ownSse';
+import SSE from '../ts/class/destSse';
 import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
+import sseUtils from '../utils/sseUtils';
 
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
@@ -82,6 +83,8 @@ export default async function getGatewayToken(req: Request, res: Response) {
                             name: 'obtain_token_success_report',
                             data: localDestGatewayInfo
                         });
+                        // 拉起sse
+                        await sseUtils.checkForSse();
                         return;
                     } else {
                         // 通过 SSE 通知前端，网关凭证获取失败
@@ -148,6 +151,8 @@ export default async function getGatewayToken(req: Request, res: Response) {
                         name: 'obtain_token_success_report',
                         data: localSrcGatewayInfo
                     });
+                    // 拉起sse
+                    await sseUtils.checkForSse();
                     return;
                 } else {
                     // 通过 SSE 通知前端，网关凭证获取失败

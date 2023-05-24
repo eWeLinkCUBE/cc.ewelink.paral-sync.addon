@@ -58,22 +58,35 @@ export const useSseStore = defineStore('sse', {
                 console.log('begin_obtain_token_report-------------> success', data);
 
                 const deviceStore = useDeviceStore();
-                deviceStore.getIHostGateWatList();
-                deviceStore.getNsProGateWayInfo();
+                deviceStore.deviceList = deviceStore.iHostList.map((item) => {
+                    return item.mac === data.mac ? data : item;
+                });
+                deviceStore.deviceList = deviceStore.nsProList.map((item) => {
+                    return item.mac === data.mac ? data : item;
+                });
             });
             // 成功获取token
             source.addEventListener('obtain_token_success_report', async (event: any) => {
                 const data = JSON.parse(event.data);
                 console.log('obtain_token_success-------------> success', data);
-
                 const deviceStore = useDeviceStore();
-                deviceStore.getIHostGateWatList();
-                deviceStore.getNsProGateWayInfo();
+                deviceStore.deviceList = deviceStore.iHostList.map((item) => {
+                    return item.mac === data.mac ? data : item;
+                });
+                deviceStore.deviceList = deviceStore.nsProList.map((item) => {
+                    return item.mac === data.mac ? data : item;
+                });
             });
             // 获取token失败
             source.addEventListener('obtain_token_fail_report', async (event: any) => {
                 const data = JSON.parse(event.data);
-                console.log('obtain_token_success-------------> success', data);
+                const deviceStore = useDeviceStore();
+                deviceStore.deviceList = deviceStore.iHostList.map((item) => {
+                    return item.mac === data.mac ? data : item;
+                });
+                deviceStore.deviceList = deviceStore.nsProList.map((item) => {
+                    return item.mac === data.mac ? data : item;
+                });
             });
             // 网关信息推送
             source.addEventListener('gateway_info_report', async (event: any) => {

@@ -10,6 +10,7 @@ import { initDb } from './utils/db';
 import oauth from './middleware/oauth';
 import { checkDestGateway } from './middleware/checkDestGateway';
 import _ from 'lodash';
+import sseUtils from './utils/sseUtils';
 
 const app = express();
 const port = config.nodeApp.port;
@@ -55,6 +56,8 @@ app.use('/api/v1', router);
 app.use(notFound);
 app.use(internalError);
 
-app.listen(port, '0.0.0.0', () => {
+app.listen(port, '0.0.0.0', async () => {
+    // 启用所有来源网关的SSE
+    await sseUtils.checkForSse();
     logger.info(`Server is running at http://localhost:${port}----env: ${config.nodeApp.env}----version: v${config.nodeApp.version}`);
 });

@@ -15,7 +15,7 @@
                 <template #content>
                     <span>{{$t('ALL_DEVICES')}}</span>
                 </template>
-                <img @click="syncAllDevice" class="all-sync" src="@/assets/img/sync-all-device.png" />
+                <img @click="syncAllDevice"  class="all-sync" src="@/assets/img/sync-all-device.png" />
             </a-popover>
             <img class="setting" @click="goSetting" src="@/assets/img/setting.png" />
         </div>
@@ -112,4 +112,6 @@ const goSetting = () => {
         }
     }
 }
+
+
 </style>

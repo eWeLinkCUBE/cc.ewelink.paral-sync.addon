@@ -23,7 +23,7 @@
                     <div class="step-title">{{ i18n.global.t('STEP02_TOKEN') }}</div>
                     <div class="step-description">
                         {{ i18n.global.t('THE_FOLLOWING') }}
-                        <img alt="" src="@/assets/img/refresh.png" @click="deviceStore.getNsProGateWayInfo()" />
+                        <img :class="isRefresh ? 'rotate' : ''" src="@/assets/img/refresh.png" @click="handleRefresh" />
                     </div>
                     <div class="step-description">{{ i18n.global.t('STEP2') }}</div>
                 </div>
@@ -105,7 +105,7 @@ import { useRouter } from 'vue-router';
 import GateWayCard from './components/GateWayCard.vue';
 import i18n from '@/i18n/index';
 import moment from 'moment';
-
+import _ from 'lodash';
 const router = useRouter();
 const deviceStore = useDeviceStore();
 const steps = computed(() => deviceStore.step);
@@ -115,6 +115,7 @@ const ipVal = ref('');
 const startInIHost = ref<'unusual' | 'normal' | 'empty'>('empty');
 const ipFail = ref(false);
 const nsProTipModalVisible = ref(false);
+const isRefresh = ref(false);
 
 onMounted(async () => {
     if (steps.value === stepsList.FIRST) {
@@ -145,6 +146,14 @@ const linkNsProGateWay = async () => {
     } else {
         ipFail.value = true;
     }
+};
+const handleRefresh = () => {
+    if (isRefresh.value) return;
+    isRefresh.value = true;
+    deviceStore.getNsProGateWayInfo();
+    setTimeout(() => {
+        isRefresh.value = false;
+    }, 1000);
 };
 
 /** 是否获取iHost的token */
@@ -201,9 +210,9 @@ const openFindIpModal = () => {
         .step-description {
             font-size: 16px;
             color: rgba(66, 66, 66, 0.5);
-            img{
+            img {
                 display: inline-block;
-                width:20px;
+                width: 20px;
                 height: 20px;
                 cursor: pointer;
             }
@@ -351,6 +360,23 @@ const openFindIpModal = () => {
         img {
             height: 156px;
         }
+    }
+}
+
+.rotate {
+    animation: rotate 1s linear infinite;
+    -webkit-animation: rotate 1s linear infinite; /* Safari and Chrome */
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+@-webkit-keyframes rotate {
+    /* Safari and Chrome */
+    100% {
+        transform: rotate(360deg);
     }
 }
 </style>

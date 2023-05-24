@@ -19,8 +19,6 @@ import unsyncOneDeviceSchema from '../schema/unsyncOneDevice';
 import getGatewayTokenSchema from '../schema/getGatewayToken';
 import syncOneDeviceSchema from '../schema/syncOneDevice';
 
-import validate from '../middleware/validate';
-
 // 开放接口
 import openControlDevice from '../services/openControlDevice';
 

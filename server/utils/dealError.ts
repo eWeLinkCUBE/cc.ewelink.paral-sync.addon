@@ -97,7 +97,6 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
             if (destGatewayInfo[key] === false) return;
             destGatewayInfo[key] = false;
             _allRelevantDeviceOffline(srcMac);
-            // TODO 已经false的不改
             await db.setDbValue('destGatewayInfo', destGatewayInfo);
             return;
         }
