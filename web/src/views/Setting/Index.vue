@@ -1,38 +1,52 @@
 <template>
     <div class="setting">
-        <span class="title">Setting</span>
+        <span class="title">{{i18n.global.t('SETTING')}}</span>
 
-        <!-- steps -->
-        <div class="step-info">
-            <div class="first-step" v-if="steps === stepsList.FIRST">
-                <div class="step-title">step 01 获取本机Token</div>
-                <div class="step-description">检测到 NSPanlePro 安装在 iHost 上，请点击获取本机的 token 以便将局域网内其他网关的设备同步到本机中</div>
+        <!-- steps 1-->
+        <div v-if="steps === stepsList.FIRST">
+            <div class="step-info">
+                <div class="first-step" >
+                    <div class="step-title">{{i18n.global.t('STEP_01')}}</div>
+                    <div class="step-description">{{i18n.global.t('STEP_01_DES')}}</div>
+                </div>
             </div>
-            <div class="first-step" v-if="steps === stepsList.SECOND">
-                <div class="step-title">Step 02 获取 NSPanelPro 的Token</div>
-                <div class="step-description">局域网内发现如下网关，点击获取 token 按钮进行授权，获取权限后可同步网关里的设备</div>
-                <div class="step-description">请前往屏端的“设置”>“关于本机”页面10s内连续点击的“设备名称”按钮7次，获取NSPanel Pro 的token</div>
+            <div class="card-list">
+                <GateWayCard
+                    v-for="item,index in deviceStore.iHostList"
+                    :key="index"
+                    :gateWayData="item"
+                    :type="'iHost'"
+                />
             </div>
-        </div>
-
-        <!-- iHost or nsPanePro  -->
-        <div class="card-list">
-            <!-- iHost -->
-            <GateWayCard v-for="item,index in deviceStore.iHostList" :key="index" v-if="steps === stepsList.FIRST" :gateWayData="item" :type="'iHost'"/>
-
-            <!-- nsPro -->
-            <GateWayCard v-for="item,index in deviceStore.nsProList" :key="index" v-if="steps === stepsList.SECOND" :gateWayData="item" :type="'nsPro'"/>
-
-            <div class="card" v-if="steps === stepsList.SECOND">
-                <img src="@/assets/img/search.png" />
-                <div class="ip-search" @click="findIpVisible=true">IP查找</div>
+            <div class="next-step">
+                <a @click="nextStep">{{i18n.global.t('NEXT_STEP')}} ></a>
             </div>
         </div>
 
-        <!-- next step or finish -->
-        <div class="next-step">
-            <a @click="nextStep" v-if="steps === stepsList.FIRST">下一步 ></a>
-            <a v-else @click="goDeviceListPage">完成</a>
+        <!-- steps 2-->
+        <div v-if="steps === stepsList.SECOND">
+            <div class="step-info">
+                <div class="first-step">
+                    <div class="step-title">{{i18n.global.t('STEP_02')}}</div>
+                    <div class="step-description">{{i18n.global.t('STEP_02_DES1')}}</div>
+                    <div class="step-description">{{i18n.global.t('STEP_02_DES2')}}</div>
+                </div>
+            </div>
+            <div class="card-list">
+                <GateWayCard
+                    v-for="item,index in deviceStore.nsProList"
+                    :key="index"
+                    :gateWayData="item"
+                    :type="'nsPro'"
+                />
+                <div class="card">
+                    <img src="@/assets/img/search.png" />
+                    <div class="ip-search" @click="findIpVisible=true">IP查找</div>
+                </div>
+            </div>
+            <div class="next-step">
+                <a @click="goDeviceListPage">{{i18n.global.t('DONE')}}</a>
+            </div>
         </div>
     </div>
 
@@ -66,7 +80,7 @@ import { message } from 'ant-design-vue';
 import { useDeviceStore } from '@/store/device';
 import { useRouter } from 'vue-router';
 import GateWayCard from './components/GateWayCard.vue';
-
+import i18n from '@/i18n/index';
 
 const router = useRouter();
 const deviceStore = useDeviceStore();
@@ -79,7 +93,6 @@ onMounted(()=>{
     if(steps.value === stepsList.FIRST){
         deviceStore.getIHostGateWatList();
     }else{
-        //获取nsPro
         deviceStore.getNsProGateWayInfo();
     }
 });
@@ -109,16 +122,15 @@ const nextStep = () =>{
         }
         deviceStore.setStep(stepsList.SECOND);
         deviceStore.getNsProGateWayInfo();
-    }else{
-        //获取nsPro token
-        if(!deviceStore.nsProList.some((item) => item.tokenValid)){
-            return message.info('lack of nsPro token');
-        }
     }
+
 
 }
 /** 点击完成 */
 const goDeviceListPage = () =>{
+    if(!deviceStore.nsProList.some((item) => item.tokenValid)){
+        return message.info('lack of nsPro token');
+    }
     router.push('/deviceList');
     deviceStore.setStep(stepsList.FIRST);
 }

@@ -1,18 +1,22 @@
 <template>
     <div class="device-list">
         <div class="table-header">
-            <div class="name">文件名称</div>
-            <div class="id">设备ID</div>
-            <div class="option">操作</div>
+            <div class="name">{{i18n.global.t('DEVICE_NAME')}}</div>
+            <div class="id">{{i18n.global.t('DEVICE_ID')}}</div>
+            <div class="option">{{i18n.global.t('ACTION')}}</div>
         </div>
         <div class="table-body">
-            <div class="device-item" v-for="(item, index) in deviceList" :key="index">
+            <div class="device-item" v-for="(item, index) in deviceList" :key="index" v-if="deviceList.length>0">
                 <span class="name">{{ item.name }}</span>
                 <span class="id">{{ item.id }}</span>
                 <div class="option">
-                    <span class="sync" v-if="!item.isSynced" @click="syncDevice(item)">同步</span>
-                    <span class="cancel-sync" v-else>取消同步</span>
+                    <span class="sync" v-if="!item.isSynced" @click="syncDevice(item)">{{i18n.global.t('SYNC')}}</span>
+                    <span class="cancel-sync" v-else @click="cancelSyncSingleDevice(item)">{{i18n.global.t('CANCEL_SYNC')}}</span>
                 </div>
+            </div>
+            <!-- empty -->
+            <div v-else>
+
             </div>
         </div>
         <!-- <div class="pagination">
@@ -25,20 +29,31 @@
 import { onMounted } from 'vue';
 import type { INsProDeviceData } from '@/api/ts/interface/IGateWay';
 import { useDeviceStore } from '@/store/device';
+import { message } from 'ant-design-vue';
+import i18n from '@/i18n/index';
 import router from '@/router';
 import api from '@/api';
 
 const deviceList = computed(()=>deviceStore.deviceList);
 const deviceStore = useDeviceStore();
 
-
 onMounted(async () => {
     await deviceStore.getDeviceList();
 });
 
+/**同步单个设备 */
 const syncDevice = async (item:INsProDeviceData) =>{
     const res = await api.NSPanelPro.syncSingleDevice(item.id,item.from);
     if(res.error === 0){
+        message.success('Sync success');
+        deviceStore.getDeviceList();
+    }
+}
+/** 取消同步单个设备 */
+const cancelSyncSingleDevice =async (item:INsProDeviceData) =>{
+    const resp = await api.NSPanelPro.cancelSyncSingleDevice(item.id,item.from);
+    if(resp.error === 0){
+        message.success('Cancel sync success');
         deviceStore.getDeviceList();
     }
 }

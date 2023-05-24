@@ -3,6 +3,7 @@ import { sseUrl } from '@/config';
 import { useEtcStore } from './etc';
 import { message } from 'ant-design-vue';
 import i18n from '@/i18n';
+import { useDeviceStore } from '@/store/device';
 let source: null | EventSource = null;
 
 interface ISseState {
@@ -55,11 +56,19 @@ export const useSseStore = defineStore('sse', {
             source.addEventListener('begin_obtain_token_report', async (event: any) => {
                 const data = JSON.parse(event.data);
                 console.log('begin_obtain_token_report-------------> success',data);
+
+                const deviceStore = useDeviceStore();
+                deviceStore.getIHostGateWatList();
+                deviceStore.getNsProGateWayInfo();
             });
 
             source.addEventListener('obtain_token_success', async (event: any) => {
                 const data = JSON.parse(event.data);
                 console.log('obtain_token_success-------------> success',data);
+
+                const deviceStore = useDeviceStore();
+                deviceStore.getIHostGateWatList();
+                deviceStore.getNsProGateWayInfo();
             });
 
             source.addEventListener('error', async (event: any) => {
