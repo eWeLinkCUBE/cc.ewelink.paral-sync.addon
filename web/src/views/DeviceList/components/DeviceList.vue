@@ -19,6 +19,9 @@
                 <div>{{  i18n.global.t('NO_DATA') }}</div>
             </div>
         </div>
+        <!-- <div class="pagination">
+            <a-pagination v-model:current="current" :total="50" show-less-items />
+        </div> -->
     </div>
 </template>
 
@@ -35,6 +38,8 @@ const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
 
 onMounted(async () => {
+    console.log(1111);
+
     await deviceStore.getDeviceList();
     // setTimeout(() => {
     //     deviceStore.deviceList = [];
@@ -73,6 +78,7 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
         .name,
         .id {
             width: 40%;
+            min-width: 200px;
         }
         .option {
             width: 20%;

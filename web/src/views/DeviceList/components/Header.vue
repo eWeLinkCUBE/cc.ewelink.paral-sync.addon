@@ -9,7 +9,7 @@
         <div class="header-right" ref="headerRightRef">
             <div class="auto-sync">
                 {{$t('AUTO_SYNC_NEW')}} 
-                <a-switch @change="handleAutoSync" :checked="etcStore.autoSync" />
+                <a-switch style="margin-left: 10px;" @change="handleAutoSync" :checked="etcStore.autoSync" />
             </div>
             <a-popover trigger="hover" :getPopupContainer="() => headerRightRef">
                 <template #content>
@@ -28,8 +28,10 @@ import { ref } from 'vue';
 import { WarningOutlined } from '@ant-design/icons-vue';
 import router from '@/router';
 import { useEtcStore } from '@/store/etc';
+import { useDeviceStore } from '@/store/device';
 const headerRightRef = ref();
 const etcStore = useEtcStore();
+const deviceStore = useDeviceStore()
 const handleAutoSync = async (e: boolean) => {
     const params = {
         autoSync: e,
@@ -42,7 +44,10 @@ const handleAutoSync = async (e: boolean) => {
 
 const syncAllDevice = async () => {
     etcStore.setIsLoading(true);
-    await api.NSPanelPro.syncAllDevice();
+   const res = await api.NSPanelPro.syncAllDevice();
+    if(res.error===0){
+        deviceStore.getDeviceList()
+    }
     etcStore.setIsLoading(false);
 };
 
