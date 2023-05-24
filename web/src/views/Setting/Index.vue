@@ -1,29 +1,140 @@
 <template>
     <div class="setting">
-        <span class="title">Setting</span>
-        <div class="step-info">
-            <div class="step-title">step 01 获取本机Token</div>
-            <div class="step-description">检测到 NSPanlePro 安装在 iHost 上，请点击获取本机的 token 以便将局域网内其他网关的设备同步到本机中</div>
-        </div>
-        <div class="card-list">
-            <div class="card">
-                <div class="name">iHost</div>
-                <div class="ip">IP：192.168.1.11</div>
-                <div class="mac">MAC：D0:27:03:20:A0:EA</div>
-                <a-button>获取token</a-button>
+        <span class="title">{{i18n.global.t('SETTING')}}</span>
+
+        <!-- steps 1-->
+        <div v-if="steps === stepsList.FIRST">
+            <div class="step-info">
+                <div class="first-step" >
+                    <div class="step-title">{{i18n.global.t('STEP01_TOKEN')}}</div>
+                    <div class="step-description">{{i18n.global.t('GET_ACCESS_TOKEN')}}</div>
+                </div>
             </div>
-            <div class="card">
-                <img src="@/assets/img/search.png" />
-                <div class="ip-search">IP查找</div>
+            <div class="card-list">
+                <GateWayCard
+                    v-for="item,index in deviceStore.iHostList"
+                    :key="index"
+                    :gateWayData="item"
+                    :type="'iHost'"
+                />
+            </div>
+            <div class="next-step">
+                <a @click="nextStep">{{i18n.global.t('NEXT')}} ></a>
             </div>
         </div>
-        <div class="next-step">
-            <a>下一步 ></a>
+
+        <!-- steps 2-->
+        <div v-if="steps === stepsList.SECOND">
+            <div class="step-info">
+                <div class="first-step">
+                    <div class="step-title">{{i18n.global.t('STEP02_TOKEN')}}</div>
+                    <div class="step-description">{{i18n.global.t('THE_FOLLOWING')}}</div>
+                    <div class="step-description">{{i18n.global.t('STEP2')}}</div>
+                </div>
+            </div>
+            <div class="card-list">
+                <GateWayCard
+                    v-for="item,index in deviceStore.nsProList"
+                    :key="index"
+                    :gateWayData="item"
+                    :type="'nsPro'"
+                />
+                <div class="card">
+                    <img src="@/assets/img/search.png" />
+                    <div class="ip-search" @click="findIpVisible=true">IP查找</div>
+                </div>
+            </div>
+            <div class="next-step">
+                <a @click="goDeviceListPage">{{i18n.global.t('DONE')}}</a>
+            </div>
         </div>
     </div>
+
+    <!-- findIp Modal -->
+    <a-modal :visible="findIpVisible" destroyOnClose :maskClosable="false" centered :closable="false" width="504px">
+        <template #title>
+            <div style="text-align: center">ip查找</div>
+        </template>
+        <div style="text-align: center">
+            <a-form>
+                <a-form-item>
+                    <a-input v-model:value="ipVal" style="width: 398px; height: 40px" />
+                </a-form-item>
+            </a-form>
+        </div>
+        <template #footer>
+            <div style="text-align: center">
+                <a-button class="default-btn common-btn" @click="findIpVisible = false">Cancel</a-button>
+                <a-button type="primary" class="common-btn" @click="linkNsProGateWay">Link</a-button>
+            </div>
+        </template>
+    </a-modal>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref ,onMounted ,computed} from 'vue';
+import api from '@/api/NSPanelPro/index';
+import type { IGateWayInfoData} from '@/api/ts/interface/IGateWay';
+import {stepsList} from '@/api/ts/interface/IGateWay';
+import { message } from 'ant-design-vue';
+import { useDeviceStore } from '@/store/device';
+import { useRouter } from 'vue-router';
+import GateWayCard from './components/GateWayCard.vue';
+import i18n from '@/i18n/index';
+
+const router = useRouter();
+const deviceStore = useDeviceStore();
+const steps = computed(()=>deviceStore.step);
+
+const findIpVisible = ref(false);
+const ipVal = ref('192.168.31.214');
+
+onMounted(()=>{
+    if(steps.value === stepsList.FIRST){
+        deviceStore.getIHostGateWatList();
+    }else{
+        deviceStore.getNsProGateWayInfo();
+    }
+});
+
+/**通过ip获取nsPanePro网关信息 */
+const linkNsProGateWay = async () =>{
+    if(!ipVal.value || !ipVal.value.trim())return;
+
+    // if(nsProList.value.some((item)=>item.ip === ipVal.value))return;
+
+    const res =await api.linkNsProGateWay(ipVal.value);
+    if(res.error === 0 && res.data){
+        //link成功后,后台会存下来
+        deviceStore.getNsProGateWayInfo();
+    }else{
+        message.info(res.msg);
+    }
+    console.log('getGateWayInfo:',res);
+}
+
+/**下一步 */
+const nextStep = () =>{
+    if(steps.value === stepsList.FIRST){
+        //获取iHost token
+        if(!deviceStore.iHostList.some((item) => item.tokenValid)){
+            return message.info('lack of IHost token');
+        }
+        deviceStore.setStep(stepsList.SECOND);
+        deviceStore.getNsProGateWayInfo();
+    }
+
+
+}
+/** 点击完成 */
+const goDeviceListPage = () =>{
+    if(!deviceStore.nsProList.some((item) => item.tokenValid)){
+        return message.info('lack of nsPro token');
+    }
+    router.push('/deviceList');
+    deviceStore.setStep(stepsList.FIRST);
+}
+</script>
 
 <style scoped lang="scss">
 .setting {
@@ -42,6 +153,7 @@
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 28px;
+            text-align: center;
         }
         .step-description {
             font-size: 16px;
@@ -80,6 +192,7 @@
                 text-align: center;
                 font-size: 16px;
                 font-weight: 600;
+                cursor: pointer;
             }
         }
     }
@@ -90,14 +203,30 @@
         font-size: 16px;
         font-weight: 600;
     }
+    .common-btn {
+        width: 120px;
+        height: 40px;
+    }
 }
 
 :deep(.ant-btn) {
-    width: 194px;
-    height: 40px;
-    background: #1890ff;
     border-radius: 8px 8px 8px 8px;
     border: 1px solid rgba(153, 153, 153, 0.3);
     color: #fff;
+}
+:deep(.ant-modal .ant-modal-footer) {
+    border-top: none !important;
+}
+:deep(.ant-modal .ant-modal-header) {
+    border-bottom: none !important;
+}
+
+.default-btn {
+    margin-right: 58px;
+    color: #424242;
+}
+.common-btn{
+    width: 120px;
+    height:40px;
 }
 </style>
