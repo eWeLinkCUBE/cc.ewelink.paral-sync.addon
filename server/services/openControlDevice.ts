@@ -5,6 +5,7 @@ import { toResponse } from '../utils/error';
 import logger from '../log';
 import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
+import { srcTokenAndIPInvalid } from '../utils/dealError';
 
 const SUCCESS_RESULT = {
     event: {
@@ -62,9 +63,11 @@ export default async function openControlDevice(req: Request, res: Response) {
                 logger.info(`(service.openControlDevice) RESPONSE: SUCCESS_RESULT`);
                 return res.json(SUCCESS_RESULT);
             } else if (cubeApiRes.error === 401) {
+                await srcTokenAndIPInvalid("token", srcGatewayInfo.mac);
                 logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
                 return res.json(FAIL_RESULT);
             } else {
+                await srcTokenAndIPInvalid("ip", srcGatewayInfo.mac);
                 logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
                 return res.json(FAIL_RESULT);
             }

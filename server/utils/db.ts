@@ -5,7 +5,7 @@ import logger from '../log';
 import KeyV from 'keyv';
 import { KeyvFile } from 'keyv-file';
 import encryption from './encryption';
-import { ServerSentEvent } from '../ts/class/fromSse';
+import { ServerSentEvent } from '../ts/class/srcSse';
 
 let store: KeyV | null = null;
 

@@ -19,7 +19,7 @@ import {
     createDeviceTags,
     createDeviceServiceAddr
 } from './syncOneDevice';
-import { destTokenInvalid } from '../utils/dealError';
+import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 
 /** 同步所有设备(1600) */
 export default async function syncAllDevices(req: Request, res: Response) {
@@ -91,9 +91,9 @@ export default async function syncAllDevices(req: Request, res: Response) {
                     });
                 }
             } else if (cubeApiRes.error === 401) {
-                // TODO: token error
+                await srcTokenAndIPInvalid('token', gateway.mac);
             } else {
-                // TODO: timeout
+                await srcTokenAndIPInvalid('ip', gateway.mac);
             }
         }
         logger.info(`(service.syncAllDevice) syncDevices: ${JSON.stringify(syncDevices)}`);
