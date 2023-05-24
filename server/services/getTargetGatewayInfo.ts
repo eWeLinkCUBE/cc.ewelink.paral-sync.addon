@@ -17,7 +17,7 @@ export default async function getTargetGatewayInfo(req: Request, res: Response) 
             return res.json(toResponse(EErrorCode.ADDON_NO_IN_IHOST, 'addon not in iHost'));
         }
         //2、接口获取网关信息
-        const gatewayInfo = await getGatewayInfo('192.168.31.88', EGatewayType.IHOST);
+        const gatewayInfo = await getGatewayInfo('192.168.31.214', EGatewayType.IHOST);
 
         if (typeof gatewayInfo === 'number') {
             return res.json(toResponse(gatewayInfo));
