@@ -23,9 +23,17 @@ const en = {
     DEVICE_NAME:'Device name',
     DEVICE_ID:'Device ID',
     ACTION:'Action',
-    CANCEL:'Cancel',
+    CANCEL_SYNC:'Cancel',
     SYNC:'Sync',
-    DONE:'Done'
+    DONE:'Done',
+    NO_DATA: 'No Data',
+    PLEASE_START_IN_IHOST:'请在 iHost中安装运行“Add-on name”',
+    IP_FAILED:'IP无法访问(缺)',
+    IP_FIND:'IP查找（缺）',
+    CANCEL:'Cancel',
+    CONNECT_IP_FAIL:'*IP 连接失败,请检查后重新输入(缺)',
+    GET_NSPRO_TOKEN:'获取NSPanel Pro 的token(缺)',
+    GET_IT:'Got it',
 }
 
 export default en;

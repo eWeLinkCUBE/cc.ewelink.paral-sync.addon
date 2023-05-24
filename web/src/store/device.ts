@@ -4,6 +4,7 @@ import api from '../api';
 import _ from 'lodash';
 import type { IGateWayInfoData , INsProDeviceData} from '@/api/ts/interface/IGateWay';
 import router from '@/router';
+import moment from 'moment';
 
 interface IDeviceState {
     /** 用户所处的步骤 */
@@ -14,6 +15,7 @@ interface IDeviceState {
     nsProList:IGateWayInfoData[],
     /** 网关下所有的子设备 */
     deviceList: INsProDeviceData[],
+    /**  */
 }
 
 export const useDeviceStore = defineStore('addon_device', {
@@ -40,6 +42,7 @@ export const useDeviceStore = defineStore('addon_device', {
                 this.iHostList = [];
             }
             console.log('res',res);
+            return res;
         },
 
         /** 获取nspro  */
@@ -52,11 +55,6 @@ export const useDeviceStore = defineStore('addon_device', {
             }
         },
 
-        /** 设置卡片的倒计时时间 */
-        setCountDownTime(time:number){
-
-        },
-
         /** 获取网关下所有的子设备 */
         async getDeviceList(){
             let mac = '';
@@ -65,12 +63,15 @@ export const useDeviceStore = defineStore('addon_device', {
                     mac = item.mac;
                 }
             });
-            
+
             if(!mac)return;
 
             const res = await api.NSPanelPro.getDeviceList(mac);
 
             if (res.error === 0 && res.data) {
+                // for(let i =0;i<30;i++){
+                //     this.deviceList.push(res.data[0]);
+                // }
                 this.deviceList = res.data;
             }
 
@@ -79,8 +80,23 @@ export const useDeviceStore = defineStore('addon_device', {
             }
         }
     },
-
     getters: {
+        /** 已经有一个网关获取到token或者在倒计时 */
+        hasTokenOrTs(state) {
+            const hasTokenOrTs = state.nsProList.some((item) => {
+                if (item.token) {
+                    return true;
+                }
+                if (item.ts) {
+                    const timeGap = moment(moment()).diff(moment(Number(item.ts)), 'seconds');
+                    if (timeGap <= 300 && timeGap >= 0) {
+                        return true;
+                    }
+                }
+                return false;
+            });
+            return hasTokenOrTs;
+        },
     },
     persist: true,
 });

@@ -62,9 +62,18 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.getNsProGateWayInfo();
             });
             // 成功获取token
-            source.addEventListener('obtain_token_success', async (event: any) => {
+            source.addEventListener('obtain_token_success_report', async (event: any) => {
                 const data = JSON.parse(event.data);
                 console.log('obtain_token_success-------------> success',data);
+
+                const deviceStore = useDeviceStore();
+                deviceStore.getIHostGateWatList();
+                deviceStore.getNsProGateWayInfo();
+            });
+
+            source.addEventListener('obtain_token_fail_report', async (event: any) => {
+                const data = JSON.parse(event.data);
+                console.log('obtain_token_fail_report-------------> fail',data);
 
                 const deviceStore = useDeviceStore();
                 deviceStore.getIHostGateWatList();
