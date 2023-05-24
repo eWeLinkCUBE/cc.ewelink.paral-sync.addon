@@ -2,7 +2,7 @@ import getGatewayInfo from '../services/public/getGatewayInfo';
 import logger from '../log';
 import mDnsGatewayClass from '../ts/class/mDnsGatewayClass';
 import EGatewayType from '../ts/enum/EGatewayType';
-import ownSse from '../ts/class/ownSse';
+import destSse from '../ts/class/destSse';
 
 /** 获取已搜索到的局域网设备 */
 function getMDnsGatewayList() {
@@ -16,7 +16,7 @@ async function setMDnsGateway(gatewayInfo: { ip: string; name: string; deviceId:
     logger.info('sse 2--------------------------------------------------------');
     const nsProGatewayInfo = await getGatewayInfo(gatewayInfo.ip, EGatewayType.NS_PANEL_PRO);
     logger.info('sse 3--------------------------------------------------------');
-    ownSse.send({
+    destSse.send({
         name: 'gateway_info_report',
         data: nsProGatewayInfo,
     });

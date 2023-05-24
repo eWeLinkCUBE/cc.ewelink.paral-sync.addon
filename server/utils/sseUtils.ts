@@ -1,14 +1,15 @@
 import _ from 'lodash';
-import db, { IDeviceItem } from "./db";
+import db, { IGatewayInfoItem } from "./db";
 import logger from "../log";
 import { IHostStateInterface } from "../ts/interface/IHostState";
 import { IEndpoint } from "../lib/cube-api/ts/interface/IThirdParty";
 import type { IAddDevicePayload, IDeviceInfoUpdatePayload, IDeviceOnOrOfflinePayload } from "../ts/interface/ISse";
 import { ApiClient } from '../api';
 import { createDeviceServiceAddr, createDeviceTags } from '../services/syncOneDevice';
-import { IDevice, IThirdpartyDevice } from '../lib/cube-api';
+import { IThirdpartyDevice } from '../lib/cube-api';
 import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
-import ownSse from '../ts/class/ownSse';
+import destSse from '../ts/class/destSse';
+import srcSse, { ESseStatus } from '../ts/class/srcSse';
 
 
 type IUpdateOneDevice = IUpdateDeviceSate | IUpdateInfoSate | IUpdateOnlineSate
@@ -97,7 +98,7 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     } else if (resType === 'INVALID_PARAMETERS') {
         logger.info(`[sse sync new device]  sync device params invalid`);
     } else {
-        ownSse.send({
+        destSse.send({
             name: "device_added_report",
             data: {
                 id: serial_number,
@@ -152,7 +153,7 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         cubeApiRes = await destGatewayApiClient.deleteDevice(serial_number);
 
         if (cubeApiRes.error === 0) {
-            ownSse.send({
+            destSse.send({
                 name: "device_deleted_report",
                 data: {
                     deviceId: serial_number,
@@ -176,11 +177,14 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
 }
 
 
+
 /**
  * @description 更新设备信息
- * @param {IAddDevicePayload} payload
+ * @param {IUpdateOneDevice} params
+ * @param {string} srcMac
+ * @returns {*}  {Promise<void>}
  */
-async function updateOneDevice(params: IUpdateOneDevice, srcMac: string) {
+async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promise<void> {
     const { type, payload, endpoint } = params;
     const { serial_number, third_serial_number } = endpoint;
     /** 同步目标网关的 MAC 地址 */
@@ -234,7 +238,7 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string) {
         cubeApiRes = await destGatewayApiClient.updateDeviceState(third_serial_number, payload as IDeviceInfoUpdatePayload);
         if (cubeApiRes.error === 0) {
             const { name } = payload as IDeviceInfoUpdatePayload;
-            ownSse.send({
+            destSse.send({
                 name: "device_info_change_report",
                 data: {
                     id: third_serial_number,
@@ -259,11 +263,64 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string) {
 }
 
 
+/**
+ * @description 筛选有效网关
+ * @param {IGatewayInfoItem[]} gateways
+ * @returns {*}  {IGatewayInfoItem[]}
+ */
+function whichGatewayValid(gateways: IGatewayInfoItem[]): IGatewayInfoItem[] {
+    const validGatewayList = gateways.flatMap(gateways => {
+        if (gateways.ipValid === false) return [];
+        if (gateways.tokenValid === false) return [];
+        if (!gateways.token) return [];
+
+        return gateways;
+    })
+
+    return validGatewayList;
+}
+
+
+/**
+ * @description 检查sse
+ */
+async function checkForSse() {
+    /** 所有目标网关的信息 */
+    const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
+    /** 来源网关的sse示例合集 */
+    const ssePool = await db.getDbValue('ssePool');
+    /** 有效网关列表 */
+    const validGatewayList = whichGatewayValid(srcGatewayInfoList);
+
+    for (const gateway of validGatewayList) {
+        const sse = ssePool.get(gateway.mac);
+        // 没有sse的直接建立
+        if (!sse) {
+            await srcSse.buildServerSendEvent(gateway);
+            continue;
+        }
+
+        // 有sse的判断状态，不正确则重连
+        if (sse.status === ESseStatus.RECONNECTING) {
+            sse.updateSseParams(gateway);
+            continue;
+        }
+
+        // 状态为关闭则直接重建
+        if (sse.status === ESseStatus.CLOSED) {
+            ssePool.delete(gateway.mac);
+            await srcSse.buildServerSendEvent(gateway);
+            continue;
+        }
+    }
+}
+
 
 
 
 export default {
     syncOneDevice,
     deleteOneDevice,
-    updateOneDevice
+    updateOneDevice,
+    checkForSse
 }

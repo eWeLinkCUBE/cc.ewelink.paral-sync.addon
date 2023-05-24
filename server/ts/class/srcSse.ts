@@ -5,9 +5,10 @@ import { IAddDevice, IDeviceDeleted, IDeviceInfoUpdate, IDeviceOnOrOffline, IDev
 import sseUtils from "../../utils/sseUtils";
 import tools from "../../utils/tools";
 import db, { IGatewayInfoItem } from "../../utils/db";
+import { srcTokenAndIPInvalid } from "../../utils/dealError";
 
 
-enum ESseStatus {
+export enum ESseStatus {
     /** 连接中 */
     CONNECTING = 'CONNECTING',
     /** 已连接 */
@@ -18,17 +19,12 @@ enum ESseStatus {
     RECONNECTING = 'RECONNECTING'
 }
 
-interface ISseParams {
-    ip: string,
-    token: string,
-    mac: string
-}
 
 export class ServerSentEvent {
     /** sse连接的id，默认为网关的mac地址 */
     public connectionId: string;
     /** sse连接初始化参数 */
-    private initParams: ISseParams;
+    private initParams: IGatewayInfoItem;
     /** sse连接的状态 */
     public status: ESseStatus;
     /** sse连接实例 */
@@ -41,7 +37,7 @@ export class ServerSentEvent {
     private retryInterval: number;
 
 
-    constructor(params: ISseParams) {
+    constructor(params: IGatewayInfoItem) {
         this.initParams = params;
         this.source = new EventSource(`http://${this.initParams.ip}/open-api/v1/sse/bridge?access_token=${this.initParams.token}`);
         this.connectionId = this.initParams.mac;
@@ -66,8 +62,10 @@ export class ServerSentEvent {
             }
             this.source.onerror = async (event) => {
                 logger.info('init sse error', event)
-                // TODO 重连并且将设备相关所有设备全部下线
+                // 将相关设备下线
+                await srcTokenAndIPInvalid("ip", this.initParams.mac);
                 this.status = ESseStatus.RECONNECTING;
+                // 开始重连
                 await this._reconnectSse();
                 resolve(false);
             }
@@ -178,26 +176,20 @@ export class ServerSentEvent {
     }
     /**
      * @description 更新sse连接参数
-     * @param {ISseParams} params
+     * @param {IGatewayInfoItem} params
      * @memberof ServerSentEvent
      */
-    updateSseParams(params: ISseParams) {
+    updateSseParams(params: IGatewayInfoItem) {
         this.initParams = params;
     }
 }
 
 async function buildServerSendEvent(gateway: IGatewayInfoItem) {
-    const { ip, mac, token } = gateway;
-    const stream = new ServerSentEvent({
-        ip,
-        token,
-        mac
-    });
+    const stream = new ServerSentEvent(gateway);
     const ssePool = await db.getDbValue("ssePool");
     ssePool.set(stream.connectionId, stream);
     logger.info(`gateway sse connections count:${ssePool.size}`);
 }
-
 
 export default {
     buildServerSendEvent,
