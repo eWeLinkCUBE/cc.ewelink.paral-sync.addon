@@ -1,7 +1,7 @@
 export const prodConf = {
     nodeApp: {
         env: 'prod',
-        port: 8321,
+        port: 8322,
         dataPath: '',
         dbPath: '',
         name: 'ewelink-nspanel-pro',

@@ -1,15 +1,18 @@
 import { request } from '../public';
-import type { IGateWayInfoData , INsProDeviceData} from '@/api/ts/interface/IGateWay';
+import type { IGateWayInfoData, INsProDeviceData } from '@/api/ts/interface/IGateWay';
 import EReqMethod from '../ts/enum/EReqMethod';
+
 
 /**
  * 获取网关token
  */
-async function getToken(mac:string,isSyncTarget:number){
-    return await request<IGateWayInfoData>(`/token/${mac}`,{isSyncTarget}, EReqMethod.GET);
+async function getToken(mac: string, isSyncTarget: number) {
+    return await request<IGateWayInfoData>(`/token/${mac}`, { isSyncTarget }, EReqMethod.GET);
 }
 
-/**通过ip获取网关信息 接口暂无*/
+/**
+ * 通过ip获取网关信息
+*/
 async function linkNsProGateWay(ip: string) {
     return await request<IGateWayInfoData>(`/gateway/${ip}`, {}, EReqMethod.GET);
 }
@@ -45,8 +48,8 @@ async function syncSingleDevice(deviceId: string, from: string) {
 /**
  * 取消同步单个设备
  */
-async function cancelSyncSingleDevice(deviceId: string,from:string) {
-    return await request(`/device/${deviceId}/un-sync`, {from}, EReqMethod.DELETE);
+async function cancelSyncSingleDevice(deviceId: string, from: string) {
+    return await request(`/device/${deviceId}/un-sync`, { from }, EReqMethod.DELETE);
 }
 
 /**
@@ -95,5 +98,6 @@ export default {
     linkNsProGateWay,
     getOurselfGateWayInfo,
     getNsProGateWayInfo,
-    cancelSyncAllDevice
+    cancelSyncAllDevice,
+    autoSyncAllDevice,
 };
