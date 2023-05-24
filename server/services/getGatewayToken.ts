@@ -56,6 +56,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     res.json(toResponse(ERR_SUCCESS, 'Success', localDestGatewayInfo));
 
                     // 通过 SSE 通知前端，开始获取网关凭证
+                    logger.info(`(service.getGatewayToken) SSE.send(): begin_obtain_token_report`);
                     SSE.send({
                         name: 'begin_obtain_token_report',
                         data: localDestGatewayInfo
@@ -73,15 +74,22 @@ export default async function getGatewayToken(req: Request, res: Response) {
                         localDestGatewayInfo.tokenValid = true;
                         logger.info(`(service.getGatewayToken) after update localDestGatewayInfo: ${JSON.stringify(localDestGatewayInfo)}`);
                         await DB.setDbValue('destGatewayInfo', localDestGatewayInfo);
+
                         // 通过 SSE 通知前端，网关凭证已经拿到
+                        logger.info(`(service.getGatewayToken) SSE.send(): obtain_token_success_report`);
                         SSE.send({
-                            name: 'obtain_token_success',
+                            name: 'obtain_token_success_report',
                             data: localDestGatewayInfo
                         });
                         return;
                     } else {
-                        logger.info(`(service.getGatewayToken) RESPONSE: ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT`);
-                        return res.json(toResponse(ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT));
+                        // 通过 SSE 通知前端，网关凭证获取失败
+                        logger.info(`(service.getGatewayToken) SSE.send(): obtain_token_fail_report`);
+                        SSE.send({
+                            name: 'obtain_token_fail_report',
+                            data: localDestGatewayInfo
+                        });
+                        return;
                     }
                 } else { // 同步目标网关的凭证未失效，直接返回给前端
                     logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
@@ -113,6 +121,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                 res.json(toResponse(ERR_SUCCESS, 'Success', localSrcGatewayInfo));
 
                 // 通过 SSE 通知前端，开始获取网关凭证
+                logger.info(`(service.getGatewayToken) SSE.send(): begin_obtain_token_report`);
                 SSE.send({
                     name: 'begin_obtain_token_report',
                     data: localSrcGatewayInfo
@@ -132,14 +141,20 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     await DB.setDbValue('srcGatewayInfoList', localSrcGatewayInfoList);
 
                     // 通过 SSE 通知前端，网关凭证已经拿到
+                    logger.info(`(service.getGatewayToken) SSE.send(): obtain_token_success_report`);
                     SSE.send({
-                        name: 'obtain_token_success',
+                        name: 'obtain_token_success_report',
                         data: localSrcGatewayInfo
                     });
                     return;
                 } else {
-                    logger.info(`(service.getGatewayToken) RESPONSE: ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT`);
-                    return res.json(toResponse(ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT));
+                    // 通过 SSE 通知前端，网关凭证获取失败
+                    logger.info(`(service.getGatewayToken) SSE.send(): obtain_token_fail_report`);
+                    SSE.send({
+                        name: 'obtain_token_fail_report',
+                        data: localSrcGatewayInfo
+                    });
+                    return;
                 }
             } else { // 同步来源网关的凭证未失效，直接返回给前端
                 logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
