@@ -7,6 +7,7 @@ import type { IAddDevicePayload, IDeviceInfoUpdatePayload, IDeviceOnOrOfflinePay
 import { ApiClient } from '../api';
 import { createDeviceServiceAddr, createDeviceTags } from '../services/syncOneDevice';
 import { IDevice, IThirdpartyDevice } from '../lib/cube-api';
+import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 
 
 type IUpdateOneDevice = IUpdateDeviceSate | IUpdateInfoSate | IUpdateOnlineSate
@@ -50,8 +51,6 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     };
     /** 同步目标网关的 MAC 地址 */
     const destGatewayInfo = await db.getDbValue('destGatewayInfo');
-    /** 本地存储的所有网关设备列表 */
-    const localDeviceList = await db.getDbValue('gatewayDeviceList');
     if (!destGatewayInfo) {
         logger.info(`[sse sync new device] target gateway missing`);
         return;
@@ -89,39 +88,33 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     const resError = _.get(syncRes, 'error');
     const resType = _.get(syncRes, 'payload.type');
     if (resError === 1000) {
+        await srcTokenAndIPInvalid('ip', mac);
         logger.info(`[sse sync new device]  sync device timeout`);
     } else if (resType === 'AUTH_FAILURE') {
+        await srcTokenAndIPInvalid('token', mac);
         logger.info(`[sse sync new device]  sync device token invalid`);
     } else if (resType === 'INVALID_PARAMETERS') {
         logger.info(`[sse sync new device]  sync device params invalid`);
     } else {
-        localDeviceList.push({
-            name,
-            id: serial_number,
-            from: mac,
-            isSynced: true
-        })
-        // 同步成功，更新本地存储的设备列表数据
-        // TODO: acquire lock
-        await db.setDbValue('gatewayDeviceList', localDeviceList);
+        // TODO SSE推送前端设备名称改变
         logger.info(`[sse sync new device]  sync success`);
     }
 }
 
 
 
+
+
 /**
  * @description 删除一个设备
- * @param {IAddDevicePayload} payload
+ * @param {IEndpoint} payload
+ * @param {string} srcMac
+ * @returns {*}  {Promise<void>}
  */
-async function deleteOneDevice(payload: IEndpoint) {
+async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void> {
     const { serial_number } = payload;
     /** 同步目标网关的 MAC 地址 */
-    const destGatewayMac = await db.getDbValue('destGatewayMac');
-    /** 本地存储的网关信息列表 */
-    const gatewayInfoList = await db.getDbValue('gatewayInfoList');
-    /** 同步目标网关的信息 */
-    const destGatewayInfo = _.find(gatewayInfoList, { mac: destGatewayMac });
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     if (!destGatewayInfo) {
         logger.info(`[sse delete device] target gateway missing`);
         return;
@@ -156,10 +149,11 @@ async function deleteOneDevice(payload: IEndpoint) {
     }
 
     if (cubeApiRes.error === 401) {
-        // TODO 将token invalid状态同步到文件中
+        await srcTokenAndIPInvalid('token', srcMac);
         logger.info(`[sse delete device] target token invalid`);
         return;
     } else {
+        await srcTokenAndIPInvalid('ip', srcMac);
         logger.info(`[sse delete device] target ip address invalid`);
         return;
     }
@@ -170,15 +164,11 @@ async function deleteOneDevice(payload: IEndpoint) {
  * @description 更新设备信息
  * @param {IAddDevicePayload} payload
  */
-async function updateOneDevice(params: IUpdateOneDevice, mac: string) {
+async function updateOneDevice(params: IUpdateOneDevice, srcMac: string) {
     const { type, payload, endpoint } = params;
     const { serial_number, third_serial_number } = endpoint;
     /** 同步目标网关的 MAC 地址 */
-    const destGatewayMac = await db.getDbValue('destGatewayMac');
-    /** 本地存储的网关信息列表 */
-    const gatewayInfoList = await db.getDbValue('gatewayInfoList');
-    /** 同步目标网关的信息 */
-    const destGatewayInfo = _.find(gatewayInfoList, { mac: destGatewayMac });
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     if (!destGatewayInfo) {
         logger.info(`[sse update device online] target gateway missing`);
         return;
@@ -211,11 +201,13 @@ async function updateOneDevice(params: IUpdateOneDevice, mac: string) {
             const resError = _.get(cubeApiRes, 'error');
             const resType = _.get(cubeApiRes, 'payload.type');
             if (resError === 1000) {
+                await srcTokenAndIPInvalid('ip', srcMac);
                 logger.info(`[sse update device online]  update device timeout`);
             } else if (resType === 'AUTH_FAILURE') {
+                await srcTokenAndIPInvalid('token', srcMac);
                 logger.info(`[sse update device online]  update device token invalid`);
             } else if (resType === 'INVALID_PARAMETERS') {
-                logger.info(`[sse update device online]  update device params invalid`);
+                logger.info(`[sse update device online]  update device params invalid ${payload}`);
             } else {
                 logger.info(`[sse update device online]  update device success`);
             }
@@ -231,7 +223,7 @@ async function updateOneDevice(params: IUpdateOneDevice, mac: string) {
     }
 
     if (cubeApiRes.error === 401) {
-        // TODO 将token invalid状态同步到文件中
+        await destTokenInvalid();
         logger.info(`[sse update device info or state] target token invalid`);
         return;
     } else {

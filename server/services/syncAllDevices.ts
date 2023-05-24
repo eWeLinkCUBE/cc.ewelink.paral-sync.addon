@@ -19,6 +19,7 @@ import {
     createDeviceTags,
     createDeviceServiceAddr
 } from './syncOneDevice';
+import { destTokenInvalid } from '../utils/dealError';
 
 /** 同步所有设备(1600) */
 export default async function syncAllDevices(req: Request, res: Response) {
@@ -57,6 +58,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
         if (cubeApiRes.error === 0) {
             destGatewayDeviceList = cubeApiRes.data.device_list;
         } else if (cubeApiRes.error === 401) {
+            await destTokenInvalid();
             logger.info(`(service.syncAllDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
         } else {
@@ -105,6 +107,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
             logger.info(`(service.syncAllDevice) response: ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT));
         } else if (resType === 'AUTH_FAILURE') {
+            await destTokenInvalid();
             logger.info(`(service.syncAllDevice) response: ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID));
         } else if (resType === 'INVALID_PARAMETERS') {

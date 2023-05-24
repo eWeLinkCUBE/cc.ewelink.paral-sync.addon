@@ -15,6 +15,7 @@ import DB, { acquireLock, releaseLock } from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import CONFIG from '../config';
 import SSE from '../ts/class/ownSse';
+import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
@@ -23,8 +24,8 @@ export default async function getGatewayToken(req: Request, res: Response) {
     try {
         // lockId = await acquireLock({ retryCount: 20 });
         // if (!lockId) {
-            // logger.info(`(service.getGatewayToken) RESPONSE: ERR_DB_LOCK_BUSY`);
-            // return res.json(toResponse(ERR_DB_LOCK_BUSY));
+        // logger.info(`(service.getGatewayToken) RESPONSE: ERR_DB_LOCK_BUSY`);
+        // return res.json(toResponse(ERR_DB_LOCK_BUSY));
         // }
 
         const ApiClient = CubeApi.ihostApi;
@@ -89,6 +90,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                             name: 'obtain_token_fail_report',
                             data: localDestGatewayInfo
                         });
+                        await destTokenInvalid();
                         return;
                     }
                 } else { // 同步目标网关的凭证未失效，直接返回给前端
@@ -154,6 +156,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                         name: 'obtain_token_fail_report',
                         data: localSrcGatewayInfo
                     });
+                    await srcTokenAndIPInvalid('ip', localSrcGatewayInfo.mac);
                     return;
                 }
             } else { // 同步来源网关的凭证未失效，直接返回给前端
@@ -167,7 +170,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
         return res.json(toResponse(ERR_INTERNAL_ERROR));
     } finally {
         // if (lockId) {
-            // await releaseLock({ lockId, retryCount: 20 });
+        // await releaseLock({ lockId, retryCount: 20 });
         // }
     }
 }
