@@ -45,7 +45,7 @@ onMounted(async () => {
     getAutoSyncState();
     console.log(etcStore.language, '当前语言');
     // const res = await api.NSPanelPro.getNsProGateWayInfo();
-    deviceStore.getNsProGateWayInfo()
+    // deviceStore.getNsProGateWayInfo()
     // if (res.error === 0 && res.data) {
     //     for (const i of res.data) {
     //         console.log(i, 'i');
