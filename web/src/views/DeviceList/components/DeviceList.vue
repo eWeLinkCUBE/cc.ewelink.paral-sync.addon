@@ -37,15 +37,6 @@ import api from '@/api';
 const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
 
-onMounted(async () => {
-    console.log(1111);
-
-    await deviceStore.getDeviceList();
-    // setTimeout(() => {
-    //     deviceStore.deviceList = [];
-    // }, 1000);
-});
-
 /**同步单个设备 */
 const syncDevice = async (item: INsProDeviceData) => {
     const res = await api.NSPanelPro.syncSingleDevice(item.id, item.from);

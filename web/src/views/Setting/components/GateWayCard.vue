@@ -22,7 +22,6 @@ import api from '@/api/NSPanelPro/index';
 import i18n from '@/i18n/index';
 import moment from 'moment';
 import { useDeviceStore } from '@/store/device';
-
 const deviceStore = useDeviceStore();
 const props = defineProps<{
     gateWayData: IGateWayInfoData;
@@ -37,10 +36,10 @@ const btnStatus = computed<boolean>(() => {
     if (!props.gateWayData) {
         return false;
     }
-    const { token, ts } = props.gateWayData;
+    const { tokenValid, ts } = props.gateWayData;
     const requestTime = Number(ts);
     //已经获取token
-    if (token) {
+    if (tokenValid) {
         clearInterval(timer.value);
         return false;
     }
@@ -84,7 +83,7 @@ const showWhichContent = (gateWayData: IGateWayInfoData) => {
         return i18n.global.t('IP_FAILED');
     }
     //已获取token
-    if (gateWayData.token && gateWayData.tokenValid) {
+    if (gateWayData.tokenValid) {
         return i18n.global.t('ALREADY_GET_TOKEN');
     }
     //获取token
@@ -119,7 +118,7 @@ const setCutDownTimer = (requestTime: number) => {
 
 /**获取token */
 const getToken = async (mac: string) => {
-    if(props.type === 'iHost'){
+    if(props.type === 'nsPro'){
         openNsProTipModal();
     }
     const isSyncTarget = props.type === 'iHost' ? 1 : 0;
