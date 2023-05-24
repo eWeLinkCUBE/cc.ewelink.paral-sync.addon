@@ -28,7 +28,7 @@ export class ServerSentEvent {
     /** sse连接的id，默认为网关的mac地址 */
     public connectionId: string;
     /** sse连接初始化参数 */
-    private sseInitParams: ISseParams;
+    private initParams: ISseParams;
     /** sse连接的状态 */
     public status: ESseStatus;
     /** sse连接实例 */
@@ -42,9 +42,9 @@ export class ServerSentEvent {
 
 
     constructor(params: ISseParams) {
-        this.sseInitParams = params;
-        this.source = new EventSource(`http://${this.sseInitParams.ip}/open-api/v1/sse/bridge?access_token=${this.sseInitParams.token}`);
-        this.connectionId = this.sseInitParams.mac;
+        this.initParams = params;
+        this.source = new EventSource(`http://${this.initParams.ip}/open-api/v1/sse/bridge?access_token=${this.initParams.token}`);
+        this.connectionId = this.initParams.mac;
         this.status = ESseStatus.CONNECTING;
         this.retryCount = 0;
         this.retryInterval = 1;
@@ -84,32 +84,32 @@ export class ServerSentEvent {
             const { payload } = JSON.parse(event.data) as IAddDevice;
             logger.info(`sse ${this.connectionId} trigger new device ${payload.serial_number} added`)
             // 同步设备
-            sseUtils.syncOneDevice(payload, this.sseInitParams.mac);
+            sseUtils.syncOneDevice(payload, this.initParams.mac);
         })
 
         /** 设备状态更新 */
         this.source.addEventListener('device#v1#updateDeviceState', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceStateUpdate;
-            sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload, endpoint }, this.sseInitParams.mac);
+            sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备信息更新 */
         this.source.addEventListener('device#v1#updateDeviceInfo', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceInfoUpdate;
-            sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload, endpoint }, this.sseInitParams.mac);
+            sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备上下线 */
         this.source.addEventListener('device#v1#updateDeviceOnline', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceOnOrOffline;
-            sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload, endpoint }, this.sseInitParams.mac);
+            sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备被删除 */
         this.source.addEventListener('device#v1#deleteDevice', (event) => {
             const { endpoint } = JSON.parse(event.data) as IDeviceDeleted;
             // 取消同步设备
-            sseUtils.deleteOneDevice(endpoint);
+            sseUtils.deleteOneDevice(endpoint, this.initParams.mac);
         })
     }
     /**
@@ -126,7 +126,7 @@ export class ServerSentEvent {
                 console.log(`sse reconnecting for ${retryCount} 次`);
                 console.log(`sse reconnect for ${retryCount} times begins in ${Date.now()}`);
                 // 尝试重连
-                const { ip, token } = this.sseInitParams;
+                const { ip, token } = this.initParams;
                 this.source = new EventSource(`http://${ip}/open-api/v1/sse/bridge?access_token=${token}`);
                 const res = await this._initUniversalEvent();
                 if (!res) {
@@ -182,7 +182,7 @@ export class ServerSentEvent {
      * @memberof ServerSentEvent
      */
     updateSseParams(params: ISseParams) {
-        this.sseInitParams = params;
+        this.initParams = params;
     }
 }
 
