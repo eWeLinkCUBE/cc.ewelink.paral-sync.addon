@@ -1,139 +1,182 @@
 <template>
-    <div class="setting">
-        <span class="title">{{i18n.global.t('SETTING')}}</span>
-
+    <div class="setting" v-if="startInIHost === 'normal'">
+        <span class="title">{{ i18n.global.t('SETTING') }}</span>
         <!-- steps 1-->
         <div v-if="steps === stepsList.FIRST">
             <div class="step-info">
-                <div class="first-step" >
-                    <div class="step-title">{{i18n.global.t('STEP01_TOKEN')}}</div>
-                    <div class="step-description">{{i18n.global.t('GET_ACCESS_TOKEN')}}</div>
+                <div class="first-step">
+                    <div class="step-title">{{ i18n.global.t('STEP01_TOKEN') }}</div>
+                    <div class="step-description">{{ i18n.global.t('GET_ACCESS_TOKEN') }}</div>
                 </div>
             </div>
             <div class="card-list">
-                <GateWayCard
-                    v-for="item,index in deviceStore.iHostList"
-                    :key="index"
-                    :gateWayData="item"
-                    :type="'iHost'"
-                />
+                <GateWayCard v-for="(item, index) in deviceStore.iHostList" :key="index" :gateWayData="item" :type="'iHost'" />
             </div>
             <div class="next-step">
-                <a @click="nextStep">{{i18n.global.t('NEXT')}} ></a>
+                <a @click="nextStep" :class="{ 'disabled-btn': !hasIHostToken }">{{ i18n.global.t('NEXT') }} ></a>
             </div>
         </div>
-
         <!-- steps 2-->
         <div v-if="steps === stepsList.SECOND">
             <div class="step-info">
                 <div class="first-step">
-                    <div class="step-title">{{i18n.global.t('STEP02_TOKEN')}}</div>
-                    <div class="step-description">{{i18n.global.t('THE_FOLLOWING')}}</div>
-                    <div class="step-description">{{i18n.global.t('STEP2')}}</div>
+                    <div class="step-title">{{ i18n.global.t('STEP02_TOKEN') }}</div>
+                    <div class="step-description">
+                        {{ i18n.global.t('THE_FOLLOWING') }}
+                        <img alt="" src="@/assets/img/refresh.png" @click="deviceStore.getNsProGateWayInfo()" />
+                    </div>
+                    <div class="step-description">{{ i18n.global.t('STEP2') }}</div>
                 </div>
             </div>
             <div class="card-list">
-                <GateWayCard
-                    v-for="item,index in deviceStore.nsProList"
-                    :key="index"
-                    :gateWayData="item"
-                    :type="'nsPro'"
-                />
-                <div class="card">
+                <GateWayCard v-for="(item, index) in deviceStore.nsProList" :key="index" :gateWayData="item" :type="'nsPro'" @openNsProTipModal="openNsProTipModal" />
+                <!-- ip search -->
+                <div class="card" :class="{ 'disabled-card': deviceStore.hasTokenOrTs }">
                     <img src="@/assets/img/search.png" />
-                    <div class="ip-search" @click="findIpVisible=true">IP查找</div>
+                    <div class="ip-search" @click="openFindIpModal">{{ i18n.global.t('IP_FIND') }}</div>
                 </div>
             </div>
             <div class="next-step">
-                <a @click="goDeviceListPage">{{i18n.global.t('DONE')}}</a>
+                <a @click="goDeviceListPage" :class="{ 'disabled-btn': !hasNsProToken }">{{ i18n.global.t('DONE') }} ></a>
             </div>
         </div>
     </div>
+    <!-- 未在iHost启动 -->
+    <div class="not-in-iHost" v-if="startInIHost === 'unusual'">
+        <img src="@/assets/img/not-in-iHost.png" />
+        <div>{{ i18n.global.t('PLEASE_START_IN_IHOST') }}</div>
+    </div>
 
     <!-- findIp Modal -->
-    <a-modal :visible="findIpVisible" destroyOnClose :maskClosable="false" centered :closable="false" width="504px">
+    <a-modal :visible="findIpVisible" destroyOnClose :maskClosable="false" centered :closable="false" width="504px" class="Modal">
         <template #title>
-            <div style="text-align: center">ip查找</div>
+            <div style="text-align: center; margin-bottom: 18px">{{ i18n.global.t('IP_FIND') }}</div>
         </template>
-        <div style="text-align: center">
-            <a-form>
-                <a-form-item>
-                    <a-input v-model:value="ipVal" style="width: 398px; height: 40px" />
-                </a-form-item>
-            </a-form>
+        <div class="search-content">
+            <a-input v-model:value="ipVal" style="width: 398px; height: 40px" />
+            <p v-if="ipFail">{{ i18n.global.t('CONNECT_IP_FAIL') }}</p>
         </div>
         <template #footer>
             <div style="text-align: center">
-                <a-button class="default-btn common-btn" @click="findIpVisible = false">Cancel</a-button>
+                <a-button class="default-btn common-btn" @click="findIpVisible = false">{{ i18n.global.t('CANCEL') }}</a-button>
                 <a-button type="primary" class="common-btn" @click="linkNsProGateWay">Link</a-button>
+            </div>
+        </template>
+    </a-modal>
+
+    <!-- nsPro 提示框 -->
+    <a-modal :visible="nsProTipModalVisible" destroyOnClose :maskClosable="false" centered :closable="false" width="504px" class="NsPro-Modal">
+        <template #title>
+            <div class="nsPro-title">{{ i18n.global.t('GET_NSPRO_TOKEN') }}</div>
+        </template>
+        <div class="search-content" style="padding-bottom: 20px">
+            <h3>{{ i18n.global.t('STEP2') }}</h3>
+            <a-carousel autoplay>
+                <div class="swiper-item">
+                    <img class="swiper-image" src="@/assets/img/setting-modal.png" />
+                </div>
+                <div class="swiper-item">
+                    <img class="swiper-image" src="@/assets/img/machine-modal.png" />
+                </div>
+                <div class="swiper-item">
+                    <img class="swiper-image" src="@/assets/img/click-modal.png" />
+                </div>
+                <div class="swiper-item">
+                    <img class="swiper-image" src="@/assets/img/token-modal.png" />
+                </div>
+            </a-carousel>
+        </div>
+        <template #footer>
+            <div style="text-align: center; margin: 10px 0">
+                <a-button type="primary" class="common-btn" @click="nsProTipModalVisible = false">{{ i18n.global.t('GET_IT') }}</a-button>
             </div>
         </template>
     </a-modal>
 </template>
 
 <script setup lang="ts">
-import { ref ,onMounted ,computed} from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import api from '@/api/NSPanelPro/index';
-import type { IGateWayInfoData} from '@/api/ts/interface/IGateWay';
-import {stepsList} from '@/api/ts/interface/IGateWay';
+import type { IGateWayInfoData } from '@/api/ts/interface/IGateWay';
+import { stepsList } from '@/api/ts/interface/IGateWay';
 import { message } from 'ant-design-vue';
 import { useDeviceStore } from '@/store/device';
 import { useRouter } from 'vue-router';
 import GateWayCard from './components/GateWayCard.vue';
 import i18n from '@/i18n/index';
+import moment from 'moment';
 
 const router = useRouter();
 const deviceStore = useDeviceStore();
-const steps = computed(()=>deviceStore.step);
+const steps = computed(() => deviceStore.step);
 
 const findIpVisible = ref(false);
-const ipVal = ref('192.168.31.214');
+const ipVal = ref('');
+const startInIHost = ref<'unusual' | 'normal' | 'empty'>('empty');
+const ipFail = ref(false);
+const nsProTipModalVisible = ref(false);
 
-onMounted(()=>{
-    if(steps.value === stepsList.FIRST){
-        deviceStore.getIHostGateWatList();
-    }else{
-        deviceStore.getNsProGateWayInfo();
+onMounted(async () => {
+    if (steps.value === stepsList.FIRST) {
+        const response = await deviceStore.getIHostGateWatList();
+        startInIHost.value = 'normal';
+        //不在iHost上启动
+        if (response.error === 1101) {
+            startInIHost.value = 'unusual';
+        }
+    } else {
+        startInIHost.value = 'normal';
+        await deviceStore.getNsProGateWayInfo();
     }
 });
 
 /**通过ip获取nsPanePro网关信息 */
-const linkNsProGateWay = async () =>{
-    if(!ipVal.value || !ipVal.value.trim())return;
+const linkNsProGateWay = async () => {
+    if (!ipVal.value || !ipVal.value.trim()) return;
 
-    // if(nsProList.value.some((item)=>item.ip === ipVal.value))return;
+    if (deviceStore.nsProList.some((item) => item.ip === ipVal.value)) return;
 
-    const res =await api.linkNsProGateWay(ipVal.value);
-    if(res.error === 0 && res.data){
+    const res = await api.linkNsProGateWay(ipVal.value);
+    if (res.error === 0 && res.data) {
         //link成功后,后台会存下来
         deviceStore.getNsProGateWayInfo();
-    }else{
-        message.info(res.msg);
+        findIpVisible.value = false;
+        ipFail.value = false;
+    } else {
+        ipFail.value = true;
     }
-    console.log('getGateWayInfo:',res);
-}
+};
+
+/** 是否获取iHost的token */
+const hasIHostToken = computed(() => deviceStore.iHostList.some((item) => item.tokenValid));
+
+/** 是否获取到一个nsPro的token */
+const hasNsProToken = computed(() => deviceStore.nsProList.some((item) => item.tokenValid));
 
 /**下一步 */
-const nextStep = () =>{
-    if(steps.value === stepsList.FIRST){
-        //获取iHost token
-        if(!deviceStore.iHostList.some((item) => item.tokenValid)){
-            return message.info('lack of IHost token');
-        }
-        deviceStore.setStep(stepsList.SECOND);
-        deviceStore.getNsProGateWayInfo();
-    }
-
-
-}
+const nextStep = () => {
+    if (!hasIHostToken) return;
+    deviceStore.setStep(stepsList.SECOND);
+    deviceStore.getNsProGateWayInfo();
+};
 /** 点击完成 */
-const goDeviceListPage = () =>{
-    if(!deviceStore.nsProList.some((item) => item.tokenValid)){
-        return message.info('lack of nsPro token');
-    }
+const goDeviceListPage = () => {
+    if (!hasNsProToken) return;
     router.push('/deviceList');
     deviceStore.setStep(stepsList.FIRST);
-}
+};
+
+/** 打开nsPro 提示框 */
+const openNsProTipModal = () => {
+    nsProTipModalVisible.value = true;
+};
+
+/** 打开Link弹窗 */
+const openFindIpModal = () => {
+    findIpVisible.value = true;
+    ipFail.value = false;
+    ipVal.value = '';
+};
 </script>
 
 <style scoped lang="scss">
@@ -158,6 +201,12 @@ const goDeviceListPage = () =>{
         .step-description {
             font-size: 16px;
             color: rgba(66, 66, 66, 0.5);
+            img{
+                display: inline-block;
+                width:20px;
+                height: 20px;
+                cursor: pointer;
+            }
         }
     }
     .card-list {
@@ -195,6 +244,10 @@ const goDeviceListPage = () =>{
                 cursor: pointer;
             }
         }
+        .disabled-card {
+            user-select: none;
+            pointer-events: none;
+        }
     }
     .next-step {
         margin-top: 120px;
@@ -202,10 +255,37 @@ const goDeviceListPage = () =>{
         padding: 0 64px;
         font-size: 16px;
         font-weight: 600;
+        .disabled-btn {
+            pointer-events: none;
+            -webkit-filter: grayscale(100%);
+            -moz-filter: grayscale(100%);
+            -ms-filter: grayscale(100%);
+            -o-filter: grayscale(100%);
+            filter: grayscale(100%);
+            user-select: none;
+        }
     }
     .common-btn {
         width: 120px;
         height: 40px;
+    }
+}
+
+.not-in-iHost {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    img {
+        width: 365px;
+        height: 279px;
+        margin-bottom: 20px;
+    }
+    div {
+        font-size: 18px;
+        font-weight: 500;
+        color: rgba(66, 66, 66, 0.5);
     }
 }
 
@@ -214,19 +294,63 @@ const goDeviceListPage = () =>{
     border: 1px solid rgba(153, 153, 153, 0.3);
     color: #fff;
 }
-:deep(.ant-modal .ant-modal-footer) {
-    border-top: none !important;
+:deep(.ant-carousel .slick-dots li button) {
+    width: 8px;
+    height: 8px;
+    margin-right: 10px;
+    background-color: #bbbbbb;
+    border-radius: 50%;
 }
-:deep(.ant-modal .ant-modal-header) {
-    border-bottom: none !important;
+:deep(.slick-dots-bottom) {
+    bottom: -5px;
 }
-
 .default-btn {
     margin-right: 58px;
     color: #424242;
 }
-.common-btn{
+.common-btn {
     width: 120px;
-    height:40px;
+    height: 40px;
+}
+.nsPro-title {
+    text-align: center;
+    margin-bottom: 18px;
+    font-size: 20px;
+    font-weight: 500;
+    color: #424242;
+}
+.search-content {
+    text-align: center;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    p {
+        font-size: 12px;
+        font-weight: 400;
+        color: #ff5c5b;
+        text-align: left;
+        margin-left: 28px;
+    }
+    h3 {
+        width: 440px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #424242;
+        text-align: left;
+    }
+    .swiper-item {
+        width: 365px;
+        height: 174px;
+        display: flex !important;
+        justify-content: center;
+        margin: 0 auto;
+        align-items: flex-start;
+        padding-top: 2px;
+        font-size: 16px;
+        width: calc(100% - 138px) !important;
+        background: url(@/assets/img/background.png);
+        img {
+            height: 156px;
+        }
+    }
 }
 </style>

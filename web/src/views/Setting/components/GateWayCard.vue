@@ -7,14 +7,11 @@
             type="primary"
             style="width: 194px; height: 40px"
             @click="getToken(gateWayData.mac)"
-            :style="{ color: (gateWayData.token || !gateWayData.ipValid) ? '#ccc' : 'FFFF' }"
-            :disabled="(gateWayData.token || !gateWayData.ipValid) ? true : false"
+            :disabled="gateWayData.token || !gateWayData.ipValid || disabledBtn ? true : false"
             :loading="btnStatus"
-            >
-                <!-- countdownTime -->
-                <span v-if="btnStatus">{{ countdownTime }}</span>
-                <!--  -->
-                <span v-else>{{showWhichContent(gateWayData)}}</span>
+        >
+            <span v-if="btnStatus">{{ formatCount(countdownTime) }}</span>
+            <span v-else>{{ showWhichContent(gateWayData) }}</span>
         </a-button>
     </div>
 </template>
@@ -32,34 +29,47 @@ const props = defineProps<{
     type: 'iHost' | 'nsPro';
 }>();
 
+const emits = defineEmits(['openNsProTipModal']);
+const openNsProTipModal = () => emits('openNsProTipModal');
+
 /** 获取token按钮的状态  获取token 、*/
-const btnStatus = computed<boolean>(()=>{
-    if(!props.gateWayData) {
+const btnStatus = computed<boolean>(() => {
+    if (!props.gateWayData) {
         return false;
     }
-    const {token ,ts} = props.gateWayData;
+    const { token, ts } = props.gateWayData;
     const requestTime = Number(ts);
     //已经获取token
-    if(token){
+    if (token) {
         clearInterval(timer.value);
         return false;
     }
 
     //没有ts,显示获取token
-    if(!requestTime){
+    if (!requestTime) {
         return false;
-    }else{
+    } else {
         //有ts,再判断距离当前时间是否小于五分钟
         const nowTime = moment();
         const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
-        if(seconds>300){
+        if (seconds > 300) {
             return false;
-        }else{
+        } else {
             setCutDownTimer(requestTime);
             return true;
         }
     }
-})
+});
+
+/**有一个nsPro在获取token倒计时或者已经获取token,按钮禁用*/
+const disabledBtn = computed(() => {
+    const hasOneTokenItem = deviceStore.nsProList.find((item) => item.token || item.ts);
+    let notSelf = false;
+    if (hasOneTokenItem && hasOneTokenItem.mac === props.gateWayData.mac) {
+        notSelf = true;
+    }
+    return deviceStore.hasTokenOrTs && notSelf;
+});
 
 const timeGap = ref(300);
 /** 倒计时时间 */
@@ -69,13 +79,13 @@ const timer = ref<any>(null);
 
 /** 按钮展示内容的控制 */
 const showWhichContent = (gateWayData: IGateWayInfoData) => {
+    //IP无效
+    if (!gateWayData.ipValid) {
+        return i18n.global.t('IP_FAILED');
+    }
     //已获取token
     if (gateWayData.token && gateWayData.tokenValid) {
         return i18n.global.t('ALREADY_GET_TOKEN');
-    }
-    //IP无效
-    if (!gateWayData.ipValid) {
-        return i18n.global.t('IP_VALID');
     }
     //获取token
     return i18n.global.t('GET_TOKEN');
@@ -103,12 +113,15 @@ const setCutDownTimer = (requestTime: number) => {
             window.clearInterval(timer.value);
             countdownTime.value = timeGap.value;
         }
-        console.log('------------------>',countdownTime.value);
+        console.log('------------------>', countdownTime.value);
     }, 1000);
 };
 
 /**获取token */
 const getToken = async (mac: string) => {
+    if(props.type === 'iHost'){
+        openNsProTipModal();
+    }
     const isSyncTarget = props.type === 'iHost' ? 1 : 0;
     const res = await api.getToken(mac, isSyncTarget);
     if (res.error === 0 && res.data) {
@@ -118,6 +131,13 @@ const getToken = async (mac: string) => {
             deviceStore.getNsProGateWayInfo();
         }
     }
+};
+
+/** 格式化时间 */
+const formatCount = (count: number) => {
+    const min = Math.floor(count / 60);
+    const sec = count % 60;
+    return `${min}min${sec}s`;
 };
 </script>
 
@@ -144,11 +164,12 @@ const getToken = async (mac: string) => {
     img {
         margin: 20px 64px;
     }
-    .ip-search {
-        text-align: center;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
+    :deep(.ant-btn-primary[disabled]){
+        background-color: #999999 !important;
+        border: 1px solid rgba(153,153,153,0.3)!important;
+        font-weight: 500!important;
+        color: #FFFFFF!important;
+        font-size: 16px!important;
     }
 }
 </style>

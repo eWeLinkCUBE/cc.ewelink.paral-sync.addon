@@ -1,27 +1,24 @@
 <template>
     <div class="device">
         <div class="table-header">
-            <div class="name">{{i18n.global.t('DEVICE_NAME')}}</div>
-            <div class="id">{{i18n.global.t('DEVICE_ID')}}</div>
-            <div class="option">{{i18n.global.t('ACTION')}}</div>
+            <div class="name">{{ i18n.global.t('DEVICE_NAME') }}</div>
+            <div class="id">{{ i18n.global.t('DEVICE_ID') }}</div>
+            <div class="option">{{ i18n.global.t('ACTION') }}</div>
         </div>
         <div class="table-body">
-            <div class="device-item" v-for="(item, index) in deviceList" :key="index" v-if="deviceList.length>0">
+            <div class="device-item" v-for="(item, index) in deviceList" :key="index" v-if="deviceList.length > 0">
                 <span class="name">{{ item.name }}</span>
                 <span class="id">{{ item.id }}</span>
                 <div class="option">
-                    <span class="sync" v-if="!item.isSynced" @click="syncDevice(item)">{{i18n.global.t('SYNC')}}</span>
-                    <span class="cancel-sync" v-else @click="cancelSyncSingleDevice(item)">{{i18n.global.t('CANCEL_SYNC')}}</span>
+                    <span class="sync" v-if="!item.isSynced" @click="syncDevice(item)">{{ i18n.global.t('SYNC') }}</span>
+                    <span class="cancel-sync" v-else @click="cancelSyncSingleDevice(item)">{{ i18n.global.t('CANCEL_SYNC') }}</span>
                 </div>
             </div>
-            <!-- empty -->
-            <div v-else>
-
+            <div v-else class="empty">
+                <img src="@/assets/img/empty.png" />
+                <div>{{  i18n.global.t('NO_DATA') }}</div>
             </div>
         </div>
-        <!-- <div class="pagination">
-            <a-pagination v-model:current="current" :total="50" show-less-items />
-        </div> -->
     </div>
 </template>
 
@@ -38,24 +35,25 @@ const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
 
 onMounted(async () => {
-    console.log(1111);
-
     await deviceStore.getDeviceList();
+    // setTimeout(() => {
+    //     deviceStore.deviceList = [];
+    // }, 1000);
 });
 
 /**同步单个设备 */
-const syncDevice = async (item:INsProDeviceData) =>{
-    const res = await api.NSPanelPro.syncSingleDevice(item.id,item.from);
-    if(res.error === 0){
-        message.success('Sync success');
+const syncDevice = async (item: INsProDeviceData) => {
+    const res = await api.NSPanelPro.syncSingleDevice(item.id, item.from);
+    if (res.error === 0) {
+        message.success('success');
         deviceStore.getDeviceList();
     }
-}
+};
 /** 取消同步单个设备 */
-const cancelSyncSingleDevice =async (item:INsProDeviceData) =>{
-    const resp = await api.NSPanelPro.cancelSyncSingleDevice(item.id,item.from);
-    if(resp.error === 0){
-        message.success('Cancel sync success');
+const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
+    const resp = await api.NSPanelPro.cancelSyncSingleDevice(item.id, item.from);
+    if (resp.error === 0) {
+        message.success('success');
         deviceStore.getDeviceList();
     }
 };
@@ -75,7 +73,6 @@ const cancelSyncSingleDevice =async (item:INsProDeviceData) =>{
         .name,
         .id {
             width: 40%;
-            min-width: 200px;
         }
         .option {
             width: 20%;
@@ -84,41 +81,57 @@ const cancelSyncSingleDevice =async (item:INsProDeviceData) =>{
     .table-body {
         height: calc(100% - 50px);
         overflow: auto;
-        .device-list {
-            .device-item {
-                display: flex;
-                align-items: center;
-                padding: 0 60px;
-                opacity: 1;
-                height: 45px;
-                line-height: 45px;
-                border-bottom: 1px solid #f0f0f0;
-                .name,
-                .id {
-                    width: 40%;
+        position: relative;
+        .device-item {
+            display: flex;
+            align-items: center;
+            padding: 0 60px;
+            opacity: 1;
+            height: 45px;
+            line-height: 45px;
+            border-bottom: 1px solid #f0f0f0;
+            .name,
+            .id {
+                width: 40%;
+                font-size: 14px;
+                font-weight: 500;
+                color: #424242;
+            }
+            .option {
+                width: 20%;
+                .sync {
                     font-size: 14px;
                     font-weight: 500;
-                    color: #424242;
-                    min-width: 200px;
+                    color: #1890ff;
+                    cursor: pointer;
                 }
-                .option {
-                    width: 20%;
-                    .sync {
-                        font-size: 14px;
-                        font-weight: 500;
-                        color: #1890ff;
-                        cursor: pointer;
-                    }
-                    .cancel-sync {
-                        font-size: 14px;
-                        font-weight: 500;
-                        color: #ff5c5b;
-                        cursor: pointer;
-                    }
+                .cancel-sync {
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #ff5c5b;
+                    cursor: pointer;
                 }
             }
-            .device-item:hover {
-                background-color: #fafafa;
+        }
+        .device-item:hover {
+            background-color: #fafafa;
+        }
+
+        .empty{
+            position:absolute;
+            left: 50%;
+            top:50%;
+            transform: translate(-50%,-50%);
+            text-align: center;
+            img{
+                width: 365px;
+                height: 279px;
+                margin-bottom: 44px;
+            }
+            div{
+                font-size: 20px;
+                font-weight: 500;
+                color: rgba(66,66,66,0.5);
             }
         }
     }
