@@ -6,8 +6,8 @@
         <div v-if="steps === stepsList.FIRST">
             <div class="step-info">
                 <div class="first-step" >
-                    <div class="step-title">{{i18n.global.t('STEP_01')}}</div>
-                    <div class="step-description">{{i18n.global.t('STEP_01_DES')}}</div>
+                    <div class="step-title">{{i18n.global.t('STEP01_TOKEN')}}</div>
+                    <div class="step-description">{{i18n.global.t('GET_ACCESS_TOKEN')}}</div>
                 </div>
             </div>
             <div class="card-list">
@@ -19,7 +19,7 @@
                 />
             </div>
             <div class="next-step">
-                <a @click="nextStep">{{i18n.global.t('NEXT_STEP')}} ></a>
+                <a @click="nextStep">{{i18n.global.t('NEXT')}} ></a>
             </div>
         </div>
 
@@ -27,9 +27,9 @@
         <div v-if="steps === stepsList.SECOND">
             <div class="step-info">
                 <div class="first-step">
-                    <div class="step-title">{{i18n.global.t('STEP_02')}}</div>
-                    <div class="step-description">{{i18n.global.t('STEP_02_DES1')}}</div>
-                    <div class="step-description">{{i18n.global.t('STEP_02_DES2')}}</div>
+                    <div class="step-title">{{i18n.global.t('STEP02_TOKEN')}}</div>
+                    <div class="step-description">{{i18n.global.t('THE_FOLLOWING')}}</div>
+                    <div class="step-description">{{i18n.global.t('STEP2')}}</div>
                 </div>
             </div>
             <div class="card-list">

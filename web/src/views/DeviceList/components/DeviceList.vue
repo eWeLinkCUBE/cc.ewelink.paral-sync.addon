@@ -1,5 +1,5 @@
 <template>
-    <div class="device-list">
+    <div class="device">
         <div class="table-header">
             <div class="name">{{i18n.global.t('DEVICE_NAME')}}</div>
             <div class="id">{{i18n.global.t('DEVICE_ID')}}</div>
@@ -34,10 +34,12 @@ import i18n from '@/i18n/index';
 import router from '@/router';
 import api from '@/api';
 
-const deviceList = computed(()=>deviceStore.deviceList);
+const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
 
 onMounted(async () => {
+    console.log(1111);
+
     await deviceStore.getDeviceList();
 });
 
@@ -56,12 +58,12 @@ const cancelSyncSingleDevice =async (item:INsProDeviceData) =>{
         message.success('Cancel sync success');
         deviceStore.getDeviceList();
     }
-}
+};
 </script>
 
 <style scoped lang="scss">
-.device-list {
-    height:calc(100vh - 95px);
+.device {
+    height: calc(100vh - 95px);
     .table-header {
         display: flex;
         align-items: center;
@@ -73,7 +75,7 @@ const cancelSyncSingleDevice =async (item:INsProDeviceData) =>{
         .name,
         .id {
             width: 40%;
-            min-width:200px;
+            min-width: 200px;
         }
         .option {
             width: 20%;
@@ -82,45 +84,47 @@ const cancelSyncSingleDevice =async (item:INsProDeviceData) =>{
     .table-body {
         height: calc(100% - 50px);
         overflow: auto;
-        .device-item {
-            display: flex;
-            align-items: center;
-            padding: 0 60px;
-            opacity: 1;
-            height: 45px;
-            line-height: 45px;
-            border-bottom: 1px solid #f0f0f0;
-            .name,
-            .id {
-                width: 40%;
-                font-size: 14px;
-                font-weight: 500;
-                color: #424242;
-                min-width:200px;
-            }
-            .option {
-                width: 20%;
-                .sync {
+        .device-list {
+            .device-item {
+                display: flex;
+                align-items: center;
+                padding: 0 60px;
+                opacity: 1;
+                height: 45px;
+                line-height: 45px;
+                border-bottom: 1px solid #f0f0f0;
+                .name,
+                .id {
+                    width: 40%;
                     font-size: 14px;
                     font-weight: 500;
-                    color: #1890ff;
-                    cursor: pointer;
+                    color: #424242;
+                    min-width: 200px;
                 }
-                .cancel-sync {
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: #ff5c5b;
-                    cursor: pointer;
+                .option {
+                    width: 20%;
+                    .sync {
+                        font-size: 14px;
+                        font-weight: 500;
+                        color: #1890ff;
+                        cursor: pointer;
+                    }
+                    .cancel-sync {
+                        font-size: 14px;
+                        font-weight: 500;
+                        color: #ff5c5b;
+                        cursor: pointer;
+                    }
                 }
             }
-        }
-        .device-item:hover {
-            background-color: #fafafa;
+            .device-item:hover {
+                background-color: #fafafa;
+            }
         }
     }
-    .pagination{
+    .pagination {
         text-align: right;
-        position:absolute;
+        position: absolute;
         right: 20px;
         bottom: 20px;
     }

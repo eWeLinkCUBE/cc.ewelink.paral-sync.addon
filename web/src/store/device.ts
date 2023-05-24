@@ -65,7 +65,7 @@ export const useDeviceStore = defineStore('addon_device', {
                     mac = item.mac;
                 }
             });
-
+            
             if(!mac)return;
 
             const res = await api.NSPanelPro.getDeviceList(mac);
