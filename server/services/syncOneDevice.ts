@@ -14,7 +14,7 @@ import {
     ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT,
     ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID,
     ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID,
-    ERR_SUCCESS
+    ERR_SUCCESS,
 } from '../utils/error';
 import logger from '../log';
 import DB from '../utils/db';
@@ -37,7 +37,7 @@ export function createDeviceTags(device: any, srcGatewayMac: string) {
     }
     const additionalData = {
         srcGatewayMac,
-        deviceId: device.serial_number
+        deviceId: device.serial_number,
     };
     _.set(result, '__nsproAddonData', additionalData);
     return result;
@@ -53,11 +53,10 @@ export function createDeviceServiceAddr(deviceId: string) {
 /** 同步单个设备(1500) */
 export default async function syncOneDevice(req: Request, res: Response) {
     try {
-
         /** 将要被同步的设备 ID */
         const willSyncDeviceId = req.params.deviceId;
         /** 同步来源网关的 MAC 地址 */
-        const srcGatewayMac = req.params.from;
+        const srcGatewayMac = req.body.from;
         logger.info(`(service.syncOneDevice) willSyncDeviceId: ${willSyncDeviceId}`);
         logger.info(`(service.syncOneDevice) srcGatewayMac: ${srcGatewayMac}`);
 
@@ -145,8 +144,8 @@ export default async function syncOneDevice(req: Request, res: Response) {
                     capabilities: srcDeviceData.capabilities,
                     state: srcDeviceData.state,
                     tags: createDeviceTags(srcDeviceData, srcGatewayMac),
-                    service_address: createDeviceServiceAddr(willSyncDeviceId)
-                }
+                    service_address: createDeviceServiceAddr(willSyncDeviceId),
+                },
             ];
             logger.info(`(service.syncOneDevice) syncDevices: ${JSON.stringify(syncDevices)}`);
             cubeApiRes = await destGatewayClient.syncDevices({ devices: syncDevices });
@@ -166,7 +165,6 @@ export default async function syncOneDevice(req: Request, res: Response) {
                 return res.json(toResponse(ERR_SUCCESS));
             }
         }
-
     } catch (error: any) {
         logger.error(`get iHost token code error----------------: ${error.message}`);
         res.json(toResponse(ERR_INTERNAL_ERROR));

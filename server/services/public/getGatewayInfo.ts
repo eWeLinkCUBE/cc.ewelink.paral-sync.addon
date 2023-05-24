@@ -4,6 +4,7 @@ import EErrorCode from '../../ts/enum/EErrorCode';
 import EGatewayType from '../../ts/enum/EGatewayType';
 import db from '../../utils/db';
 import CubeApi from '../../lib/cube-api';
+import { IGatewayInfoItem } from '../../utils/db';
 
 /** 接口获取网关信息并存储到数据库中 */
 export default async (ipAddress: string, type: EGatewayType) => {
@@ -55,20 +56,20 @@ export default async (ipAddress: string, type: EGatewayType) => {
             const destGatewayInfo = await db.getDbValue('destGatewayInfo');
             if (!destGatewayInfo) {
                 await db.setDbValue('destGatewayInfo', defaultGatewayInfo);
-                return defaultGatewayInfo;
+                return omitToken(defaultGatewayInfo);
             }
 
             const newDestGatewayInfo = _.merge(destGatewayInfo, { mac, ip, domain });
 
             await db.setDbValue('destGatewayInfo', newDestGatewayInfo);
-            return newDestGatewayInfo;
+            return omitToken(newDestGatewayInfo);
         }
 
         if (type === EGatewayType.NS_PANEL_PRO) {
             const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
             if (!srcGatewayInfoList) {
                 await db.setDbValue('srcGatewayInfoList', [defaultGatewayInfo]);
-                return defaultGatewayInfo;
+                return omitToken(defaultGatewayInfo);
             }
 
             const srcGatewayInfo = srcGatewayInfoList.find((item) => item.mac === mac);
@@ -76,11 +77,11 @@ export default async (ipAddress: string, type: EGatewayType) => {
             if (srcGatewayInfo) {
                 _.merge(srcGatewayInfo, { ip });
                 await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
-                return srcGatewayInfo;
+                return omitToken(srcGatewayInfo);
             } else {
                 srcGatewayInfoList.push(defaultGatewayInfo);
                 await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
-                return defaultGatewayInfo;
+                return omitToken(defaultGatewayInfo);
             }
         }
     } catch (error: any) {
@@ -88,3 +89,8 @@ export default async (ipAddress: string, type: EGatewayType) => {
         return null;
     }
 };
+
+//不给前端token
+function omitToken(gatewayInfo: IGatewayInfoItem) {
+    return _.omit(gatewayInfo, 'token');
+}
