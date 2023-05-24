@@ -58,8 +58,16 @@ export default async function openControlDevice(req: Request, res: Response) {
             const client = new ApiClient({ ip: srcGatewayInfo.ip, at: srcGatewayInfo.token });
             const cubeApiRes = await client.updateDeviceState(deviceId, { state: deviceState });
             logger.info(`(service.openControlDevice) client.updateDeviceState() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
-            logger.info(`(service.openControlDevice) RESPONSE: SUCCESS_RESULT`);
-            return res.json(SUCCESS_RESULT);
+            if (cubeApiRes.error === 0) {
+                logger.info(`(service.openControlDevice) RESPONSE: SUCCESS_RESULT`);
+                return res.json(SUCCESS_RESULT);
+            } else if (cubeApiRes.error === 401) {
+                logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
+                return res.json(FAIL_RESULT);
+            } else {
+                logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
+                return res.json(FAIL_RESULT);
+            }
         } else {
             logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
             return res.json(FAIL_RESULT);

@@ -88,6 +88,10 @@ export default async function syncAllDevices(req: Request, res: Response) {
                         service_address: createDeviceServiceAddr(device.serial_number)
                     });
                 }
+            } else if (cubeApiRes.error === 401) {
+                // TODO: token error
+            } else {
+                // TODO: timeout
             }
         }
         logger.info(`(service.syncAllDevice) syncDevices: ${JSON.stringify(syncDevices)}`);
