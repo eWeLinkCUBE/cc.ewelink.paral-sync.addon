@@ -6,9 +6,9 @@ import info from './middleware/info';
 import router from './routes';
 import { internalError, notFound } from './middleware/error';
 import config from './config';
-import { encode } from 'js-base64';
-import { dbDataTmp } from './utils/db';
+import { initDb } from './utils/db';
 import oauth from './middleware/oauth';
+import { checkDestGateway } from './middleware/checkDestGateway';
 import _ from 'lodash';
 
 const app = express();
@@ -26,9 +26,8 @@ if (!fs.existsSync(dataPath)) {
     fs.mkdirSync(dataPath);
 }
 
-if (!fs.existsSync(dbPath)) {
-    fs.writeFileSync(dbPath, encode(JSON.stringify(dbDataTmp)), 'utf-8');
-}
+const isDbFileExist = fs.existsSync(dbPath);
+initDb(dbPath, isDbFileExist);
 
 logger.info('fs.existsSync(versionPath)------------------', fs.existsSync(versionPath), versionPath);
 // 获取当前版本号
@@ -44,7 +43,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(info);
 
 // 鉴权校验
-app.use(oauth);
+// app.use(oauth);
+
+// 检查同步目标网关有效性
+// app.use(checkDestGateway);
 
 // 路由处理
 app.use('/api/v1', router);

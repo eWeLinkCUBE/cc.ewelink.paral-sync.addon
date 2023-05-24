@@ -28,7 +28,7 @@ web/dist
 server/dist
 server/data
 server/src/public
-server/test/
+server/.env
 
 # dist code
 node-app/

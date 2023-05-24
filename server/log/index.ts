@@ -19,7 +19,7 @@ configure({
     categories: {
         default: {
             appenders: ['total', 'console'],
-            level: 'info'
+            level: 'debug'
         }
     }
 });
