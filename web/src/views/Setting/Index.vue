@@ -1,17 +1,17 @@
 <template>
     <div class="setting">
-        <span class="title">Setting</span>
+        <span class="title">{{$t('SETTING')}}</span>
 
         <!-- steps -->
         <div class="step-info">
             <div class="first-step" v-if="steps === stepsList.FIRST">
-                <div class="step-title">step 01 获取本机Token</div>
-                <div class="step-description">检测到 NSPanlePro 安装在 iHost 上，请点击获取本机的 token 以便将局域网内其他网关的设备同步到本机中</div>
+                <div class="step-title">{{$t('STEP01_TOKEN')}}</div>
+                <div class="step-description">{{$t('GET_ACCESS_TOKEN')}}</div>
             </div>
             <div class="first-step" v-if="steps === stepsList.SECOND">
-                <div class="step-title">Step 02 获取 NSPanelPro 的Token</div>
-                <div class="step-description">局域网内发现如下网关，点击获取 token 按钮进行授权，获取权限后可同步网关里的设备</div>
-                <div class="step-description">请前往屏端的“设置”>“关于本机”页面10s内连续点击的“设备名称”按钮7次，获取NSPanel Pro 的token</div>
+                <div class="step-title">{{$t('STEP02_TOKEN')}}</div>
+                <div class="step-description">{{$t('THE_FOLLOWING')}}</div>
+                <div class="step-description">{{$t('STEP2')}}</div>
             </div>
         </div>
 
@@ -31,8 +31,8 @@
 
         <!-- next step or finish -->
         <div class="next-step">
-            <a @click="nextStep" v-if="steps === stepsList.FIRST">下一步 ></a>
-            <a v-else @click="goDeviceListPage">完成</a>
+            <a @click="nextStep" v-if="steps === stepsList.FIRST">{{ $t('NEXT') }} ></a>
+            <a v-else @click="goDeviceListPage">{{$t('DONE')}}</a>
         </div>
     </div>
 

@@ -1,19 +1,19 @@
 <template>
     <div class="header">
         <div class="header-left">
-            <div class="name">设备列表</div>
-            <div class="warning-tip"><warning-outlined /><span> 网关name IP无法连接，请到设置页面检查并更新</span></div>
-            <div class="description">设备将从 NSPanelPro 同步到iHost</div>
+            <div class="name">{{$t('DEVICE_LIST')}}</div>
+            <div v-if="etcStore.isIPUnableToConnect" class="warning-tip"><warning-outlined /><span> {{$t('DEVICE_LIST')}}网关name IP无法连接，请到设置页面检查并更新</span></div>
+            <div class="description">{{$t('SYNCED_FROM_NSPANEL')}}</div>
         </div>
 
         <div class="header-right" ref="headerRightRef">
             <div class="auto-sync">
-                新增设备自动同步
+                {{$t('AUTO_SYNC_NEW')}} 
                 <a-switch @change="handleAutoSync" :checked="etcStore.autoSync" />
             </div>
             <a-popover trigger="hover" :getPopupContainer="() => headerRightRef">
                 <template #content>
-                    <span>一键同步所有设备</span>
+                    <span>{{$t('ALL_DEVICES')}}</span>
                 </template>
                 <img @click="syncAllDevice" class="all-sync" src="@/assets/img/sync-all-device.png" />
             </a-popover>
@@ -78,7 +78,6 @@ const goSetting = () => {
         align-items: center;
         .auto-sync {
             height: 40px;
-            width: 200px;
             display: flex;
             justify-content: space-between;
             font-weight: 600;

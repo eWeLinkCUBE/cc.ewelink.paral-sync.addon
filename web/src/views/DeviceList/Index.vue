@@ -17,7 +17,7 @@ import i18n from '@/i18n';
 import api from '@/api';
 import { useDeviceStore } from '@/store/device';
 import router from '@/router';
-import type { INsProDeviceData} from '@/api/ts/interface/IGateWay';
+import type { INsProDeviceData } from '@/api/ts/interface/IGateWay';
 const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
 const indicator = h(LoadingOutlined, {
@@ -42,15 +42,16 @@ onMounted(async () => {
     } else {
         etcStore.languageChange('en-us');
     }
-    getAutoSyncState()
+    getAutoSyncState();
     console.log(etcStore.language, '当前语言');
-    const res = await api.NSPanelPro.getNsProGateWayInfo();
-    if (res.error === 0 && res.data) {
-        for (const i of res.data) {
-            console.log(i, 'i');
-        }
-        // getDeviceList(res.data.mac);
-    }
+    // const res = await api.NSPanelPro.getNsProGateWayInfo();
+    deviceStore.getNsProGateWayInfo()
+    // if (res.error === 0 && res.data) {
+    //     for (const i of res.data) {
+    //         console.log(i, 'i');
+    //         etcStore.setIsIPUnableToConnect(!i.ipValid);
+    //     }
+    // }
 
     // await getUserInfo();
     // getDeviceListInfo();

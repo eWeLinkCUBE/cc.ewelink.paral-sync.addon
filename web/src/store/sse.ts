@@ -33,7 +33,7 @@ export const useSseStore = defineStore('sse', {
             sseIsConnect: false,
         };
     },
-    actions:{
+    actions: {
         setSseIsConnect(state: boolean) {
             this.sseIsConnect = state;
         },
@@ -51,17 +51,37 @@ export const useSseStore = defineStore('sse', {
                     etcStore.setIsLoading(false);
                 }
             });
-
+            // 开始获取token
             source.addEventListener('begin_obtain_token_report', async (event: any) => {
                 const data = JSON.parse(event.data);
-                console.log('begin_obtain_token_report-------------> success',data);
+                console.log('begin_obtain_token_report-------------> success', data);
             });
-
+            // 成功获取token
             source.addEventListener('obtain_token_success', async (event: any) => {
                 const data = JSON.parse(event.data);
-                console.log('obtain_token_success-------------> success',data);
+                console.log('obtain_token_success-------------> success', data);
             });
 
+            // 网关信息推送
+            source.addEventListener('gateway_info_report', async (event: any) => {
+                const data = JSON.parse(event.data);
+                console.log('gateway_info_report-------------> success', data);
+            });
+            // 子设备信息变更
+            source.addEventListener('device_info_change_report', async (event: any) => {
+                const data = JSON.parse(event.data);
+                console.log('device_info_change_report-------------> success', data);
+            });
+            // 子设备删除
+            source.addEventListener('device_deleted_report', async (event: any) => {
+                const data = JSON.parse(event.data);
+                console.log('device_deleted_report-------------> success', data);
+            });
+            // 子设备新增
+            source.addEventListener('device_added_report', async (event: any) => {
+                const data = JSON.parse(event.data);
+                console.log('device_added_report-------------> success', data);
+            });
             source.addEventListener('error', async (event: any) => {
                 console.log('SSE connect error, reboot');
                 await this.startSse();
@@ -85,7 +105,6 @@ export const useSseStore = defineStore('sse', {
                 }
             }, 1000);
         },
-
     },
     persist: true,
 });

@@ -16,6 +16,7 @@ interface IEtcState {
     getAccessTokenNumber:number;
     getUserInfoInterval:number;
     autoSync:boolean
+    isIPUnableToConnect:boolean
     
 }
 
@@ -46,7 +47,10 @@ export const useEtcStore = defineStore('addon_etc', {
             /** 获取登录信息轮询接口的返回值 */
             getUserInfoInterval: 0,
             /** 自动同步新增设备状态 */
-            autoSync:false
+            autoSync:false,
+            /** IP无法连接提示控制变量 */
+            isIPUnableToConnect:false
+            
         };
     },
     getters: {},
@@ -77,6 +81,9 @@ export const useEtcStore = defineStore('addon_etc', {
         },
         setAutoSync(state: boolean) {
             this.autoSync = state;
+        },
+        setIsIPUnableToConnect(state: boolean) {
+            this.isIPUnableToConnect = state;
         },
         setUserInfo(userInfo: IUser) {
             this.userInfo = userInfo;
