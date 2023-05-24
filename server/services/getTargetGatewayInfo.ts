@@ -11,13 +11,13 @@ import EGatewayType from '../ts/enum/EGatewayType';
 export default async function getTargetGatewayInfo(req: Request, res: Response) {
     try {
         //1、获取本机网关ip信息
-        const ipAddressInfo = getIPAdressInfo();
-        logger.info('ipAddressInfo-------------------', ipAddressInfo);
-        if (!ipAddressInfo) {
-            return res.json(toResponse(EErrorCode.ADDON_NO_IN_IHOST, 'addon not in iHost'));
-        }
+        // const ipAddressInfo = getIPAdressInfo();
+        // logger.info('ipAddressInfo-------------------', ipAddressInfo);
+        // if (!ipAddressInfo) {
+        //     return res.json(toResponse(EErrorCode.ADDON_NO_IN_IHOST, 'addon not in iHost'));
+        // }
         //2、接口获取网关信息
-        const gatewayInfo = await getGatewayInfo('192.168.31.214', EGatewayType.IHOST);
+        const gatewayInfo = await getGatewayInfo('ihost', EGatewayType.IHOST);
 
         if (typeof gatewayInfo === 'number') {
             return res.json(toResponse(gatewayInfo));
