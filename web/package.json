@@ -16,6 +16,7 @@
     "crypto-js": "^4.1.1",
     "events": "^3.3.0",
     "lodash": "^4.17.21",
+    "moment": "^2.29.4",
     "pinia": "^2.0.21",
     "pinia-plugin-persistedstate": "^2.4.0",
     "qrcode.vue": "^3.3.3",

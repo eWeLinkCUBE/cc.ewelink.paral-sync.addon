@@ -1,7 +1,7 @@
 
 
 import axios from 'axios';
-import smartHome from './smartHome';
+import NSPanelPro from './NSPanelPro';
 import { useEtcStore } from '@/store/etc';
 import ErrorCodeHandle from '@/utils/ErrorCodeHandle';
 import { emitter } from '@/main';
@@ -94,5 +94,5 @@ export default {
     getAt,
     setEventCallback,
     cleanEventCallback,
-    smartHome,
+    NSPanelPro,
 };
