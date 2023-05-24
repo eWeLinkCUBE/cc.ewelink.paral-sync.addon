@@ -43,8 +43,14 @@ export const ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID = 602;
 export const ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT = 603;
 /** eWeLink Cube API 添加第三方设备参数错误 */
 export const ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID = 604;
-/** eWeLink Cube API 获取网关凭证超时 */
+/** eWeLink Cube API 获取网关凭证无效 */
 export const ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT = 605;
+/** eWeLink Cube API 删除设备凭证无效 */
+export const ERR_CUBEAPI_DELETE_DEVICE_TOKEN_INVALID = 606;
+/** eWeLink Cube API 删除设备请求超时 */
+export const ERR_CUBEAPI_DELETE_DEVICE_TIMEOUT = 607;
+/** eWeLink Cube API 删除设备不存在 */
+export const ERR_CUBEAPI_DELETE_DEVICE_NOT_FOUND = 608;
 
 /** 无相应的网关信息 */
 export const ERR_NO_SUCH_GATEWAY = 501;
@@ -52,6 +58,14 @@ export const ERR_NO_SUCH_GATEWAY = 501;
 export const ERR_GATEWAY_IP_INVALID = 502;
 /** 请求网关的凭证无效 */
 export const ERR_GATEWAY_TOKEN_INVALID = 503;
+/** 数据库锁繁忙 */
+export const ERR_DB_LOCK_BUSY = 504;
+
+/** 取消同步的设备不存在 */
+export const ERR_UNSYNC_DEVICE_NOT_FOUND = 1800;
+
+/** 删除的网关不存在 */
+export const ERR_DELETE_GATEWAY_NOT_FOUND = 2000;
 
 
 // 错误映射
@@ -74,7 +88,15 @@ ERROR_MAPPING[ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID] = 'eWeLink Cube API - syncDe
 ERROR_MAPPING[ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT] = 'eWeLink Cube API - syncDevice error: timeout';
 ERROR_MAPPING[ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID] = 'eWeLink Cube API - syncDevice error: params invalid';
 ERROR_MAPPING[ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT] = 'eWeLink Cube API - getGatewayToken error: token invalid';
+ERROR_MAPPING[ERR_CUBEAPI_DELETE_DEVICE_TOKEN_INVALID] = 'eWeLink Cube API - deleteDevice error: token invalid';
+ERROR_MAPPING[ERR_CUBEAPI_DELETE_DEVICE_TIMEOUT] = 'eWeLink Cube API - deleteDevice error: timeout';
+ERROR_MAPPING[ERR_CUBEAPI_DELETE_DEVICE_NOT_FOUND] = 'eWeLink Cube API - deleteDevice error: device not found';
 
 ERROR_MAPPING[ERR_NO_SUCH_GATEWAY] = 'No such gateway';
 ERROR_MAPPING[ERR_GATEWAY_IP_INVALID] = 'Gateway IP invalid';
 ERROR_MAPPING[ERR_GATEWAY_TOKEN_INVALID] = 'Gateway token invalid';
+ERROR_MAPPING[ERR_DB_LOCK_BUSY] = 'DB lock busy';
+
+ERROR_MAPPING[ERR_UNSYNC_DEVICE_NOT_FOUND] = 'Unsync device not found';
+
+ERROR_MAPPING[ERR_DELETE_GATEWAY_NOT_FOUND] = 'Delete gateway not found';

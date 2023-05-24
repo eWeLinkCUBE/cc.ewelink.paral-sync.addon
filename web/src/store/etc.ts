@@ -15,6 +15,8 @@ interface IEtcState {
     getAccessTokenTimeNumber:number;
     getAccessTokenNumber:number;
     getUserInfoInterval:number;
+    autoSync:boolean
+    isIPUnableToConnect:boolean
     
 }
 
@@ -43,7 +45,12 @@ export const useEtcStore = defineStore('addon_etc', {
             /** 获取凭证已轮询次数 */
             getAccessTokenNumber:0,
             /** 获取登录信息轮询接口的返回值 */
-            getUserInfoInterval: 0
+            getUserInfoInterval: 0,
+            /** 自动同步新增设备状态 */
+            autoSync:false,
+            /** IP无法连接提示控制变量 */
+            isIPUnableToConnect:false
+            
         };
     },
     getters: {},
@@ -53,6 +60,16 @@ export const useEtcStore = defineStore('addon_etc', {
             this.language = language;
             i18n.global.locale = language;
         },
+        async getGateway(){
+           const res = await api.NSPanelPro.getOurselfGateWayInfo()
+           console.log(res,'res');
+           
+        },
+        async getAllGatewayInfo(){
+            const res = await api.NSPanelPro.getNsProGateWayInfo()
+            console.log(res,'res');
+            
+         },
         setTipCardVisible(state: boolean) {
             this.tipCardVisible = state;
         },
@@ -61,6 +78,12 @@ export const useEtcStore = defineStore('addon_etc', {
         },
         setLoginState(state: boolean) {
             this.isLogin = state;
+        },
+        setAutoSync(state: boolean) {
+            this.autoSync = state;
+        },
+        setIsIPUnableToConnect(state: boolean) {
+            this.isIPUnableToConnect = state;
         },
         setUserInfo(userInfo: IUser) {
             this.userInfo = userInfo;
@@ -94,7 +117,7 @@ export const useEtcStore = defineStore('addon_etc', {
             });
         },
         setAutoSyncStatus(state: boolean) {
-            this.userInfo.autoSyncStatus = state;
+            this.autoSync = state;
         },
         setIsLoading(state: boolean) {
             this.isLoading = state;

@@ -90,7 +90,7 @@ watch(
 const finish = async () => {
     const res = await api.NSPanelPro.getIhostAccessToken();
     if (res.error === 0) {
-        
+
         deviceStore.getAfterLoginDeviceList();
         console.log('发送设备获取接口')
         // cancelGetAccessTokenVisible();

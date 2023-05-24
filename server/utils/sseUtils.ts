@@ -49,13 +49,9 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
         return;
     };
     /** 同步目标网关的 MAC 地址 */
-    const destGatewayMac = await db.getDbValue('destGatewayMac');
-    /** 本地存储的网关信息列表 */
-    const gatewayInfoList = await db.getDbValue('gatewayInfoList');
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     /** 本地存储的所有网关设备列表 */
     const localDeviceList = await db.getDbValue('gatewayDeviceList');
-    /** 同步目标网关的信息 */
-    const destGatewayInfo = _.find(gatewayInfoList, { mac: destGatewayMac });
     if (!destGatewayInfo) {
         logger.info(`[sse sync new device] target gateway missing`);
         return;
@@ -119,7 +115,7 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
  * @param {IAddDevicePayload} payload
  */
 async function deleteOneDevice(payload: IEndpoint) {
-    const { serial_number, third_serial_number } = payload;
+    const { serial_number } = payload;
     /** 同步目标网关的 MAC 地址 */
     const destGatewayMac = await db.getDbValue('destGatewayMac');
     /** 本地存储的网关信息列表 */
@@ -206,7 +202,6 @@ async function updateOneDevice(params: IUpdateOneDevice, mac: string) {
         // 未同步的设备不需要取消同步
         if (!deviceSynced) return;
 
-        // TODO 更新设备状态、信息以及上下线状态
         if (type === 'online') {
             cubeApiRes = await destGatewayApiClient.updateDeviceOnline({
                 serial_number,

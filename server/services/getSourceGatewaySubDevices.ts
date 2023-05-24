@@ -153,7 +153,7 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
         return res.json(toResponse(ERR_SUCCESS, 'Success', result));
 
     } catch (error: any) {
-        logger.error(`get iHost token code error----------------: ${error.message}`);
-        res.json(toResponse(500));
+        logger.error(`(service.getSourceGatewaySubDevices) error: ${error.message}`);
+        return res.json(toResponse(500));
     }
 }
