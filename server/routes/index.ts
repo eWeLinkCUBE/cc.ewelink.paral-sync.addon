@@ -13,6 +13,11 @@ import getSourceGatewaySubDevices from '../services/getSourceGatewaySubDevices';
 import changeIsAutoSyncStatus from '../services/changeIsAutoSyncStatus';
 import getAutoSyncStatus from '../services/getAutoSyncStatus';
 import deleteGateway from '../services/deleteGateway';
+
+// 开放接口
+import openControlDevice from '../services/openControlDevice';
+
+// SSE 接口
 import sse from '../services/sse';
 
 const router = express.Router();
@@ -21,7 +26,6 @@ router.get(EApiPath.GET_TARGET_GATEWAY_INFO, checkSchema({}), getTargetGatewayIn
 router.get(EApiPath.GET_TARGET_GATEWAY_INFO_BY_IP, checkSchema({}), getTargetGatewayInfoByIp);
 router.get(EApiPath.GET_GATEWAY_TOKEN, checkSchema({}), getGatewayToken);
 router.get(EApiPath.GET_SOURCE_GATEWAY_IN_LAN, checkSchema({}), getSourceGatewayInLan);
-
 router.get(EApiPath.GET_SOURCE_GATEWAY_SUB_DEVICE, checkSchema({}), getSourceGatewaySubDevices);
 router.post(EApiPath.SYNC_ONE_DEVICE, checkSchema({}), syncOneDevice);
 router.post(EApiPath.SYNC_ALL_DEVICES, checkSchema({}), syncAllDevices);
@@ -30,6 +34,10 @@ router.get(EApiPath.GET_AUTO_SYNC_STATUS, checkSchema({}), getAutoSyncStatus);
 router.delete(EApiPath.UNSYNC_ONE_DEVICE, checkSchema({}), unsyncOneDevice);
 router.delete(EApiPath.DELETE_GATEWAY, checkSchema({}), deleteGateway);
 
+// 开放接口路由
+router.post(EApiPath.OPEN_CONTROL_DEVICE, checkSchema({}), openControlDevice);
+
+// SSE 接口路由
 router.get(EApiPath.SSE, checkSchema({}), sse);
 
 export default router;

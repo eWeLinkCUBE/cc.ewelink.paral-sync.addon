@@ -50,6 +50,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                 if (!localDestGatewayInfo.tokenValid) { // 如果同步目标网关的凭证已失效，则需要重新获取
                     // 将当前请求时间写入网关信息中
                     localDestGatewayInfo.ts = `${Date.now()}`;
+                    await DB.setDbValue('destGatewayInfo', localDestGatewayInfo);
                     // 直接返回网关信息给前端
                     logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
                     res.json(toResponse(ERR_SUCCESS, 'Success', localDestGatewayInfo));
@@ -103,13 +104,10 @@ export default async function getGatewayToken(req: Request, res: Response) {
                 return res.json(toResponse(ERR_GATEWAY_IP_INVALID));
             }
 
-            // 将当前请求时间写入网关信息中
-            localSrcGatewayInfo.ts = `${Date.now()}`;
-            await DB.setDbValue('srcGatewayInfoList', localSrcGatewayInfoList);
-
             if (!localSrcGatewayInfo.tokenValid) { // 同步来源网关的凭证已失效，重新获取
                 // 将当前请求时间写入网关信息中
                 localSrcGatewayInfo.ts = `${Date.now()}`;
+                await DB.setDbValue('srcGatewayInfoList', localSrcGatewayInfoList);
                 // 直接返回网关信息给前端
                 logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
                 res.json(toResponse(ERR_SUCCESS, 'Success', localSrcGatewayInfo));
@@ -150,8 +148,8 @@ export default async function getGatewayToken(req: Request, res: Response) {
         }
 
     } catch (error: any) {
-        logger.error(`get iHost token code error----------------: ${error.message}`);
-        res.json(toResponse(ERR_INTERNAL_ERROR));
+        logger.error(`(service.getGatewayToken) error: ${error.message}`);
+        return res.json(toResponse(ERR_INTERNAL_ERROR));
     } finally {
         // if (lockId) {
             // await releaseLock({ lockId, retryCount: 20 });

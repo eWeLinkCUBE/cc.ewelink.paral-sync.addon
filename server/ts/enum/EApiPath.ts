@@ -20,6 +20,8 @@ enum EApiPath {
     DELETE_GATEWAY = '/gateway/:mac',
     /** 8、 开关新增设备自动同步 */
     CHANGE_IS_AUTO_SYNC_STATUS = '/auto-sync',
+    /** iHost 控制设备回调 */
+    OPEN_CONTROL_DEVICE = '/open/device/:deviceId',
     /** (6) 获取设备自动同步开关状态(1500) */
     GET_AUTO_SYNC_STATUS = '/auto-sync',
     /** 9、sse */
