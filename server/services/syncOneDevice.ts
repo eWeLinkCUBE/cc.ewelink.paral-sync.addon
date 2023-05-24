@@ -168,7 +168,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
         }
 
     } catch (error: any) {
-        logger.error(`get iHost token code error----------------: ${error.message}`);
-        res.json(toResponse(ERR_INTERNAL_ERROR));
+        logger.error(`(service.syncOneDevice) error: ${error.message}`);
+        return res.json(toResponse(ERR_INTERNAL_ERROR));
     }
 }

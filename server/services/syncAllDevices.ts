@@ -111,7 +111,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
         }
 
     } catch (error: any) {
-        logger.error(`get iHost token code error----------------: ${error.message}`);
-        res.json(toResponse(500));
+        logger.error(`(service.syncAllDevice) error: ${error.message}`);
+        return res.json(toResponse(500));
     }
 }

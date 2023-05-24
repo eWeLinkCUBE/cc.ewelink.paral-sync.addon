@@ -99,7 +99,7 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
             return res.json(toResponse(ERR_CUBEAPI_DELETE_DEVICE_TIMEOUT));
         }
     } catch (error: any) {
-        logger.error(`get iHost token code error----------------: ${error.message}`);
+        logger.error(`(service.unsyncOneDevice) error: ${error.message}`);
         return res.json(toResponse(500));
     }
 }
