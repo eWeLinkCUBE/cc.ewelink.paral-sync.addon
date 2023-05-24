@@ -57,5 +57,6 @@ app.use(internalError);
 
 app.listen(port, '0.0.0.0', () => {
     // 启用所有来源网关的SSE
+    
     logger.info(`Server is running at http://localhost:${port}----env: ${config.nodeApp.env}----version: v${config.nodeApp.version}`);
 });

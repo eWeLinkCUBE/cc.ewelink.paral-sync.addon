@@ -8,6 +8,7 @@ import { ApiClient } from '../api';
 import { createDeviceServiceAddr, createDeviceTags } from '../services/syncOneDevice';
 import { IDevice, IThirdpartyDevice } from '../lib/cube-api';
 import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
+import ownSse from '../ts/class/ownSse';
 
 
 type IUpdateOneDevice = IUpdateDeviceSate | IUpdateInfoSate | IUpdateOnlineSate
@@ -96,7 +97,15 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     } else if (resType === 'INVALID_PARAMETERS') {
         logger.info(`[sse sync new device]  sync device params invalid`);
     } else {
-        // TODO SSE推送前端设备名称改变
+        ownSse.send({
+            name: "device_added_report",
+            data: {
+                id: serial_number,
+                name,
+                from: mac,
+                isSynced: true
+            }
+        })
         logger.info(`[sse sync new device]  sync success`);
     }
 }
@@ -143,6 +152,13 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         cubeApiRes = await destGatewayApiClient.deleteDevice(serial_number);
 
         if (cubeApiRes.error === 0) {
+            ownSse.send({
+                name: "device_deleted_report",
+                data: {
+                    deviceId: serial_number,
+                    mac: srcMac
+                }
+            })
             logger.info(`[sse delete device] delete device ${serial_number} success`);
             return;
         }
@@ -215,8 +231,18 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string) {
         }
 
         // 更新设备信息和状态
-        cubeApiRes = await destGatewayApiClient.updateDeviceState(third_serial_number, payload as any);
+        cubeApiRes = await destGatewayApiClient.updateDeviceState(third_serial_number, payload as IDeviceInfoUpdatePayload);
         if (cubeApiRes.error === 0) {
+            const { name } = payload as IDeviceInfoUpdatePayload;
+            ownSse.send({
+                name: "device_info_change_report",
+                data: {
+                    id: third_serial_number,
+                    name,
+                    from: srcMac,
+                    isSynced: true
+                }
+            })
             logger.info(`[sse update device info or state] update device ${serial_number} ${third_serial_number} success`);
             return;
         }
