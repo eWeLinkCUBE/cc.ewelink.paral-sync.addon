@@ -12,9 +12,10 @@ import {
     toResponse
 } from '../utils/error';
 import logger from '../log';
-import DB from '../utils/db';
+import DB, { wait } from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
+import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 
 /**
  * 判断同步来源网关的设备是否在同步目标网关中
@@ -89,8 +90,10 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
             srcGatewayDeviceList = cubeApiRes.data.device_list;
         } else if (cubeApiRes.error === 401) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
+            await srcTokenAndIPInvalid('token', localSrcGatewayInfo.mac);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
         } else {
+            await srcTokenAndIPInvalid('ip', localSrcGatewayInfo.mac);
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
         }
@@ -101,6 +104,7 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
         if (cubeApiRes.error === 0) {
             destGatewayDeviceList = cubeApiRes.data.device_list;
         } else if (cubeApiRes.error === 401) {
+            await destTokenInvalid();
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
         } else {

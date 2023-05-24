@@ -22,6 +22,7 @@ import CubeApi from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import CONFIG from '../config';
 import { srcDeviceInDestGateway } from './getSourceGatewaySubDevices';
+import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 
 /**
  * 创建设备的 tags
@@ -101,9 +102,11 @@ export default async function syncOneDevice(req: Request, res: Response) {
         if (cubeApiRes.error === 0) {
             srcGatewayDeviceList = cubeApiRes.data.device_list;
         } else if (cubeApiRes.error === 401) {
+            await srcTokenAndIPInvalid('token', srcGatewayInfo.mac);
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
         } else {
+            await srcTokenAndIPInvalid('ip', srcGatewayInfo.mac);
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
         }
@@ -117,6 +120,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
         } else {
+            await destTokenInvalid();
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
         }
@@ -157,6 +161,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
                 logger.info(`(service.syncOneDevice) response: ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT`);
                 return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT));
             } else if (resType === 'AUTH_FAILURE') {
+                await destTokenInvalid();
                 logger.info(`(service.syncOneDevice) response: ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID`);
                 return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID));
             } else if (resType === 'INVALID_PARAMETERS') {

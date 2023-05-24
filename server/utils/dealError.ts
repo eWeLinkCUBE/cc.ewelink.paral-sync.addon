@@ -94,8 +94,10 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
 
         // 查询目标网关中是否存在该mac地址对应网关
         if (srcMac === destGatewayInfo.mac) {
+            if (destGatewayInfo[key] === false) return;
             destGatewayInfo[key] = false;
             _allRelevantDeviceOffline(srcMac);
+            // TODO 已经false的不改
             await db.setDbValue('destGatewayInfo', destGatewayInfo);
             return;
         }
@@ -103,6 +105,7 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
         // 查询来源网关中是否存在该mac地址对应网关
         srcGatewayInfoList.forEach(gateway => {
             if (gateway.mac === srcMac) {
+                if (gateway[key] === false) return;
                 _allRelevantDeviceOffline(srcMac);
                 gateway[key] = false;
             }
@@ -128,6 +131,9 @@ export async function destTokenInvalid(): Promise<void> {
             logger.error(`[dealWith Token Invalid] error : ERR_NO_DEST_GATEWAY_INFO`);
             return;
         }
+        
+        if (!destGatewayInfo.tokenValid) return;
+
         destGatewayInfo.tokenValid = false;
         destGatewayInfo.token = "";
         await db.setDbValue('destGatewayInfo', destGatewayInfo);
