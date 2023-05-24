@@ -18,6 +18,7 @@ import api from '@/api';
 import { useDeviceStore } from '@/store/device';
 import router from '@/router';
 import type { INsProDeviceData } from '@/api/ts/interface/IGateWay';
+import { stepsList } from '@/api/ts/interface/IGateWay';
 const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
 const indicator = h(LoadingOutlined, {
@@ -44,20 +45,29 @@ onMounted(async () => {
     }
     getAutoSyncState();
     console.log(etcStore.language, '当前语言');
-    // const res = await api.NSPanelPro.getNsProGateWayInfo();
-    deviceStore.getNsProGateWayInfo()
-    // if (res.error === 0 && res.data) {
-    //     for (const i of res.data) {
-    //         console.log(i, 'i');
-    //         etcStore.setIsIPUnableToConnect(!i.ipValid);
-    //     }
-    // }
-
-    // await getUserInfo();
-    // getDeviceListInfo();
-    // const getUserInfoInterval = setInterval(async () => getUserInfo(), 10000);
-    // etcStore.setGetUserInfoInterval(getUserInfoInterval);
+    whichPage();
 });
+/** 判断iHost的token和nsPro的token */
+const whichPage = async ()=>{
+    const resp = await deviceStore.getIHostGateWatList();
+    if(resp.error ===0 && !resp.data?.tokenValid){
+        router.push('/setting');
+        deviceStore.setStep(stepsList.FIRST);
+        return;
+    }
+
+    const response = await deviceStore.getNsProGateWayInfo();
+    if(response.error ===0 && response.data && response.data.length>0){
+        const hasOneNsProToken = response.data.some((item)=>item.tokenValid);
+        if(!hasOneNsProToken){
+            router.push('/setting');
+            deviceStore.setStep(stepsList.SECOND);
+            return;
+        }
+    }
+
+    await deviceStore.getDeviceList();
+}
 
 const getAutoSyncState = async () => {
     const res = await api.NSPanelPro.getAutoSyncState();
@@ -65,17 +75,6 @@ const getAutoSyncState = async () => {
         etcStore.setAutoSyncStatus(res.data.autoSync);
     }
 };
-
-// const getDeviceList = async () => {
-//     const res = await api.NSPanelPro.getDeviceList();
-//     console.log(res, 'res');
-//     if (res.error === 0) {
-//         console.log('获取设备列表成功');
-//     }
-//     if (res.error === 1401) {
-//         router.push('/setting');
-//     }
-// };
 </script>
 
 <style scoped lang="scss"></style>

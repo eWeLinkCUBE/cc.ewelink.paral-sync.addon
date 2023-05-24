@@ -53,6 +53,7 @@ export const useDeviceStore = defineStore('addon_device', {
             }else{
                 this.nsProList = [];
             }
+            return res;
         },
 
         /** 获取网关下所有的子设备 */
