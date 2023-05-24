@@ -28,7 +28,6 @@ if (!fs.existsSync(dataPath)) {
 }
 
 const isDbFileExist = fs.existsSync(dbPath);
-initDb(dbPath, isDbFileExist);
 
 logger.info('fs.existsSync(versionPath)------------------', fs.existsSync(versionPath), versionPath);
 // 获取当前版本号
@@ -57,6 +56,8 @@ app.use(notFound);
 app.use(internalError);
 
 app.listen(port, '0.0.0.0', async () => {
+    // 初始化数据库
+    await initDb(dbPath, isDbFileExist);
     // 启用所有来源网关的SSE
     await sseUtils.checkForSse();
     logger.info(`Server is running at http://localhost:${port}----env: ${config.nodeApp.env}----version: v${config.nodeApp.version}`);
