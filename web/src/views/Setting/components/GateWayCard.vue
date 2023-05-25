@@ -7,7 +7,7 @@
             type="primary"
             style="width: 194px; height: 40px"
             @click="getToken(gateWayData.mac)"
-            :disabled="gateWayData.token || !gateWayData.ipValid || disabledBtn ? true : false"
+            :disabled="gateWayData.tokenValid || !gateWayData.ipValid || disabledBtn ? true : false"
             :loading="btnStatus"
         >
             <span v-if="btnStatus">{{ formatCount(countdownTime) }}</span>
@@ -62,7 +62,7 @@ const btnStatus = computed<boolean>(() => {
 
 /**有一个nsPro在获取token倒计时或者已经获取token,按钮禁用*/
 const disabledBtn = computed(() => {
-    const hasOneTokenItem = deviceStore.nsProList.find((item) => item.token || item.ts);
+    const hasOneTokenItem = deviceStore.nsProList.find((item) => item.tokenValid || item.ts);
     let notSelf = true;
     if (hasOneTokenItem && hasOneTokenItem.mac === props.gateWayData.mac) {
         notSelf = false;
