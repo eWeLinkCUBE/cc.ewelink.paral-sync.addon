@@ -1,11 +1,9 @@
 import _ from 'lodash';
 import db from "./db"
 import logger from '../log';
-import { ApiClient } from '../api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import IResponse from '../lib/cube-api/ts/interface/IResponse';
-
-
+import CubeApi from '../lib/cube-api';
 
 /**
  * @description 将所有网关相关设备下线
@@ -30,6 +28,7 @@ async function _allRelevantDeviceOffline(mac: string): Promise<void> {
 
     /** 目标网关的 eWeLink Cube API client */
     let destGatewayDeviceList: GatewayDeviceItem[] = [];
+    const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
     let cubeApiRes = await destGatewayApiClient.getDeviceList();
     logger.info(`[dealWith Token Invalid] destGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
@@ -141,4 +140,3 @@ export async function destTokenInvalid(): Promise<void> {
         logger.info("destTokenInvalid err: ", err);
     }
 }
-
