@@ -23,15 +23,6 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
 function queryMDns() {
     mDns.query({
         questions: [
-            // {
-            //     name: 'nspanelpro.local',
-            //     type: 'A',
-            // },
-            // {
-            //     name: 'nspanelpro.local',
-            //     type: 'PTR',
-            // },
-
             {
                 name: '_ewelink._tcp.local',
                 type: 'PTR',

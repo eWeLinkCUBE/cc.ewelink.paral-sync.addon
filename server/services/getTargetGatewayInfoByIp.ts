@@ -7,10 +7,10 @@ import EGatewayType from '../ts/enum/EGatewayType';
 /** 通过ip获取相关网关信息(1100) */
 export default async function getTargetGatewayInfoByIp(req: Request, res: Response) {
     try {
-        const paramsIp = req.params.ip;
+        const ip = req.params.ip;
 
         //接口获取网关信息
-        const gatewayInfo = await getGatewayInfo(paramsIp, EGatewayType.NS_PANEL_PRO);
+        const gatewayInfo = await getGatewayInfo(ip, EGatewayType.NS_PANEL_PRO);
 
         if (typeof gatewayInfo === 'number') {
             return res.json(toResponse(gatewayInfo));
