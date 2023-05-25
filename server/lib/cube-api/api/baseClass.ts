@@ -11,6 +11,8 @@ import IHttpConfig from "../ts/interface/IHttpConfig"
 import IResponse from "../ts/interface/IResponse"
 import ISseEvent from '../ts/interface/ISseEvent'
 
+// import logger from '../../../log';
+
 export default abstract class baseClass {
 	private ip: string = ''
 	private at: string = 'fcb79458-b3a2-4255-b2ca-5fef83dae38d'
@@ -320,7 +322,7 @@ export default abstract class baseClass {
 			url,
 			method,
 			headers,
-			timeout: 15000
+			timeout: 60000
 		}
 		if (Object.keys(params).length) {
 			if (method === EMethod.GET || method === EMethod.DELETE) {
@@ -332,8 +334,10 @@ export default abstract class baseClass {
 
 		this.debug && console.log('http request body---->', JSON.stringify(config))
 
+		// logger.info(`**************** AXIOS CONFIG ****************${JSON.stringify(config)}`);
 		try {
 			const resp = await axios(config)
+			// logger.info(`++++++++++++++++ AXIOS RESPONSE ++++++++++++++++ ${JSON.stringify(resp.data.error)}`);
 			this.debug && console.log('http response body---->', JSON.stringify(resp.data))
 
 			return resp.data
