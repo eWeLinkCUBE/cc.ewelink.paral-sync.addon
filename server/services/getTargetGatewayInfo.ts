@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { toResponse } from '../utils/error';
 import logger from '../log';
-import os from 'os';
-import EErrorCode from '../ts/enum/EErrorCode';
 import _ from 'lodash';
 import getGatewayInfo from './public/getGatewayInfo';
 import EGatewayType from '../ts/enum/EGatewayType';
