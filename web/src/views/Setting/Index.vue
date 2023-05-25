@@ -157,10 +157,10 @@ const handleRefresh = () => {
 };
 
 /** 是否获取iHost的token */
-const hasIHostToken = computed(() => deviceStore.iHostList.some((item) => item.tokenValid));
+const hasIHostToken = computed(() => deviceStore.iHostList.some((item) => item.tokenValid && item.ipValid));
 
 /** 是否获取到一个nsPro的token */
-const hasNsProToken = computed(() => deviceStore.nsProList.some((item) => item.tokenValid));
+const hasNsProToken = computed(() => deviceStore.nsProList.some((item) => item.tokenValid && item.ipValid));
 
 watch(()=>hasIHostToken.value,()=>{
     if(!hasIHostToken.value){

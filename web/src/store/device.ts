@@ -71,6 +71,9 @@ export const useDeviceStore = defineStore('addon_device', {
 
             if (res.error === 0 && res.data) {
                 this.deviceList = res.data;
+                this.deviceList.map((device) => {
+                    return device.spinLoading=false;
+                });
             }else{
                 this.deviceList = [];
             }
@@ -78,13 +81,32 @@ export const useDeviceStore = defineStore('addon_device', {
             if (res.error === 1401) {
                 router.push('/setting');
             }
+        },
+        /** 设置loading转圈 */
+        setLoading(item:INsProDeviceData,status:boolean){
+            if(!item || this.deviceList.length<1)return;
+            this.deviceList.map((device)=>{
+                if(device.id === item.id){
+                    device.spinLoading=status;
+                }
+            });
+        },
+        /** 根据id去修改nsPro的数据列表（同步的时候不再查询列表） */
+        modifyNsProListById(id:string|number,status:boolean){
+            if(this.deviceList.length<1)return;
+
+            this.deviceList.map((item)=>{
+                if(item.id === id){
+                    item.isSynced = status;
+                }
+            })
         }
     },
     getters: {
         /** 已经有一个网关获取到token或者在倒计时 */
         hasTokenOrTs(state) {
             const hasTokenOrTs = state.nsProList.some((item) => {
-                if (item.tokenValid) {
+                if (item.tokenValid && item.ipValid) {
                     return true;
                 }
                 if (item.ts) {
