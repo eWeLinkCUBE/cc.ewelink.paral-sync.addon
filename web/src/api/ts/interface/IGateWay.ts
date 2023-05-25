@@ -24,7 +24,7 @@ export interface INsProDeviceData{
     from:string,
     id:string,
     isSynced:boolean,
-    name:string
+    name:string,
 }
 
 export enum stepsList{

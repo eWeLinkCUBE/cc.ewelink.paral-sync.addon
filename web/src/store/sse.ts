@@ -58,10 +58,10 @@ export const useSseStore = defineStore('sse', {
                 console.log('begin_obtain_token_report-------------> success', data);
 
                 const deviceStore = useDeviceStore();
-                deviceStore.deviceList = deviceStore.iHostList.map((item) => {
+                deviceStore.iHostList = deviceStore.iHostList.map((item) => {
                     return item.mac === data.mac ? data : item;
                 });
-                deviceStore.deviceList = deviceStore.nsProList.map((item) => {
+                deviceStore.nsProList = deviceStore.nsProList.map((item) => {
                     return item.mac === data.mac ? data : item;
                 });
             });
@@ -70,21 +70,22 @@ export const useSseStore = defineStore('sse', {
                 const data = JSON.parse(event.data);
                 console.log('obtain_token_success-------------> success', data);
                 const deviceStore = useDeviceStore();
-                deviceStore.deviceList = deviceStore.iHostList.map((item) => {
+                deviceStore.iHostList = deviceStore.iHostList.map((item) => {
                     return item.mac === data.mac ? data : item;
                 });
-                deviceStore.deviceList = deviceStore.nsProList.map((item) => {
+                deviceStore.nsProList = deviceStore.nsProList.map((item) => {
                     return item.mac === data.mac ? data : item;
                 });
             });
             // 获取token失败
             source.addEventListener('obtain_token_fail_report', async (event: any) => {
+                console.log('obtain_token_fail_report',event.data);
                 const data = JSON.parse(event.data);
                 const deviceStore = useDeviceStore();
-                deviceStore.deviceList = deviceStore.iHostList.map((item) => {
+                deviceStore.iHostList = deviceStore.iHostList.map((item) => {
                     return item.mac === data.mac ? data : item;
                 });
-                deviceStore.deviceList = deviceStore.nsProList.map((item) => {
+                deviceStore.nsProList = deviceStore.nsProList.map((item) => {
                     return item.mac === data.mac ? data : item;
                 });
             });
