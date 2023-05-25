@@ -130,8 +130,13 @@ export async function initDb(filename: string, isDbFileExist: boolean) {
 
             // decode function
             decode: (val: any) => {
-                const decryptStr = encryption.decryptAES(val, config.auth.appSecret);
-                return JSON.parse(decryptStr);
+                try {
+                    const decryptStr = encryption.decryptAES(val, config.auth.appSecret);
+                    return JSON.parse(decryptStr);
+                } catch (err) {
+                    console.log('O_O?: DB DECODE ERROR', err);
+                    return null;
+                }
             },
             // decode: JSON.parse
         }),
