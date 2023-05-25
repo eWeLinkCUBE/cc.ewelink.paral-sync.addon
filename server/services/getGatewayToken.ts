@@ -22,6 +22,9 @@ import sseUtils from '../utils/sseUtils';
 export default async function getGatewayToken(req: Request, res: Response) {
     // let lockId: string | null = null;
 
+    /** 是否已经返回了数据 */
+    let hasReturn = false;
+
     try {
         // lockId = await acquireLock({ retryCount: 20 });
         // if (!lockId) {
@@ -55,6 +58,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     await DB.setDbValue('destGatewayInfo', localDestGatewayInfo);
                     // 直接返回网关信息给前端
                     logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
+                    hasReturn = true;
                     res.json(toResponse(ERR_SUCCESS, 'Success', localDestGatewayInfo));
 
                     // 通过 SSE 通知前端，开始获取网关凭证
@@ -123,6 +127,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                 await DB.setDbValue('srcGatewayInfoList', localSrcGatewayInfoList);
                 // 直接返回网关信息给前端
                 logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
+                hasReturn = true;
                 res.json(toResponse(ERR_SUCCESS, 'Success', localSrcGatewayInfo));
 
                 // 通过 SSE 通知前端，开始获取网关凭证
@@ -172,7 +177,9 @@ export default async function getGatewayToken(req: Request, res: Response) {
 
     } catch (error: any) {
         logger.error(`(service.getGatewayToken) error: ${error.message}`);
-        return res.json(toResponse(ERR_INTERNAL_ERROR));
+        if (!hasReturn) {
+            return res.json(toResponse(ERR_INTERNAL_ERROR));
+        }
     } finally {
         // if (lockId) {
         // await releaseLock({ lockId, retryCount: 20 });
