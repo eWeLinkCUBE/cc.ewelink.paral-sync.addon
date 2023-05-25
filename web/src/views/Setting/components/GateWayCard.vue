@@ -1,7 +1,7 @@
 <template>
     <div class="card">
         <div class="name">{{ gateWayData.name || 'Name' }}</div>
-        <div class="ip">IP：{{ gateWayData.ip }}</div>
+        <div class="ip">IP：{{ formatIp }}</div>
         <div class="mac">MAC：{{ gateWayData.mac }}</div>
         <a-button
             type="primary"
@@ -11,7 +11,7 @@
             :loading="btnStatus"
         >
             <span v-if="btnStatus">{{ formatCount(countdownTime) }}</span>
-            <span v-else>{{ showWhichContent(gateWayData) }}</span>
+            <span v-else>{{ showWhichContent }}</span>
         </a-button>
     </div>
 </template>
@@ -34,6 +34,7 @@ const openNsProTipModal = () => emits('openNsProTipModal');
 /** 获取token按钮的状态  获取token 、*/
 const btnStatus = computed<boolean>(() => {
     if (!props.gateWayData) {
+        clearInterval(timer.value);
         return false;
     }
     const { tokenValid, ts } = props.gateWayData;
@@ -46,12 +47,14 @@ const btnStatus = computed<boolean>(() => {
 
     //没有ts,显示获取token
     if (!requestTime) {
+        clearInterval(timer.value);
         return false;
     } else {
         //有ts,再判断距离当前时间是否小于五分钟
         const nowTime = moment();
         const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
         if (seconds > 300) {
+            clearInterval(timer.value);
             return false;
         } else {
             setCutDownTimer(requestTime);
@@ -62,6 +65,8 @@ const btnStatus = computed<boolean>(() => {
 
 /**有一个nsPro在获取token倒计时或者已经获取token,按钮禁用*/
 const disabledBtn = computed(() => {
+    if(props.type === 'iHost') return false;
+
     const hasOneTokenItem = deviceStore.nsProList.find((item) => item.tokenValid || item.ts);
     let notSelf = true;
     if (hasOneTokenItem && hasOneTokenItem.mac === props.gateWayData.mac) {
@@ -77,18 +82,17 @@ const countdownTime = ref(300);
 const timer = ref<any>(null);
 
 /** 按钮展示内容的控制 */
-const showWhichContent = (gateWayData: IGateWayInfoData) => {
-    //IP无效
-    if (!gateWayData.ipValid) {
+const showWhichContent = computed(()=>{
+    if (!props.gateWayData.ipValid) {
         return i18n.global.t('IP_FAILED');
     }
     //已获取token
-    if (gateWayData.tokenValid) {
+    if (props.gateWayData.tokenValid) {
         return i18n.global.t('ALREADY_GET_TOKEN');
     }
     //获取token
     return i18n.global.t('GET_TOKEN');
-};
+})
 
 /** 开始倒计时 */
 const setCutDownTimer = (requestTime: number) => {
@@ -118,7 +122,7 @@ const setCutDownTimer = (requestTime: number) => {
 
 /**获取token */
 const getToken = async (mac: string) => {
-    if(props.type === 'nsPro'){
+    if (props.type === 'nsPro') {
         openNsProTipModal();
     }
     const isSyncTarget = props.type === 'iHost' ? 1 : 0;
@@ -138,6 +142,17 @@ const formatCount = (count: number) => {
     const sec = count % 60;
     return `${min}min${sec}s`;
 };
+
+/** 去掉ip端口号 */
+const formatIp = computed(() => {
+    if (!props.gateWayData.ip) return '';
+
+    if (props.gateWayData.ip.indexOf(':') !== -1) {
+        return props.gateWayData.ip.substring(0, props.gateWayData.ip.indexOf(':'));
+    }
+
+    return props.gateWayData.ip;
+});
 </script>
 
 <style scoped lang="scss">
@@ -163,12 +178,16 @@ const formatCount = (count: number) => {
     img {
         margin: 20px 64px;
     }
-    :deep(.ant-btn-primary[disabled]){
+    :deep(.ant-btn-primary[disabled]) {
         background-color: #999999 !important;
-        border: 1px solid rgba(153,153,153,0.3)!important;
-        font-weight: 500!important;
-        color: #FFFFFF!important;
-        font-size: 16px!important;
+        border: 1px solid rgba(153, 153, 153, 0.3) !important;
+        font-weight: 500 !important;
+        color: #ffffff !important;
+        font-size: 16px !important;
     }
+}
+.card:hover {
+    scale: 1.02;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
 </style>

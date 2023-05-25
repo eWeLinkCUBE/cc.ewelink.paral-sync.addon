@@ -31,9 +31,9 @@
             <div class="card-list">
                 <GateWayCard v-for="(item, index) in deviceStore.nsProList" :key="index" :gateWayData="item" :type="'nsPro'" @openNsProTipModal="openNsProTipModal" />
                 <!-- ip search -->
-                <div class="card" :class="{ 'disabled-card': deviceStore.hasTokenOrTs }">
+                <div class="card" :class="{ 'disabled-card': deviceStore.hasTokenOrTs }"  @click="openFindIpModal">
                     <img src="@/assets/img/search.png" />
-                    <div class="ip-search" @click="openFindIpModal">{{ i18n.global.t('IP_FIND') }}</div>
+                    <div class="ip-search">{{ i18n.global.t('IP_FIND') }}</div>
                 </div>
             </div>
             <div class="next-step">
@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed,watch } from 'vue';
 import api from '@/api/NSPanelPro/index';
 import type { IGateWayInfoData } from '@/api/ts/interface/IGateWay';
 import { stepsList } from '@/api/ts/interface/IGateWay';
@@ -161,6 +161,12 @@ const hasIHostToken = computed(() => deviceStore.iHostList.some((item) => item.t
 
 /** 是否获取到一个nsPro的token */
 const hasNsProToken = computed(() => deviceStore.nsProList.some((item) => item.tokenValid));
+
+watch(()=>hasIHostToken.value,()=>{
+    if(!hasIHostToken.value){
+        deviceStore.setStep(stepsList.FIRST);
+    }
+})
 
 /**下一步 */
 const nextStep = () => {
@@ -254,8 +260,16 @@ const openFindIpModal = () => {
             }
         }
         .disabled-card {
-            user-select: none;
             pointer-events: none;
+            filter: grayscale(100%);
+            background: #e8e8ec;
+            color: #9e9e9e;
+        }
+
+        .card:hover{
+            scale: 1.02;
+            cursor: pointer;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
         }
     }
     .next-step {

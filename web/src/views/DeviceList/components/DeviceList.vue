@@ -11,7 +11,8 @@
                 <span class="id">{{ item.id }}</span>
                 <div class="option">
                     <span class="sync" v-if="!item.isSynced" @click="syncDevice(item)">{{ i18n.global.t('SYNC') }}</span>
-                    <span class="cancel-sync" v-else @click="cancelSyncSingleDevice(item)">{{ i18n.global.t('CANCEL_SYNC') }}</span>
+                    <span class="cancel-sync" v-if="item.isSynced" @click="cancelSyncSingleDevice(item)">{{ i18n.global.t('CANCEL_SYNC') }}</span>
+                    <!-- <a-spin v-if="item.spinLoading"/> -->
                 </div>
             </div>
             <div v-else class="empty">
@@ -36,6 +37,10 @@ import api from '@/api';
 
 const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
+
+onMounted(async ()=>{
+   await deviceStore.getDeviceList();
+});
 
 /**同步单个设备 */
 const syncDevice = async (item: INsProDeviceData) => {

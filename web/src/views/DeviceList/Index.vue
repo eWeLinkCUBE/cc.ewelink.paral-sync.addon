@@ -45,7 +45,7 @@ onMounted(async () => {
     }
     getAutoSyncState();
     console.log(etcStore.language, '当前语言');
-    whichPage();
+    // whichPage();
 });
 /** 判断iHost的token和nsPro的token */
 const whichPage = async ()=>{

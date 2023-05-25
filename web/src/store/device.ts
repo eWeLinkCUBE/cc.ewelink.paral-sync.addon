@@ -70,10 +70,9 @@ export const useDeviceStore = defineStore('addon_device', {
             const res = await api.NSPanelPro.getDeviceList(mac);
 
             if (res.error === 0 && res.data) {
-                // for(let i =0;i<30;i++){
-                //     this.deviceList.push(res.data[0]);
-                // }
                 this.deviceList = res.data;
+            }else{
+                this.deviceList = [];
             }
 
             if (res.error === 1401) {
@@ -85,7 +84,7 @@ export const useDeviceStore = defineStore('addon_device', {
         /** 已经有一个网关获取到token或者在倒计时 */
         hasTokenOrTs(state) {
             const hasTokenOrTs = state.nsProList.some((item) => {
-                if (item.token) {
+                if (item.tokenValid) {
                     return true;
                 }
                 if (item.ts) {
