@@ -46,8 +46,9 @@ async function _allRelevantDeviceOffline(mac: string): Promise<void> {
     // 遍历目标网关中的设备并离线
     const promiseList: Promise<IResponse>[] = [];
     for (const device of destGatewayDeviceList) {
-        if (!device.tags.__nsproAddonData) continue;
-        const { srcGatewayMac, deviceId } = device.tags.__nsproAddonData;
+        const nsProAddonData = _.get(device, ["tags", "__nsproAddonData"]);
+        if (!nsProAddonData) continue;
+        const { srcGatewayMac, deviceId } = nsProAddonData;
         if (srcGatewayMac === mac) {
             promiseList.push(destGatewayApiClient.updateDeviceOnline({
                 serial_number: device.serial_number,
