@@ -56,6 +56,18 @@ export class ServerSentEvent {
         return new Promise(resolve => {
             this.source.onopen = async (event) => {
                 logger.info(`init ${this.connectionId} sse success`, event);
+                const { ipValid, tokenValid, mac } = this.initParams;
+                // token失效和ip失效时要改正
+                if (!ipValid || !tokenValid) {
+                    logger.info(`init ${this.connectionId} sse ip invalid => ${ipValid} or token invalid ${tokenValid}, correct it now`);
+                    this.initParams.ipValid = true;
+                    this.initParams.tokenValid = true;
+                    // 替换数据
+                    const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
+                    const curIndex = _.findIndex(srcGatewayInfoList, { mac });
+                    srcGatewayInfoList[curIndex] = this.initParams;
+                    await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
+                }
                 this.status = ESseStatus.OPEN;
                 this._initGatewayEvent();
                 resolve(true);
@@ -64,7 +76,7 @@ export class ServerSentEvent {
                 logger.info('init sse error', event)
                 // 将相关设备下线
                 await srcTokenAndIPInvalid("ip", this.initParams.mac);
-                if(this.status !== ESseStatus.RECONNECTING) {
+                if (this.status !== ESseStatus.RECONNECTING) {
                     await this._reconnectSse();
                     this.status = ESseStatus.RECONNECTING;
                 }
