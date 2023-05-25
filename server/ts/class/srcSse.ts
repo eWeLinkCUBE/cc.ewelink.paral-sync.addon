@@ -64,9 +64,11 @@ export class ServerSentEvent {
                 logger.info('init sse error', event)
                 // 将相关设备下线
                 await srcTokenAndIPInvalid("ip", this.initParams.mac);
-                this.status = ESseStatus.RECONNECTING;
+                if(this.status !== ESseStatus.RECONNECTING) {
+                    await this._reconnectSse();
+                    this.status = ESseStatus.RECONNECTING;
+                }
                 // 开始重连
-                await this._reconnectSse();
                 resolve(false);
             }
         })
@@ -115,7 +117,7 @@ export class ServerSentEvent {
      * @memberof ServerSentEvent
      */
     private async _reconnectSse() {
-        // 不论成功或失败 每个长连接实例都只会重试10次
+        // 不论成功或失败 每个长连接实例都只会重试50次
         for (; this.retryCount < this.maxRetry;) {
             const retryCount = this.retryCount + 1;
             if (this.status !== ESseStatus.OPEN) {
@@ -125,7 +127,9 @@ export class ServerSentEvent {
                 console.log(`sse reconnect for ${retryCount} times begins in ${Date.now()}`);
                 // 尝试重连
                 const { ip, token } = this.initParams;
-                this.source = new EventSource(`http://${ip}/open-api/v1/sse/bridge?access_token=${token}`);
+                const url = `http://${ip}/open-api/v1/sse/bridge?access_token=${token}`;
+                console.log(`sse reconnection url is ${url}`);
+                this.source = new EventSource(url);
                 const res = await this._initUniversalEvent();
                 if (!res) {
                     console.log(`sse reconnect for ${retryCount} time fails in ${Date.now()}`);
