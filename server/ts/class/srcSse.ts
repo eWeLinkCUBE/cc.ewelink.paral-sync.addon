@@ -187,8 +187,11 @@ export class ServerSentEvent {
 async function buildServerSendEvent(gateway: IGatewayInfoItem) {
     const stream = new ServerSentEvent(gateway);
     const ssePool = await db.getDbValue("ssePool");
-    ssePool.set(stream.connectionId, stream);
-    logger.info(`gateway sse connections count:${ssePool.size}`);
+    _.assign(ssePool, {
+        [stream.connectionId]: stream
+    })
+    await db.setDbValue("ssePool", ssePool);
+    logger.info(`gateway sse connections count:${Object.keys(ssePool).length}`);
 }
 
 export default {

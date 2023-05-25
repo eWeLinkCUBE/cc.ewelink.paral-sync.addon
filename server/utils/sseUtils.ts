@@ -293,7 +293,7 @@ async function checkForSse() {
     const validGatewayList = whichGatewayValid(srcGatewayInfoList);
 
     for (const gateway of validGatewayList) {
-        const sse = ssePool.get(gateway.mac);
+        const sse = _.get(ssePool, gateway.mac);
         // 没有sse的直接建立
         if (!sse) {
             await srcSse.buildServerSendEvent(gateway);
@@ -308,7 +308,8 @@ async function checkForSse() {
 
         // 状态为关闭则直接重建
         if (sse.status === ESseStatus.CLOSED) {
-            ssePool.delete(gateway.mac);
+            _.unset(ssePool, gateway.mac);
+            await db.setDbValue('ssePool', ssePool);
             await srcSse.buildServerSendEvent(gateway);
             continue;
         }

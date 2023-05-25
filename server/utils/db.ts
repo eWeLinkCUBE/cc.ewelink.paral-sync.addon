@@ -184,13 +184,19 @@ export interface IDeviceItem {
     isSynced: boolean;
 }
 
+/**
+ * 来源网关sse合集
+ */
+export interface ISsePool {
+    [propsName: string]: ServerSentEvent,
+}
 
 
 interface IDbData {
     /** 是否自动 */
     autoSync: boolean;
     /** sse信息池 */
-    ssePool: Map<string, ServerSentEvent>;
+    ssePool: ISsePool | {};
     /** 目标网关的信息 */
     destGatewayInfo: null | IGatewayInfoItem;
     /** 来源网关的信息列表 */
@@ -199,7 +205,7 @@ interface IDbData {
 
 export const dbDataTmp: IDbData = {
     autoSync: false,
-    ssePool: new Map(),
+    ssePool: {},
     destGatewayInfo: null,
     srcGatewayInfoList: []
 };
