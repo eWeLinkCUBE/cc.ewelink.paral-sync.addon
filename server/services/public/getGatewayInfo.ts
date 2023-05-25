@@ -53,7 +53,7 @@ export default async (ipAddress: string, type: EGatewayType) => {
                 return omitToken(defaultGatewayInfo);
             }
 
-            const newDestGatewayInfo = _.merge(destGatewayInfo, { mac, ip, domain });
+            const newDestGatewayInfo = _.merge(destGatewayInfo, { mac, ip, domain, ipValid: true });
 
             await db.setDbValue('destGatewayInfo', newDestGatewayInfo);
             return omitToken(newDestGatewayInfo);
@@ -69,7 +69,7 @@ export default async (ipAddress: string, type: EGatewayType) => {
             const srcGatewayInfo = srcGatewayInfoList.find((item) => item.mac === mac);
 
             if (srcGatewayInfo) {
-                _.merge(srcGatewayInfo, { ip });
+                _.merge(srcGatewayInfo, { ip, ipValid: true });
                 await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
                 return omitToken(srcGatewayInfo);
             } else {
