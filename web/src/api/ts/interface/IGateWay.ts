@@ -25,6 +25,7 @@ export interface INsProDeviceData{
     id:string,
     isSynced:boolean,
     name:string,
+    spinLoading?:boolean,
 }
 
 export enum stepsList{
