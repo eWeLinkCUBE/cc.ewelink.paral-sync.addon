@@ -12,7 +12,9 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
 
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
 
-        return res.json(toResponse(0, 'success', srcGatewayInfoList));
+        const sourceGatewayList = srcGatewayInfoList.map((item) => _.omit(item, 'token'));
+
+        return res.json(toResponse(0, 'success', sourceGatewayList));
     } catch (error: any) {
         logger.error(`getSourceGatewayInLan error----------------: ${error.message}`);
         res.json(toResponse(500));

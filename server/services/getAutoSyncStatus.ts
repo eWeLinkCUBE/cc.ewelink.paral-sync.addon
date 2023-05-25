@@ -9,7 +9,7 @@ export default async function changeIsAutoSyncStatus(req: Request, res: Response
         const autoSync = await db.getDbValue('autoSync');
         return res.json(toResponse(0, 'success', { autoSync }));
     } catch (error: any) {
-        logger.error(`get iHost token code error----------------: ${error.message}`);
+        logger.error(`changeIsAutoSyncStatus code error----------------: ${error.message}`);
         res.json(toResponse(500));
     }
 }

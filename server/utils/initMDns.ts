@@ -5,10 +5,6 @@ import mDnsGatewayMapUtil from './mDnsGatewayMapUtil';
 
 const mDns = makeMDns();
 
-mDns.on('query', function (query) {
-    // console.log('got a query packet:', query);
-});
-
 mDns.on('response', (response: any) => {
     const { answers, additionals } = response;
     if (!Array.isArray(answers)) return;
@@ -55,7 +51,7 @@ mDns.on('response', (response: any) => {
     }
     mDnsGatewayMapUtil.setMDnsGateway(gatewayInfo);
 
-    logger.info('gatewayInfo--------------------------------------------------------', gatewayInfo);
+    logger.info('lan nsPro gatewayInfo --------------------------------------------------------', gatewayInfo);
 });
 
 export default mDns;
