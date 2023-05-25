@@ -4,12 +4,12 @@ import logger from "../log";
 import { IHostStateInterface } from "../ts/interface/IHostState";
 import { IEndpoint } from "../lib/cube-api/ts/interface/IThirdParty";
 import type { IAddDevicePayload, IDeviceInfoUpdatePayload, IDeviceOnOrOfflinePayload } from "../ts/interface/ISse";
-import { ApiClient } from '../api';
 import { createDeviceServiceAddr, createDeviceTags } from '../services/syncOneDevice';
 import { IThirdpartyDevice } from '../lib/cube-api';
 import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 import destSse from '../ts/class/destSse';
 import srcSse, { ESseStatus } from '../ts/class/srcSse';
+import CubeApi from '../lib/cube-api';
 
 
 type IUpdateOneDevice = IUpdateDeviceSate | IUpdateInfoSate | IUpdateOnlineSate
@@ -67,6 +67,7 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     }
 
     /** 同步目标网关的 eWeLink Cube API client */
+    const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
 
     // 调用添加第三方设备接口
@@ -139,6 +140,7 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
     }
 
     /** 同步目标网关的 eWeLink Cube API client */
+    const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
 
     // 确认删除的设备是否已同步
@@ -202,6 +204,7 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
         return;
     }
     /** 同步目标网关的 eWeLink Cube API client */
+    const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
 
     // 确认删除的设备是否已同步

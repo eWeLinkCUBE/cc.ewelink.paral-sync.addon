@@ -320,7 +320,7 @@ export default abstract class baseClass {
 			url,
 			method,
 			headers,
-			timeout: 5000
+			timeout: 15000
 		}
 		if (Object.keys(params).length) {
 			if (method === EMethod.GET || method === EMethod.DELETE) {
