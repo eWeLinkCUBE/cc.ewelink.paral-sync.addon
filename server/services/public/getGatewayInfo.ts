@@ -9,14 +9,13 @@ import { IGatewayInfoItem } from '../../utils/db';
 /** 接口获取网关信息并存储到数据库中 */
 export default async (ipAddress: string, type: EGatewayType) => {
     try {
-        let temIp = ipAddress;
-        if (type === EGatewayType.IHOST) {
-            temIp = ipAddress;
-        } else if (type === EGatewayType.NS_PANEL_PRO) {
-            temIp = ipAddress + ':8081';
+        let ip = ipAddress;
+        if (type === EGatewayType.NS_PANEL_PRO) {
+            ip = ipAddress + ':8081';
         }
+
         const ApiClient = CubeApi.ihostApi;
-        const gatewayClient = new ApiClient({ ip: temIp });
+        const gatewayClient = new ApiClient({ ip });
 
         const gatewayRes = await gatewayClient.getBridgeInfo();
 
@@ -27,11 +26,6 @@ export default async (ipAddress: string, type: EGatewayType) => {
         }
 
         const { mac, domain } = gatewayRes.data;
-        let ip = gatewayRes.data.ip;
-
-        if (type === EGatewayType.NS_PANEL_PRO) {
-            ip = ip + ':8081';
-        }
 
         const defaultGatewayInfo = {
             /** mac地址 */
