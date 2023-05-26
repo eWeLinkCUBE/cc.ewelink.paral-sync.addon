@@ -48,14 +48,15 @@ const syncDevice = async (item: INsProDeviceData) => {
     deviceStore.setLoading(item,true);
     const res = await api.NSPanelPro.syncSingleDevice(item.id, item.from);
     if (res.error === 0) {
-        message.success('success');
-        //方案一：接口查询
         await deviceStore.getDeviceList();
-        //方案二：修改本地状态
-        // deviceStore.modifyNsProListById(item.id,true);
-        //loading取消
-        deviceStore.setLoading(item,false);
+        message.success('success');
+    }else{
+        await deviceStore.getDeviceList();
     }
+    //方案二：修改本地状态
+    // deviceStore.modifyNsProListById(item.id,true);
+    //loading取消
+    deviceStore.setLoading(item,false);
 
 };
 /** 取消同步单个设备 */
@@ -63,14 +64,15 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
     deviceStore.setLoading(item,true);
     const resp = await api.NSPanelPro.cancelSyncSingleDevice(item.id, item.from);
     if (resp.error === 0) {
-        message.success('success');
-        //方案一：接口查询
         await deviceStore.getDeviceList();
-        //方案二：修改本地状态
-        // deviceStore.modifyNsProListById(item.id,true);
-        //loading取消
-        deviceStore.setLoading(item,false);
+        message.success('success');
+    }else{
+        await deviceStore.getDeviceList();
     }
+    //方案二：修改本地状态
+    // deviceStore.modifyNsProListById(item.id,true);
+    //loading取消
+    deviceStore.setLoading(item,false);
 };
 </script>
 
