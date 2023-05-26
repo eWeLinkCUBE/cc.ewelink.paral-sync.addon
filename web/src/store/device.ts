@@ -59,13 +59,16 @@ export const useDeviceStore = defineStore('addon_device', {
         /** 获取网关下所有的子设备 */
         async getDeviceList(){
             let mac = '';
-            this.nsProList.map((item)=>{
-                if(item.tokenValid && item.token){
+            this.nsProList.forEach((item)=>{
+                if(item.tokenValid && item.ipValid){
                     mac = item.mac;
                 }
             });
 
-            if(!mac)return;
+            if(!mac){
+                router.push('/setting');
+                return;
+            };
 
             const res = await api.NSPanelPro.getDeviceList(mac);
 
@@ -100,7 +103,8 @@ export const useDeviceStore = defineStore('addon_device', {
                     item.isSynced = status;
                 }
             })
-        }
+        },
+        /** sse 直接修改 */
     },
     getters: {
         /** 已经有一个网关获取到token或者在倒计时 */

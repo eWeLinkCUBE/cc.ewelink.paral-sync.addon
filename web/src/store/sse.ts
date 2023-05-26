@@ -40,7 +40,7 @@ export const useSseStore = defineStore('sse', {
         },
 
         async startSse() {
-            console.log('SSE-------------------------------->');
+            console.log('start SSE');
             if (source) source.close();
             const timestamp = new Date().getTime();
             source = new EventSource(`${sseUrl}?id=${timestamp}`);
@@ -93,6 +93,19 @@ export const useSseStore = defineStore('sse', {
             source.addEventListener('gateway_info_report', async (event: any) => {
                 const data = JSON.parse(event.data);
                 console.log('gateway_info_report-------------> success', data);
+                const deviceStore = useDeviceStore();
+                if(deviceStore.nsProList.length<1)return;
+
+                //根据mac地址判断是修改还是新增
+                const isExist = deviceStore.nsProList.some((item)=>item.mac === data.mac);
+
+                if(isExist){
+                    deviceStore.nsProList = deviceStore.nsProList.map((item) => {
+                        return item.mac === data.mac ? data : item;
+                    });
+                }else{
+                    deviceStore.nsProList.push(data);
+                }
             });
             // 子设备信息变更
             source.addEventListener('device_info_change_report', async (event: any) => {
