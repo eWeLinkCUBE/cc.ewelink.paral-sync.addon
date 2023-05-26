@@ -4,28 +4,16 @@ import { useEtcStore } from './etc';
 import { message } from 'ant-design-vue';
 import i18n from '@/i18n';
 import { useDeviceStore } from '@/store/device';
+import type {
+    IGateWayInfoData,
+    INsProDeviceData,
+    IDeleteDeviceData,
+    IAddDeviceData
+} from '@/api/ts/interface/IGateWay';
 let source: null | EventSource = null;
 
 interface ISseState {
     sseIsConnect: boolean;
-}
-interface IToken {
-    /** ip地址 */
-    ip: string;
-    /** mac地址 */
-    mac: string;
-    /** 名称 */
-    name: string;
-    /** 域名 */
-    domain: string;
-    /** 开始获取token的时间戳 */
-    ts: string;
-    /** 加密后凭证 */
-    token: string;
-    /** ip是否有效 */
-    ipValid: boolean;
-    /** 凭证是否有效 */
-    tokenValid: boolean;
 }
 
 export const useSseStore = defineStore('sse', {
@@ -52,91 +40,64 @@ export const useSseStore = defineStore('sse', {
                     etcStore.setIsLoading(false);
                 }
             });
-            // 开始获取token
+
+            /** 开始获取token */
             source.addEventListener('begin_obtain_token_report', async (event: any) => {
-                const data = JSON.parse(event.data);
-                console.log('begin_obtain_token_report-------------> success', data);
-
+                console.log('begin_obtain_token_report------------->', event.data);
+                const data = JSON.parse(event.data) as IGateWayInfoData;
                 const deviceStore = useDeviceStore();
-                deviceStore.iHostList = deviceStore.iHostList.map((item) => {
-                    return item.mac === data.mac ? data : item;
-                });
-                deviceStore.nsProList = deviceStore.nsProList.map((item) => {
-                    return item.mac === data.mac ? data : item;
-                });
+                deviceStore.replaceGateWayItemBySse(data);
             });
-            // 成功获取token
+
+            /**成功获取token */
             source.addEventListener('obtain_token_success_report', async (event: any) => {
-                const data = JSON.parse(event.data);
-                console.log('obtain_token_success-------------> success', data);
+                console.log('obtain_token_success------------->', event.data);
+                const data = JSON.parse(event.data) as IGateWayInfoData;
                 const deviceStore = useDeviceStore();
-                deviceStore.iHostList = deviceStore.iHostList.map((item) => {
-                    return item.mac === data.mac ? data : item;
-                });
-                deviceStore.nsProList = deviceStore.nsProList.map((item) => {
-                    return item.mac === data.mac ? data : item;
-                });
+                deviceStore.replaceGateWayItemBySse(data);
             });
-            // 获取token失败
+
+            /**获取token失败 */
             source.addEventListener('obtain_token_fail_report', async (event: any) => {
-                console.log('obtain_token_fail_report',event.data);
-                const data = JSON.parse(event.data);
+                console.log('obtain_token_fail_report---------->',event.data);
+                const data = JSON.parse(event.data) as IGateWayInfoData;
                 const deviceStore = useDeviceStore();
-                deviceStore.iHostList = deviceStore.iHostList.map((item) => {
-                    return item.mac === data.mac ? data : item;
-                });
-                deviceStore.nsProList = deviceStore.nsProList.map((item) => {
-                    return item.mac === data.mac ? data : item;
-                });
+                deviceStore.replaceGateWayItemBySse(data);
             });
-            // 网关信息推送
+
+            /** 网关信息推送 */
             source.addEventListener('gateway_info_report', async (event: any) => {
-                const data = JSON.parse(event.data);
-                console.log('gateway_info_report-------------> success', data);
+                console.log('gateway_info_report-------------> success', event.data);
+                const data = JSON.parse(event.data) as IGateWayInfoData;
                 const deviceStore = useDeviceStore();
-                if(deviceStore.nsProList.length<1)return;
-
-                //根据mac地址判断是修改还是新增
-                const isExist = deviceStore.nsProList.some((item)=>item.mac === data.mac);
-
-                if(isExist){
-                    deviceStore.nsProList = deviceStore.nsProList.map((item) => {
-                        return item.mac === data.mac ? data : item;
-                    });
-                }else{
-                    deviceStore.nsProList.push(data);
-                }
+                deviceStore.modifyGateWayInfoBySse(data);
             });
-            // 子设备信息变更
+
+            /**子设备信息变更 上下线和名字变化 */
             source.addEventListener('device_info_change_report', async (event: any) => {
-                const data = JSON.parse(event.data);
-                console.log('device_info_change_report-------------> success', data);
+                console.log('device_info_change_report-------------> success', event.data);
+                const data = JSON.parse(event.data) as INsProDeviceData;
                 const deviceStore = useDeviceStore();
-                deviceStore.deviceList = deviceStore.deviceList.map((item) => {
-                    return item.id === data.id ? data : item;
-                });
-                // let changeItem = deviceStore.deviceList.find((item) => {
-                //     return item.id === data.id;
-                // });
-                // changeItem = data;
+                deviceStore.replaceDeviceItemBySse(data);
             });
-            // 子设备删除
+
+            /** 子设备删除 */
             source.addEventListener('device_deleted_report', async (event: any) => {
-                const data = JSON.parse(event.data);
-                console.log('device_deleted_report-------------> success', data);
+                console.log('device_deleted_report-------------> success', event.data);
+                const data = JSON.parse(event.data) as IDeleteDeviceData;
                 const deviceStore = useDeviceStore();
-                const deleteIndex = deviceStore.deviceList.findIndex((item) => {
-                    return item.id === data.id;
-                });
-                deviceStore.deviceList.splice(deleteIndex, 1);
+                deviceStore.deleteNsProDeviceById(data.deviceId);
             });
-            // 子设备新增
+
+            /** 子设备新增 */
             source.addEventListener('device_added_report', async (event: any) => {
-                const data = JSON.parse(event.data);
-                console.log('device_added_report-------------> success', data);
+                console.log('device_added_report-------------> success', event.data);
+                const data = JSON.parse(event.data) as IAddDeviceData;
                 const deviceStore = useDeviceStore();
-                deviceStore.deviceList.push(data);
+                deviceStore.addNsPaneProDevice(data);
             });
+
+            /** SSE失败 */
             source.addEventListener('error', async (event: any) => {
                 console.log('SSE connect error, reboot');
                 await this.startSse();
@@ -145,7 +106,6 @@ export const useSseStore = defineStore('sse', {
 
         async tryReconnection(type: 'reset' | 'restart', msg?: string) {
             const etcStore = useEtcStore();
-            // const router = useRouter();
 
             const sseTimer = setInterval(async () => {
                 console.log('reconnecting...');
