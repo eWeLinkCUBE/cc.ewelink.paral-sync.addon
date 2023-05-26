@@ -94,7 +94,7 @@ export class ServerSentEvent {
         /** 新增设备 */
         this.source.addEventListener('device#v1#addDevice', (event) => {
             const { payload } = JSON.parse(event.data) as IAddDevice;
-            logger.info(`sse ${this.connectionId} trigger new device ${payload.serial_number} added`)
+            logger.info(`sse ${this.connectionId} added new device ${event.data}`);
             // 同步设备
             sseUtils.syncOneDevice(payload, this.initParams.mac);
         })
@@ -102,23 +102,27 @@ export class ServerSentEvent {
         /** 设备状态更新 */
         this.source.addEventListener('device#v1#updateDeviceState', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceStateUpdate;
+            logger.info(`sse ${this.connectionId} update device state ${event.data}`);
             sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备信息更新 */
         this.source.addEventListener('device#v1#updateDeviceInfo', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceInfoUpdate;
+            logger.info(`sse ${this.connectionId} update device info ${event.data}`);
             sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备上下线 */
         this.source.addEventListener('device#v1#updateDeviceOnline', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceOnOrOffline;
+            logger.info(`sse ${this.connectionId} update device online ${event.data}`);
             sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备被删除 */
         this.source.addEventListener('device#v1#deleteDevice', (event) => {
+            logger.info(`sse ${this.connectionId} delete device ${event.data}`);
             const { endpoint } = JSON.parse(event.data) as IDeviceDeleted;
             // 取消同步设备
             sseUtils.deleteOneDevice(endpoint, this.initParams.mac);

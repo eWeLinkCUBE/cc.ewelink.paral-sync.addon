@@ -146,13 +146,13 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
     // 确认删除的设备是否已同步
     let cubeApiRes = await destGatewayApiClient.getDeviceList();
     if (cubeApiRes.error === 0) {
-        const deviceSynced = cubeApiRes.data.device_list.some((device: IThirdpartyDevice) => device.third_serial_number === serial_number);
-
+        const syncedDevice = cubeApiRes.data.device_list.find((device: IThirdpartyDevice) => device.third_serial_number === serial_number);
+        logger.info(`[sse delete device] cubeApiRes.data.device_list`, cubeApiRes.data.device_list)
         // 未同步的设备不需要取消同步
-        if (!deviceSynced) return;
+        if (!syncedDevice) return;
 
         // 将已同步的删除设备取消同步
-        cubeApiRes = await destGatewayApiClient.deleteDevice(serial_number);
+        cubeApiRes = await destGatewayApiClient.deleteDevice(syncedDevice.serial_number);
 
         if (cubeApiRes.error === 0) {
             destSse.send({
@@ -167,6 +167,7 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         }
     }
 
+    logger.info(`[sse delete device] getDeviceList res error => `, JSON.stringify(cubeApiRes));
     if (cubeApiRes.error === 401) {
         await srcTokenAndIPInvalid('token', srcMac);
         logger.info(`[sse delete device] target token invalid`);
@@ -188,7 +189,7 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
  */
 async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promise<void> {
     const { type, payload, endpoint } = params;
-    const { serial_number, third_serial_number } = endpoint;
+    const { serial_number } = endpoint;
     /** 同步目标网关的 MAC 地址 */
     const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     if (!destGatewayInfo) {
@@ -207,20 +208,44 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
     const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
 
-    // 确认删除的设备是否已同步
+    // 更新目标网关
     let cubeApiRes = await destGatewayApiClient.getDeviceList();
     if (cubeApiRes.error === 0) {
-        const deviceSynced = cubeApiRes.data.device_list.some((device: IThirdpartyDevice) => device.third_serial_number === serial_number);
+        const syncedDevice = cubeApiRes.data.device_list.find((device: IThirdpartyDevice) => device.third_serial_number === serial_number);
 
         // 未同步的设备不需要取消同步
-        if (!deviceSynced) return;
+        if (!syncedDevice) return;
+
+        if (type === 'info') {
+            // 更新设备信息和状态
+            cubeApiRes = await destGatewayApiClient.updateDeviceState(syncedDevice.serial_number, payload as IDeviceInfoUpdatePayload);
+            logger.info(`[sse update device info] updateDeviceState res: ${JSON.stringify(cubeApiRes)}`);
+            if (cubeApiRes.error === 0) {
+                const { name } = payload as IDeviceInfoUpdatePayload;
+                destSse.send({
+                    name: "device_info_change_report",
+                    data: {
+                        id: serial_number,
+                        name,
+                        from: srcMac,
+                        isSynced: true
+                    }
+                })
+                logger.info(`[sse update device info] update device ${serial_number} ${syncedDevice.serial_number} success`);
+                return;
+            }
+        }
+
 
         if (type === 'online') {
             cubeApiRes = await destGatewayApiClient.updateDeviceOnline({
-                serial_number,
-                third_serial_number,
-                params: payload
+                serial_number: syncedDevice.serial_number,
+                third_serial_number: serial_number,
+                params: {
+                    state: payload
+                }
             });
+            logger.info(`[sse update device online] updateDeviceOnline res: ${JSON.stringify(cubeApiRes)}`);
             const resError = _.get(cubeApiRes, 'error');
             const resType = _.get(cubeApiRes, 'payload.type');
             if (resError === 1000) {
@@ -230,41 +255,52 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
                 await srcTokenAndIPInvalid('token', srcMac);
                 logger.info(`[sse update device online]  update device token invalid`);
             } else if (resType === 'INVALID_PARAMETERS') {
-                logger.info(`[sse update device online]  update device params invalid ${payload}`);
+                logger.info(`[sse update device online]  update device online params invalid ${JSON.stringify(payload)}`);
             } else {
                 logger.info(`[sse update device online]  update device success`);
             }
             return;
         }
 
-        // 更新设备信息和状态
-        cubeApiRes = await destGatewayApiClient.updateDeviceState(third_serial_number, payload as IDeviceInfoUpdatePayload);
-        if (cubeApiRes.error === 0) {
-            const { name } = payload as IDeviceInfoUpdatePayload;
-            destSse.send({
-                name: "device_info_change_report",
-                data: {
-                    id: third_serial_number,
-                    name,
-                    from: srcMac,
-                    isSynced: true
+        if (type === 'state') {
+            // 更新设备信息和状态
+            const uploadRes = await destGatewayApiClient.uploadDeviceState({
+                serial_number: syncedDevice.serial_number,
+                third_serial_number: serial_number,
+                params: {
+                    state: payload
                 }
             })
-            logger.info(`[sse update device info or state] update device ${serial_number} ${third_serial_number} success`);
-            return;
+            logger.info(`[sse update device state] uploadDeviceState res: ${JSON.stringify(uploadRes)}`);
+
+            const resError = _.get(uploadRes, 'error');
+            const resType = _.get(uploadRes, 'payload.type');
+
+            if (resError === 1000) {
+                await srcTokenAndIPInvalid('ip', srcMac);
+                logger.info(`[sse update device state]  update device timeout`);
+            } else if (resType === 'AUTH_FAILURE') {
+                await srcTokenAndIPInvalid('token', srcMac);
+                logger.info(`[sse update device state]  update device token invalid`);
+            } else if (resType === 'INVALID_PARAMETERS') {
+                logger.info(`[sse update device state]  update device params invalid ${JSON.stringify(payload)}`);
+            } else {
+                logger.info(`[sse update device state] update device ${serial_number} ${syncedDevice.serial_number} success`);
+                return;
+            }
         }
     }
 
+    logger.info(`[sse delete device] updateDeviceState res error => `, JSON.stringify(cubeApiRes));
     if (cubeApiRes.error === 401) {
         await destTokenInvalid();
-        logger.info(`[sse update device info or state] target token invalid`);
+        logger.info(`[sse update device info or get device info] target token invalid`);
         return;
     } else {
-        logger.info(`[sse delete device] target ip address invalid`);
+        logger.info(`[sse update device info or get device info] target ip address invalid`);
         return;
     }
 }
-
 
 /**
  * @description 筛选有效网关
@@ -273,7 +309,6 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
  */
 function whichGatewayValid(gateways: IGatewayInfoItem[]): IGatewayInfoItem[] {
     const validGatewayList = gateways.flatMap(gateways => {
-        if (gateways.ipValid === false) return [];
         if (gateways.tokenValid === false) return [];
         if (!gateways.token) return [];
 
@@ -288,15 +323,19 @@ function whichGatewayValid(gateways: IGatewayInfoItem[]): IGatewayInfoItem[] {
  * @description 检查sse
  */
 async function checkForSse() {
+    logger.info("[checkForSse] init all sse")
     /** 所有目标网关的信息 */
     const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
     /** 来源网关的sse示例合集 */
     const ssePool = await db.getDbValue('ssePool');
     /** 有效网关列表 */
     const validGatewayList = whichGatewayValid(srcGatewayInfoList);
+    logger.info("[checkForSse] validGatewayList => ", JSON.stringify(validGatewayList))
+
 
     for (const gateway of validGatewayList) {
         const sse = _.get(ssePool, gateway.mac);
+        logger.info(`[checkForSse] gateway ${gateway.mac} sse => `, JSON.stringify(sse));
         // 没有sse的直接建立
         if (!sse) {
             await srcSse.buildServerSendEvent(gateway);
@@ -309,13 +348,9 @@ async function checkForSse() {
             continue;
         }
 
-        // 状态为关闭则直接重建
-        if (sse.status === ESseStatus.CLOSED) {
-            _.unset(ssePool, gateway.mac);
-            await db.setDbValue('ssePool', ssePool);
-            await srcSse.buildServerSendEvent(gateway);
-            continue;
-        }
+        _.unset(ssePool, gateway.mac);
+        await srcSse.buildServerSendEvent(gateway);
+        await db.setDbValue('ssePool', ssePool);
     }
 }
 

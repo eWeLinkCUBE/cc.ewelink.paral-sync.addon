@@ -127,6 +127,7 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
  */
 export async function destTokenInvalid(): Promise<void> {
     try {
+        logger.info(`[dealWith Token Invalid] destTokenInvalid`);
         const destGatewayInfo = await db.getDbValue('destGatewayInfo');
         if (!destGatewayInfo) {
             logger.error(`[dealWith Token Invalid] error : ERR_NO_DEST_GATEWAY_INFO`);
