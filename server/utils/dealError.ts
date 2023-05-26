@@ -11,6 +11,7 @@ import CubeApi from '../lib/cube-api';
  * @returns {*}  {Promise<void>}
  */
 async function _allRelevantDeviceOffline(mac: string): Promise<void> {
+    logger.info(`[dealWith Token Invalid] _allRelevantDeviceOffline srcMac: ${mac}`);
     /** 同步目标网关的 MAC 地址 */
     const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     if (!destGatewayInfo) {
@@ -83,6 +84,7 @@ async function _allRelevantDeviceOffline(mac: string): Promise<void> {
  */
 export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string): Promise<void> {
     try {
+        logger.info(`[dealWith Token Invalid] srcTokenAndIPInvalid type: ${type} srcMac: ${srcMac}`);
         const key = type === 'token' ? "tokenValid" : "ipValid";
         const destGatewayInfo = await db.getDbValue('destGatewayInfo');
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
