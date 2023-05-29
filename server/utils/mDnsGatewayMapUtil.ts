@@ -24,6 +24,8 @@ async function setMDnsGateway(gatewayInfo: { ip: string; name: string; deviceId:
     }
     if (!nsProGatewayInfo) {
         logger.info('get gateway info fail 2 time');
+        //接口拿不到网关信息，删除局域网mDns信息，等再次获取网关信息接口
+        mDnsGatewayClass.mDnsGatewayMap.delete(gatewayInfo.deviceId);
         return;
     }
 
