@@ -46,8 +46,8 @@ export const useDeviceStore = defineStore('addon_device', {
         },
 
         /** 获取nsPro网关列表  */
-        async getNsProGateWayInfo(){
-            const res = await api.NSPanelPro.getNsProGateWayInfo();
+        async getNsProGateWayList(){
+            const res = await api.NSPanelPro.getNsProGateWayList();
             if(res.error === 0 && res.data){
                 this.nsProList = res.data;
             }else{

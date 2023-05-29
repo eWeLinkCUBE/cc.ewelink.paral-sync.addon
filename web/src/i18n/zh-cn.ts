@@ -32,8 +32,9 @@ const cn = {
     IP_FIND:'IP查找（缺）',
     CANCEL:'取消',
     CONNECT_IP_FAIL:'*IP 连接失败,请检查后重新输入(缺)',
-    GET_NSPRO_TOKEN:'获取NSPanel Pro 的token(缺)',
+    GET_NS_PRO_TOKEN:'获取NSPanel Pro 的token(缺)',
     GET_IT:'我知道了',
+    SYNC_ALL_DEVICE_WAIT:'正在同步所有设备，请稍等(缺)',
 };
 
 export default cn;

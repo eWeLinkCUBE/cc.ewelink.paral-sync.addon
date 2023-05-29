@@ -27,7 +27,7 @@ async function getOurselfGateWayInfo() {
 /**
  * 获取所有的nsPro
  */
-async function getNsProGateWayInfo() {
+async function getNsProGateWayList() {
     return await request<IGateWayInfoData[]>(`/gateways`, {}, EReqMethod.GET);
 }
 
@@ -97,7 +97,7 @@ export default {
     syncAllDevice,
     linkNsProGateWay,
     getOurselfGateWayInfo,
-    getNsProGateWayInfo,
+    getNsProGateWayList,
     cancelSyncAllDevice,
     autoSyncAllDevice,
 };

@@ -1,5 +1,5 @@
 <template>
-    <div class="card">
+    <div class="card" :class="{'disabled':(gateWayData.tokenValid || !gateWayData.ipValid || disabledBtn )}">
         <div class="name">{{ gateWayData.name || 'Name' }}</div>
         <div class="ip">IP：{{ formatIp }}</div>
         <div class="mac">MAC：{{ gateWayData.mac }}</div>
@@ -8,9 +8,9 @@
             style="width: 194px; height: 40px"
             @click="getToken(gateWayData.mac)"
             :disabled="gateWayData.tokenValid || !gateWayData.ipValid || disabledBtn ? true : false"
-            :loading="btnStatus"
+            :loading="btnLoadingStatus"
         >
-            <span v-if="btnStatus">{{ formatCount(countdownTime) }}</span>
+            <span v-if="btnLoadingStatus">{{ formatCount(countdownTime) }}</span>
             <span v-else>{{ showWhichContent }}</span>
         </a-button>
     </div>
@@ -32,7 +32,7 @@ const emits = defineEmits(['openNsProTipModal']);
 const openNsProTipModal = () => emits('openNsProTipModal');
 
 /** 获取token按钮的状态  获取token 、*/
-const btnStatus = computed<boolean>(() => {
+const btnLoadingStatus = computed<boolean>(() => {
     if (!props.gateWayData) {
         clearInterval(timer.value);
         return false;
@@ -65,7 +65,7 @@ const btnStatus = computed<boolean>(() => {
 
 /**有一个nsPro在获取token倒计时或者已经获取token,按钮禁用*/
 const disabledBtn = computed(() => {
-    if(props.type === 'iHost') return false;
+    if (props.type === 'iHost') return false;
 
     const hasOneTokenItem = deviceStore.nsProList.find((item) => item.tokenValid || item.ts);
     let notSelf = true;
@@ -82,7 +82,7 @@ const countdownTime = ref(300);
 const timer = ref<any>(null);
 
 /** 按钮展示内容的控制 */
-const showWhichContent = computed(()=>{
+const showWhichContent = computed(() => {
     if (!props.gateWayData.ipValid) {
         return i18n.global.t('IP_FAILED');
     }
@@ -92,7 +92,7 @@ const showWhichContent = computed(()=>{
     }
     //获取token
     return i18n.global.t('GET_TOKEN');
-})
+});
 
 /** 开始倒计时 */
 const setCutDownTimer = (requestTime: number) => {
@@ -131,7 +131,7 @@ const getToken = async (mac: string) => {
         if (props.type === 'iHost') {
             deviceStore.getIHostGateWatList();
         } else {
-            deviceStore.getNsProGateWayInfo();
+            deviceStore.getNsProGateWayList();
         }
     }
 };
@@ -189,5 +189,9 @@ const formatIp = computed(() => {
 .card:hover {
     scale: 1.02;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+.disabled:hover{
+    scale:1 !important;
+    cursor: not-allowed !important;
 }
 </style>

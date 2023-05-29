@@ -7,17 +7,22 @@
         </div>
         <div class="table-body">
             <div class="device-item" v-for="(item, index) in deviceList" :key="index" v-if="deviceList.length > 0">
-                <span class="name">{{ item.name }}</span>
-                <span class="id">{{ item.id }}</span>
-                <div class="option">
+                <span class="name common">{{ item.name }}</span>
+                <span class="id common">{{ item.id }}</span>
+                <div class="option common">
                     <span class="sync" v-if="!item.isSynced && !item.spinLoading" @click="syncDevice(item)">{{ i18n.global.t('SYNC') }}</span>
                     <span class="cancel-sync" v-if="item.isSynced && !item.spinLoading" @click="cancelSyncSingleDevice(item)">{{ i18n.global.t('CANCEL_SYNC') }}</span>
                     <img class="loading-icon" src="@/assets/img/loading.jpg" alt="" v-if="item.spinLoading" />
                 </div>
             </div>
             <div v-else class="empty">
-                <img src="@/assets/img/empty.png" />
-                <div>{{ i18n.global.t('NO_DATA') }}</div>
+                <div class="loading" v-if="loading">
+                    <a-spin></a-spin>
+                </div>
+                <div v-else>
+                    <img src="@/assets/img/empty.png" />
+                    <div>{{ i18n.global.t('NO_DATA') }}</div>
+                </div>
             </div>
         </div>
     </div>
@@ -34,9 +39,13 @@ import api from '@/api';
 
 const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
+const loading = ref(false);
 
 onMounted(async () => {
+    loading.value = true;
+    await deviceStore.getNsProGateWayList();
     await deviceStore.getDeviceList();
+    loading.value = false;
 });
 
 /**同步单个设备 */
@@ -66,6 +75,7 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
 <style scoped lang="scss">
 .device {
     height: calc(100vh - 95px);
+    min-width:800px;
     .table-header {
         display: flex;
         align-items: center;
@@ -122,6 +132,11 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
                     height: 16px;
                     animation: rotate 2s linear infinite;
                 }
+            }
+            .common{
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
             }
         }
         .device-item:hover {

@@ -1,6 +1,12 @@
 <template>
     <div>
-        <a-spin :spinning="etcStore.isLoading" :indicator="indicator" tip="正在同步所有设备，请稍等" size="large">
+        <a-spin
+            style="min-height:100vh"
+            :spinning="etcStore.isLoading"
+            :indicator="indicator"
+            :tip="i18n.global.t('SYNC_ALL_DEVICE_WAIT')"
+            size="large"
+        >
             <Header />
             <DeviceList />
         </a-spin>
@@ -30,45 +36,19 @@ const indicator = h(LoadingOutlined, {
 onMounted(async () => {
     // 语言跟随浏览器
     // const browserLanguage = navigator.language;
-
     let browserLanguage = window.location.search;
-
     if (!browserLanguage) {
         browserLanguage = navigator.language;
     }
-
     if (browserLanguage.includes('zh')) {
-        // etcStore.languageChange('en-us');
         etcStore.languageChange('zh-cn');
     } else {
         etcStore.languageChange('en-us');
     }
     getAutoSyncState();
     console.log(etcStore.language, '当前语言');
-    // whichPage();
 });
-/** 判断iHost的token和nsPro的token */
-const whichPage = async ()=>{
-    const resp = await deviceStore.getIHostGateWatList();
-    if(resp.error ===0 && !resp.data?.tokenValid){
-        router.push('/setting');
-        deviceStore.setStep(stepsList.FIRST);
-        return;
-    }
-
-    const response = await deviceStore.getNsProGateWayInfo();
-    if(response.error ===0 && response.data && response.data.length>0){
-        const hasOneNsProToken = response.data.some((item)=>item.tokenValid);
-        if(!hasOneNsProToken){
-            router.push('/setting');
-            deviceStore.setStep(stepsList.SECOND);
-            return;
-        }
-    }
-
-    await deviceStore.getDeviceList();
-}
-
+/** 设置自动同步按钮状态 */
 const getAutoSyncState = async () => {
     const res = await api.NSPanelPro.getAutoSyncState();
     if (res.error === 0 && res.data) {
