@@ -166,7 +166,7 @@ export const useDeviceStore = defineStore('addon_device', {
                 if (item.tokenValid && item.ipValid) {
                     return true;
                 }
-                if (item.ts) {
+                if (item.ts && item.ipValid) {
                     const timeGap = moment(moment()).diff(moment(Number(item.ts)), 'seconds');
                     if (timeGap <= 300 && timeGap >= 0) {
                         return true;

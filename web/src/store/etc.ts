@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import i18n from '@/i18n';
-import type { IUser } from '@/ts/interface/IUser';
 import api from '@/api';
 import { useDeviceStore } from './device';
 interface IEtcState {
@@ -9,7 +8,6 @@ interface IEtcState {
     tipCardVisible: boolean;
     at: string;
     isLogin: boolean;
-    userInfo: IUser;
     isLoading: boolean;
     getAccessTokenVisible:boolean;
     getAccessTokenTimeNumber:number;
@@ -31,11 +29,6 @@ export const useEtcStore = defineStore('addon_etc', {
             at: '',
             /** 是否登录 */
             isLogin: false,
-            /** 用户信息 */
-            userInfo: {
-                account: '',
-                autoSyncStatus: false,
-            },
             /** 控制context Loading变量 */
             isLoading: false,
             /** 控制获取凭证弹窗变量 */
@@ -85,9 +78,6 @@ export const useEtcStore = defineStore('addon_etc', {
         setIsIPUnableToConnect(state: boolean) {
             this.isIPUnableToConnect = state;
         },
-        setUserInfo(userInfo: IUser) {
-            this.userInfo = userInfo;
-        },
         setGetAccessTokenVisible(state: boolean) {
             this.getAccessTokenVisible = state;
         },
@@ -106,11 +96,6 @@ export const useEtcStore = defineStore('addon_etc', {
                 setTimeout(() => {
                     window.localStorage.removeItem('addon_etc');
                     window.localStorage.removeItem('addon_device');
-                    // this.isLogin = false;
-                    // this.userInfo = {
-                    //     account: '',
-                    // };
-                    // this.at = '';
                     location.reload();
                     resolve(1);
                 }, 1500);

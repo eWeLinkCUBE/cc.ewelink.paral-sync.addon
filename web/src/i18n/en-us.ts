@@ -5,7 +5,7 @@ const en = {
         1002:'Invalid account number',
         1003:'This user does not exist. Please try again.'
     },
-    GET_TOKEN:'获取token',
+    GET_TOKEN:'Get token',
     ALREADY_GET_TOKEN:'已获取token',
     SETTING:'Settings',
     STEP01_TOKEN:'Step 01 Get iHost access token',

@@ -25,14 +25,14 @@ async function getOurselfGateWayInfo() {
 }
 
 /**
- * 获取所有的nsPro
+ * 获取所有的nsPro网关信息
  */
 async function getNsProGateWayList() {
     return await request<IGateWayInfoData[]>(`/gateways`, {}, EReqMethod.GET);
 }
 
 /**
- * 获取所有网关下的子设备
+ * 获取nsPro网关下的子设备
  */
 async function getDeviceList(mac: string) {
     return await request<INsProDeviceData[]>(`/devices/${mac}`, {}, EReqMethod.GET);
@@ -73,20 +73,6 @@ async function syncAllDevice() {
     return await request(`/devices/sync`, {}, EReqMethod.POST);
 }
 
-/**
- * 取消同步所有设备
- */
-async function cancelSyncAllDevice() {
-    return await request(`/device`, {}, EReqMethod.DELETE);
-}
-
-/**
- * 取消同步单个设备
- */
-async function autoSyncAllDevice(state: boolean) {
-    return await request(`/device/sync-status`, { autoSyncStatus: state }, EReqMethod.PUT);
-}
-
 export default {
     getDeviceList,
     syncSingleDevice,
@@ -98,6 +84,4 @@ export default {
     linkNsProGateWay,
     getOurselfGateWayInfo,
     getNsProGateWayList,
-    cancelSyncAllDevice,
-    autoSyncAllDevice,
 };

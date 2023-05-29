@@ -9,6 +9,7 @@
             @click="getToken(gateWayData.mac)"
             :disabled="gateWayData.tokenValid || !gateWayData.ipValid || disabledBtn ? true : false"
             :loading="btnLoadingStatus"
+            :style="dynamicBtnColor"
         >
             <span v-if="btnLoadingStatus">{{ formatCount(countdownTime) }}</span>
             <span v-else>{{ showWhichContent }}</span>
@@ -30,6 +31,23 @@ const props = defineProps<{
 
 const emits = defineEmits(['openNsProTipModal']);
 const openNsProTipModal = () => emits('openNsProTipModal');
+const dynamicBtnColor = computed(()=>{
+    //ip失效，灰色
+    if(!props.gateWayData.ipValid){
+        return {'background-color':'#999999 !important'}
+    }
+    //已经获取一个token，按钮淡蓝色
+    if(props.gateWayData.tokenValid){
+        return {'background-color':'#FFFFFF !important','color':'#1890FF!important'}
+    }
+
+    //有一个nsPro在倒计时，按钮淡蓝色
+    console.log('disabledBtn',disabledBtn.value);
+    if(disabledBtn.value){
+        return {'background-color':'#1890FF!important'}
+    }
+    return {}
+});
 
 /** 获取token按钮的状态  获取token 、*/
 const btnLoadingStatus = computed<boolean>(() => {
@@ -72,6 +90,7 @@ const disabledBtn = computed(() => {
     if (hasOneTokenItem && hasOneTokenItem.mac === props.gateWayData.mac) {
         notSelf = false;
     }
+    console.log('hasTokenOrTs',deviceStore.hasTokenOrTs , notSelf)
     return deviceStore.hasTokenOrTs && notSelf;
 });
 

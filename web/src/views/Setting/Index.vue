@@ -153,11 +153,6 @@ const linkNsProGateWay = async () => {
         return;
     }
 
-    if (deviceStore.nsProList.some((item) => item.ip === ipVal.value)) {
-        message.info('ip is exist');
-        return;
-    }
-
     const reg = new RegExp(/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/);
     if (!reg.test(ipVal.value)) {
         return message.warning('please input right ip address');
