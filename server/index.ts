@@ -11,6 +11,7 @@ import oauth from './middleware/oauth';
 import { checkDestGateway } from './middleware/checkDestGateway';
 import _ from 'lodash';
 import sseUtils from './utils/sseUtils';
+import mDns from './utils/initMDns';
 
 const app = express();
 const port = config.nodeApp.port;
@@ -60,5 +61,14 @@ app.listen(port, '0.0.0.0', async () => {
     await initDb(dbPath, isDbFileExist);
     // 启用所有来源网关的SSE
     await sseUtils.checkForSse();
+    //启动时，扫描一下局域网设备，防止网关ip变了没更新
+    mDns.query({
+        questions: [
+            {
+                name: '_ewelink._tcp.local',
+                type: 'PTR',
+            },
+        ],
+    });
     logger.info(`Server is running at http://localhost:${port}----env: ${config.nodeApp.env}----version: v${config.nodeApp.version}`);
 });
