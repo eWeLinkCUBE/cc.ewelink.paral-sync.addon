@@ -4,6 +4,7 @@ import logger from '../log';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import IResponse from '../lib/cube-api/ts/interface/IResponse';
 import CubeApi from '../lib/cube-api';
+import { ESseStatus, srcSsePool } from '../ts/class/srcSse';
 
 /**
  * @description 将所有网关相关设备下线
@@ -88,15 +89,28 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
         const key = type === 'token' ? "tokenValid" : "ipValid";
         const destGatewayInfo = await db.getDbValue('destGatewayInfo');
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
+        const sse = srcSsePool.get(srcMac);
 
         if (!destGatewayInfo) {
             logger.error(`[dealWith Token Invalid] error : ERR_NO_DEST_GATEWAY_INFO`);
             return;
         }
 
+        if (!sse) {
+            logger.error(`[dealWith Token Invalid] error : src ${srcMac} sse doesn't exist!`);
+            return;
+        }
+
         // 查询目标网关中是否存在该mac地址对应网关
         if (srcMac === destGatewayInfo.mac) {
-            if (destGatewayInfo[key] === false) return;
+            if (destGatewayInfo[key] === false) {
+                logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s ${key} already false`);
+                return;
+            };
+            if (sse.status === ESseStatus.OPEN) {
+                logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s SSE still open`);
+                return;
+            };
             destGatewayInfo[key] = false;
             _allRelevantDeviceOffline(srcMac);
             await db.setDbValue('destGatewayInfo', destGatewayInfo);
@@ -106,7 +120,14 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
         // 查询来源网关中是否存在该mac地址对应网关
         srcGatewayInfoList.forEach(gateway => {
             if (gateway.mac === srcMac) {
-                if (gateway[key] === false) return;
+                if (gateway[key] === false) {
+                    logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s ${key} already false`);
+                    return;
+                }
+                if (sse.status === ESseStatus.OPEN) {
+                    logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s SSE still open`);
+                    return;
+                };
                 _allRelevantDeviceOffline(srcMac);
                 gateway[key] = false;
             }
@@ -133,7 +154,7 @@ export async function destTokenInvalid(): Promise<void> {
             logger.error(`[dealWith Token Invalid] error : ERR_NO_DEST_GATEWAY_INFO`);
             return;
         }
-        
+
         if (!destGatewayInfo.tokenValid) return;
 
         destGatewayInfo.tokenValid = false;

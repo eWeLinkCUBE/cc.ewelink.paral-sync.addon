@@ -8,7 +8,7 @@ import { createDeviceServiceAddr, createDeviceTags } from '../services/syncOneDe
 import { IThirdpartyDevice } from '../lib/cube-api';
 import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 import destSse from '../ts/class/destSse';
-import srcSse, { ESseStatus } from '../ts/class/srcSse';
+import srcSse, { ESseStatus, srcSsePool } from '../ts/class/srcSse';
 import CubeApi from '../lib/cube-api';
 
 
@@ -334,15 +334,13 @@ async function checkForSse() {
     logger.info("[checkForSse] init all sse")
     /** 所有目标网关的信息 */
     const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
-    /** 来源网关的sse示例合集 */
-    const ssePool = await db.getDbValue('ssePool');
     /** 有效网关列表 */
     const validGatewayList = whichGatewayValid(srcGatewayInfoList);
     logger.info("[checkForSse] validGatewayList => ", JSON.stringify(validGatewayList))
 
 
     for (const gateway of validGatewayList) {
-        const sse = _.get(ssePool, gateway.mac);
+        const sse = srcSsePool.get(gateway.mac)
         logger.info(`[checkForSse] gateway ${gateway.mac} sse => `, JSON.stringify(sse));
         // 没有sse的直接建立
         if (!sse) {
@@ -356,9 +354,8 @@ async function checkForSse() {
             continue;
         }
 
-        _.unset(ssePool, gateway.mac);
+        srcSsePool.delete(gateway.mac);
         await srcSse.buildServerSendEvent(gateway);
-        await db.setDbValue('ssePool', ssePool);
     }
 }
 

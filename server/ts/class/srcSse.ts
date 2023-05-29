@@ -19,7 +19,14 @@ export enum ESseStatus {
     RECONNECTING = 'RECONNECTING'
 }
 
+/** 来源网关sse合集 */
+export const srcSsePool: Map<string, ServerSentEvent> = new Map();
 
+/**
+ * @description 目标网关SSE类
+ * @export
+ * @class ServerSentEvent
+ */
 export class ServerSentEvent {
     /** sse连接的id，默认为网关的mac地址 */
     public connectionId: string;
@@ -206,12 +213,8 @@ export class ServerSentEvent {
 
 async function buildServerSendEvent(gateway: IGatewayInfoItem) {
     const stream = new ServerSentEvent(gateway);
-    const ssePool = await db.getDbValue("ssePool");
-    _.assign(ssePool, {
-        [stream.connectionId]: stream
-    })
-    await db.setDbValue("ssePool", ssePool);
-    logger.info(`gateway sse connections count:${Object.keys(ssePool).length}`);
+    srcSsePool.set(stream.connectionId, stream);
+    logger.info(`gateway sse connections count:${srcSsePool.size}`);
 }
 
 export default {

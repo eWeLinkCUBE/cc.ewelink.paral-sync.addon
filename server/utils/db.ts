@@ -189,19 +189,10 @@ export interface IDeviceItem {
     isSynced: boolean;
 }
 
-/**
- * 来源网关sse合集
- */
-export interface ISsePool {
-    [propsName: string]: ServerSentEvent,
-}
-
 
 interface IDbData {
     /** 是否自动 */
     autoSync: boolean;
-    /** sse信息池 */
-    ssePool: ISsePool | {};
     /** 目标网关的信息 */
     destGatewayInfo: null | IGatewayInfoItem;
     /** 来源网关的信息列表 */
@@ -210,7 +201,6 @@ interface IDbData {
 
 export const dbDataTmp: IDbData = {
     autoSync: false,
-    ssePool: {},
     destGatewayInfo: null,
     srcGatewayInfoList: []
 };
@@ -241,7 +231,6 @@ async function clearStore() {
 
 /** 设置指定的数据库数据 */
 async function setDbValue(key: 'autoSync', v: IDbData['autoSync']): Promise<void>;
-async function setDbValue(key: 'ssePool', v: IDbData['ssePool']): Promise<void>;
 async function setDbValue(key: 'destGatewayInfo', v: IDbData['destGatewayInfo']): Promise<void>;
 async function setDbValue(key: 'srcGatewayInfoList', v: IDbData['srcGatewayInfoList']): Promise<void>;
 async function setDbValue(key: DbKey, v: IDbData[DbKey]) {
@@ -251,7 +240,6 @@ async function setDbValue(key: DbKey, v: IDbData[DbKey]) {
 
 /** 获取指定的数据库数据 */
 async function getDbValue(key: 'autoSync'): Promise<IDbData['autoSync']>;
-async function getDbValue(key: 'ssePool'): Promise<IDbData['ssePool']>;
 async function getDbValue(key: 'destGatewayInfo'): Promise<IDbData['destGatewayInfo']>;
 async function getDbValue(key: 'srcGatewayInfoList'): Promise<IDbData['srcGatewayInfoList']>;
 async function getDbValue(key: DbKey) {
