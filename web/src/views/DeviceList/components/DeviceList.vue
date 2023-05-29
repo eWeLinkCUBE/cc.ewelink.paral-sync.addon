@@ -7,22 +7,24 @@
         </div>
         <div class="table-body">
             <div class="device-item" v-for="(item, index) in deviceList" :key="index" v-if="deviceList.length > 0">
-                <span class="name">{{ item.name }}</span>
-                <span class="id">{{ item.id }}</span>
-                <div class="option">
+                <span class="name common">{{ item.name }}</span>
+                <span class="id common">{{ item.id }}</span>
+                <div class="option common">
                     <span class="sync" v-if="!item.isSynced && !item.spinLoading" @click="syncDevice(item)">{{ i18n.global.t('SYNC') }}</span>
                     <span class="cancel-sync" v-if="item.isSynced && !item.spinLoading" @click="cancelSyncSingleDevice(item)">{{ i18n.global.t('CANCEL_SYNC') }}</span>
-                    <img class="loading-icon" src="@/assets/img/loading.jpg"  alt="" v-if="item.spinLoading"/>
+                    <img class="loading-icon" src="@/assets/img/loading.jpg" alt="" v-if="item.spinLoading" />
                 </div>
             </div>
             <div v-else class="empty">
-                <img src="@/assets/img/empty.png" />
-                <div>{{ i18n.global.t('NO_DATA') }}</div>
+                <div class="loading" v-if="loading">
+                    <a-spin></a-spin>
+                </div>
+                <div v-else>
+                    <img src="@/assets/img/empty.png" />
+                    <div>{{ i18n.global.t('NO_DATA') }}</div>
+                </div>
             </div>
         </div>
-        <!-- <div class="pagination">
-            <a-pagination v-model:current="current" :total="50" show-less-items />
-        </div> -->
     </div>
 </template>
 
@@ -34,51 +36,46 @@ import { message } from 'ant-design-vue';
 import i18n from '@/i18n/index';
 import router from '@/router';
 import api from '@/api';
-import { getAssetsFile } from '@/utils/tools';
 
 const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
+const loading = ref(false);
 
 onMounted(async () => {
+    loading.value = true;
+    await deviceStore.getNsProGateWayList();
     await deviceStore.getDeviceList();
+    loading.value = false;
 });
 
 /**同步单个设备 */
 const syncDevice = async (item: INsProDeviceData) => {
-    deviceStore.setLoading(item,true);
+    deviceStore.setLoading(item, true);
     const res = await api.NSPanelPro.syncSingleDevice(item.id, item.from);
+    await deviceStore.getDeviceList();
     if (res.error === 0) {
-        await deviceStore.getDeviceList();
         message.success('success');
-    }else{
-        await deviceStore.getDeviceList();
     }
-    //方案二：修改本地状态
-    // deviceStore.modifyNsProListById(item.id,true);
-    //loading取消
-    deviceStore.setLoading(item,false);
-
+    //todo:[1501,1502,1503] 同步来源网关错误
+    deviceStore.setLoading(item, false);
 };
+
 /** 取消同步单个设备 */
 const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
-    deviceStore.setLoading(item,true);
+    deviceStore.setLoading(item, true);
     const resp = await api.NSPanelPro.cancelSyncSingleDevice(item.id, item.from);
+    await deviceStore.getDeviceList();
     if (resp.error === 0) {
-        await deviceStore.getDeviceList();
         message.success('success');
-    }else{
-        await deviceStore.getDeviceList();
     }
-    //方案二：修改本地状态
-    // deviceStore.modifyNsProListById(item.id,true);
-    //loading取消
-    deviceStore.setLoading(item,false);
+    deviceStore.setLoading(item, false);
 };
 </script>
 
 <style scoped lang="scss">
 .device {
     height: calc(100vh - 95px);
+    min-width:800px;
     .table-header {
         display: flex;
         align-items: center;
@@ -135,6 +132,11 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
                     height: 16px;
                     animation: rotate 2s linear infinite;
                 }
+            }
+            .common{
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
             }
         }
         .device-item:hover {

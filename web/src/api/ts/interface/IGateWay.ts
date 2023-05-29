@@ -10,16 +10,13 @@ export interface IGateWayInfoData{
     domain: string;
     /** 开始获取token的时间戳 */
     ts: string | number;
-    /** 加密后凭证 */
-    token: string;
     /** ip是否有效 */
     ipValid: boolean;
     /** 凭证是否有效 */
     tokenValid: boolean;
-    /** 获取token的时间 */
-    countDownTime?:number,
 }
 
+/** nsPro 设备 */
 export interface INsProDeviceData{
     from:string,
     id:string,
@@ -33,4 +30,25 @@ export enum stepsList{
     FIRST='first',
     /** 第二步 */
     SECOND='second',
+}
+/** SSE子设备删除 */
+export interface IDeleteDeviceData {
+    /** 设备id */
+    deviceId: string,
+    /** 设备来源网关的mac地址 */
+    mac: string
+}
+
+/** SSE新增子设备 */
+export interface IAddDeviceData{
+    /** 设备名称 */
+    name: string;
+    /** 设备id */
+    id: string;
+    /** 设备来源，此处为mac地址 */
+    from: string;
+    /** 设备是否已同步 */
+    isSynced: boolean;
+    /** 转圈loading */
+    spinLoading?:boolean,
 }

@@ -1,5 +1,6 @@
 <template>
-    <div class="setting" v-if="startInIHost === 'normal'">
+    <!-- 正常显示 -->
+    <div class="setting" v-if="startInIHost === 'NORMAL'">
         <span class="title">{{ i18n.global.t('SETTING') }}</span>
         <!-- steps 1-->
         <div v-if="steps === stepsList.FIRST">
@@ -31,20 +32,24 @@
             <div class="card-list">
                 <GateWayCard v-for="(item, index) in deviceStore.nsProList" :key="index" :gateWayData="item" :type="'nsPro'" @openNsProTipModal="openNsProTipModal" />
                 <!-- ip search -->
-                <div class="card" :class="{ 'disabled-card': deviceStore.hasTokenOrTs }"  @click="openFindIpModal">
+                <div class="card" :class="{ 'disabled-card': deviceStore.hasTokenOrTs }" @click="openFindIpModal">
                     <img src="@/assets/img/search.png" />
                     <div class="ip-search">{{ i18n.global.t('IP_FIND') }}</div>
                 </div>
             </div>
-            <div class="next-step">
+            <div class="next-step" style="margin-top:95px">
                 <a @click="goDeviceListPage" :class="{ 'disabled-btn': !hasNsProToken }">{{ i18n.global.t('DONE') }} ></a>
             </div>
         </div>
     </div>
     <!-- 未在iHost启动 -->
-    <div class="not-in-iHost" v-if="startInIHost === 'unusual'">
+    <div class="not-in-iHost" v-else-if="startInIHost === 'UNUSUAL'">
         <img src="@/assets/img/not-in-iHost.png" />
         <div>{{ i18n.global.t('PLEASE_START_IN_IHOST') }}</div>
+    </div>
+    <!-- 加载首页的loading -->
+    <div class="loading" v-else>
+        <a-spin class="spin"></a-spin>
     </div>
 
     <!-- findIp Modal -->
@@ -53,13 +58,13 @@
             <div style="text-align: center; margin-bottom: 18px">{{ i18n.global.t('IP_FIND') }}</div>
         </template>
         <div class="search-content">
-            <a-input v-model:value="ipVal" style="width: 398px; height: 40px" />
+            <a-input v-model:value="ipVal" style="width: 398px; height: 40px" :readonly="findIpLoading" @keyup.enter.native="linkNsProGateWay" />
             <p v-if="ipFail">{{ i18n.global.t('CONNECT_IP_FAIL') }}</p>
         </div>
         <template #footer>
             <div style="text-align: center">
-                <a-button class="default-btn common-btn" @click="findIpVisible = false">{{ i18n.global.t('CANCEL') }}</a-button>
-                <a-button type="primary" class="common-btn" @click="linkNsProGateWay">Link</a-button>
+                <a-button class="default-btn common-btn" @click="findIpVisible = false" :disabled="findIpLoading">{{ i18n.global.t('CANCEL') }}</a-button>
+                <a-button type="primary" class="common-btn" @click="linkNsProGateWay" :loading="findIpLoading">Link</a-button>
             </div>
         </template>
     </a-modal>
@@ -67,22 +72,13 @@
     <!-- nsPro 提示框 -->
     <a-modal :visible="nsProTipModalVisible" destroyOnClose :maskClosable="false" centered :closable="false" width="504px" class="NsPro-Modal">
         <template #title>
-            <div class="nsPro-title">{{ i18n.global.t('GET_NSPRO_TOKEN') }}</div>
+            <div class="nsPro-title">{{ i18n.global.t('GET_NS_PRO_TOKEN') }}</div>
         </template>
         <div class="search-content" style="padding-bottom: 20px">
             <h3>{{ i18n.global.t('STEP2') }}</h3>
             <a-carousel autoplay>
-                <div class="swiper-item">
-                    <img class="swiper-image" src="@/assets/img/setting-modal.png" />
-                </div>
-                <div class="swiper-item">
-                    <img class="swiper-image" src="@/assets/img/machine-modal.png" />
-                </div>
-                <div class="swiper-item">
-                    <img class="swiper-image" src="@/assets/img/click-modal.png" />
-                </div>
-                <div class="swiper-item">
-                    <img class="swiper-image" src="@/assets/img/token-modal.png" />
+                <div class="swiper-item" v-for="(item, index) in autoplayImageList" :key="index">
+                    <img class="swiper-image" :src="item.imgSrc" />
                 </div>
             </a-carousel>
         </div>
@@ -95,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed,watch } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import api from '@/api/NSPanelPro/index';
 import type { IGateWayInfoData } from '@/api/ts/interface/IGateWay';
 import { stepsList } from '@/api/ts/interface/IGateWay';
@@ -103,77 +99,112 @@ import { message } from 'ant-design-vue';
 import { useDeviceStore } from '@/store/device';
 import { useRouter } from 'vue-router';
 import GateWayCard from './components/GateWayCard.vue';
+import { LoadingOutlined } from '@ant-design/icons-vue';
+import Setting from '@/assets/img/setting-modal.png';
+import Machine from '@/assets/img/machine-modal.png';
+import Click from '@/assets/img/click-modal.png';
+import Token from '@/assets/img/token-modal.png';
 import i18n from '@/i18n/index';
-import moment from 'moment';
 import _ from 'lodash';
 const router = useRouter();
 const deviceStore = useDeviceStore();
 const steps = computed(() => deviceStore.step);
 
+/** 查找ip弹窗 */
 const findIpVisible = ref(false);
+/** ip值 */
 const ipVal = ref('');
-const startInIHost = ref<'unusual' | 'normal' | 'empty'>('empty');
+/** 在iHost启动、正常展示 、loading*/
+const startInIHost = ref<'UNUSUAL' | 'NORMAL' | 'LOADING'>('LOADING');
+/** ip link fail */
 const ipFail = ref(false);
+/** nsPro 提示框 */
 const nsProTipModalVisible = ref(false);
+/** 刷新按钮状态 */
 const isRefresh = ref(false);
+/** 查找ip的loading */
+const findIpLoading = ref(false);
+/** 是否获取iHost的token */
+const hasIHostToken = computed(() => deviceStore.iHostList.some((item) => item.tokenValid && item.ipValid));
+/** 是否获取到一个nsPro的token */
+const hasNsProToken = computed(() => deviceStore.nsProList.some((item) => item.tokenValid && item.ipValid));
+/** 轮播图列表 */
+const autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting }, { imgSrc: Machine }, { imgSrc: Click }, { imgSrc: Token }];
 
+/** 判断获取iHost列表还是nsPro的列表 */
 onMounted(async () => {
     if (steps.value === stepsList.FIRST) {
         const response = await deviceStore.getIHostGateWatList();
-        startInIHost.value = 'normal';
         //不在iHost上启动
         if (response.error === 1101) {
-            startInIHost.value = 'unusual';
+            startInIHost.value = 'UNUSUAL';
         }
+        startInIHost.value = 'NORMAL';
     } else {
-        startInIHost.value = 'normal';
-        await deviceStore.getNsProGateWayInfo();
+        startInIHost.value = 'NORMAL';
+        await deviceStore.getNsProGateWayList();
     }
 });
 
 /**通过ip获取nsPanePro网关信息 */
 const linkNsProGateWay = async () => {
-    if (!ipVal.value || !ipVal.value.trim()) return;
+    if (!ipVal.value || !ipVal.value.trim()) {
+        message.warning('ip cant empty');
+        return;
+    }
 
-    if (deviceStore.nsProList.some((item) => item.ip === ipVal.value)) return;
+    if (deviceStore.nsProList.some((item) => item.ip === ipVal.value)) {
+        message.info('ip is exist');
+        return;
+    }
 
+    const reg = new RegExp(/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/);
+    if (!reg.test(ipVal.value)) {
+        return message.warning('please input right ip address');
+    }
+
+    ipFail.value = false;
+    findIpLoading.value = true;
     const res = await api.linkNsProGateWay(ipVal.value);
     if (res.error === 0 && res.data) {
         //link成功后,后台会存下来
-        deviceStore.getNsProGateWayInfo();
+        deviceStore.getNsProGateWayList();
         findIpVisible.value = false;
         ipFail.value = false;
+        message.success('success');
     } else {
         ipFail.value = true;
     }
+    findIpLoading.value = false;
 };
+
+/** 刷新操作 */
 const handleRefresh = () => {
     if (isRefresh.value) return;
     isRefresh.value = true;
-    deviceStore.getNsProGateWayInfo();
+    deviceStore.getNsProGateWayList();
     setTimeout(() => {
         isRefresh.value = false;
     }, 1000);
 };
 
-/** 是否获取iHost的token */
-const hasIHostToken = computed(() => deviceStore.iHostList.some((item) => item.tokenValid && item.ipValid));
-
-/** 是否获取到一个nsPro的token */
-const hasNsProToken = computed(() => deviceStore.nsProList.some((item) => item.tokenValid && item.ipValid));
-
-watch(()=>hasIHostToken.value,()=>{
-    if(!hasIHostToken.value){
-        deviceStore.setStep(stepsList.FIRST);
+/** 没有iHost的token,回到第一步 */
+watch(
+    () => hasIHostToken.value,
+    () => {
+        if (!hasIHostToken.value) {
+            deviceStore.setStep(stepsList.FIRST);
+        }
     }
-})
+);
 
-/**下一步 */
+/** 点击下一步 */
 const nextStep = () => {
     if (!hasIHostToken) return;
     deviceStore.setStep(stepsList.SECOND);
-    deviceStore.getNsProGateWayInfo();
+    deviceStore.getNsProGateWayList();
 };
+
 /** 点击完成 */
 const goDeviceListPage = () => {
     if (!hasNsProToken) return;
@@ -181,7 +212,7 @@ const goDeviceListPage = () => {
     deviceStore.setStep(stepsList.FIRST);
 };
 
-/** 打开nsPro 提示框 */
+/** 打开nsPro提示框 */
 const openNsProTipModal = () => {
     nsProTipModalVisible.value = true;
 };
@@ -260,13 +291,14 @@ const openFindIpModal = () => {
             }
         }
         .disabled-card {
-            pointer-events: none;
             filter: grayscale(100%);
             background: #e8e8ec;
             color: #9e9e9e;
+            scale: 1 !important;
+            pointer-events:none;
         }
 
-        .card:hover{
+        .card:hover {
             scale: 1.02;
             cursor: pointer;
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
@@ -309,6 +341,19 @@ const openFindIpModal = () => {
         font-size: 18px;
         font-weight: 500;
         color: rgba(66, 66, 66, 0.5);
+    }
+}
+
+.loading {
+    width: 100vw;
+    height: 100vh;
+    text-align: center;
+    position: relative;
+    .spin {
+        max-height: 100vh;
+        position: absolute;
+        right: 50%;
+        top: 50%;
     }
 }
 

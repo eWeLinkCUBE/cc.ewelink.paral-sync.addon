@@ -17,7 +17,7 @@ interface IEtcState {
     getUserInfoInterval:number;
     autoSync:boolean
     isIPUnableToConnect:boolean
-    
+
 }
 
 export const useEtcStore = defineStore('addon_etc', {
@@ -50,7 +50,7 @@ export const useEtcStore = defineStore('addon_etc', {
             autoSync:false,
             /** IP无法连接提示控制变量 */
             isIPUnableToConnect:false
-            
+
         };
     },
     getters: {},
@@ -63,12 +63,12 @@ export const useEtcStore = defineStore('addon_etc', {
         async getGateway(){
            const res = await api.NSPanelPro.getOurselfGateWayInfo()
            console.log(res,'res');
-           
+
         },
         async getAllGatewayInfo(){
-            const res = await api.NSPanelPro.getNsProGateWayInfo()
+            const res = await api.NSPanelPro.getNsProGateWayList()
             console.log(res,'res');
-            
+
          },
         setTipCardVisible(state: boolean) {
             this.tipCardVisible = state;
