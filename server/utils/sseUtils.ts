@@ -171,9 +171,12 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         await srcTokenAndIPInvalid('token', srcMac);
         logger.info(`[sse delete device] target token invalid`);
         return;
-    } else {
+    } else if (cubeApiRes.error === 1000) {
         await srcTokenAndIPInvalid('ip', srcMac);
         logger.info(`[sse delete device] target ip address invalid`);
+        return;
+    } else {
+        logger.warn(`[sse delete device] unknown error: ${JSON.stringify(cubeApiRes)}`);
         return;
     }
 }
@@ -259,8 +262,11 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
         await destTokenInvalid();
         logger.info(`[sse update device info or state] target token invalid`);
         return;
-    } else {
+    } else if (cubeApiRes.error === 1000) {
         logger.info(`[sse delete device] target ip address invalid`);
+        return;
+    } else {
+        logger.info(`[sse delete device] unknown error: ${JSON.stringify(cubeApiRes)}`);
         return;
     }
 }

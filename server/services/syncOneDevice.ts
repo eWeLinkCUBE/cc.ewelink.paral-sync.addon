@@ -104,10 +104,13 @@ export default async function syncOneDevice(req: Request, res: Response) {
             await srcTokenAndIPInvalid('token', srcGatewayInfo.mac);
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
-        } else {
+        } else if (cubeApiRes.error === 1000) {
             await srcTokenAndIPInvalid('ip', srcGatewayInfo.mac);
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+        } else {
+            logger.warn(`(service.syncOneDevice) srcGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
+            return res.json(toResponse(ERR_INTERNAL_ERROR));
         }
 
         // 获取同步目标网关的设备列表
@@ -118,10 +121,13 @@ export default async function syncOneDevice(req: Request, res: Response) {
         } else if (cubeApiRes.error === 401) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
-        } else {
+        } else if (cubeApiRes.error === 1000) {
             await destTokenInvalid();
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+        } else {
+            logger.warn(`(service.syncOneDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
+            return res.json(toResponse(ERR_INTERNAL_ERROR));
         }
 
         /** 将要被同步的设备数据 */

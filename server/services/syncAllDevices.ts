@@ -8,6 +8,7 @@ import {
     ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID,
     ERR_DEST_GATEWAY_IP_INVALID,
     ERR_DEST_GATEWAY_TOKEN_INVALID,
+    ERR_INTERNAL_ERROR,
     ERR_SUCCESS,
     toResponse
 } from '../utils/error';
@@ -61,9 +62,12 @@ export default async function syncAllDevices(req: Request, res: Response) {
             await destTokenInvalid();
             logger.info(`(service.syncAllDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
-        } else {
+        } else if (cubeApiRes.error === 1000) {
             logger.info(`(service.syncAllDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+        } else {
+            logger.info(`(service.syncAllDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
+            return res.json(toResponse(ERR_INTERNAL_ERROR));
         }
 
         // 拉取所有有效的同步来源设备并汇总
@@ -92,8 +96,10 @@ export default async function syncAllDevices(req: Request, res: Response) {
                 }
             } else if (cubeApiRes.error === 401) {
                 await srcTokenAndIPInvalid('token', gateway.mac);
-            } else {
+            } else if (cubeApiRes.error === 1000) {
                 await srcTokenAndIPInvalid('ip', gateway.mac);
+            } else {
+                logger.warn(`(service.syncAllDevice) srcGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
             }
         }
         logger.info(`(service.syncAllDevice) syncDevices: ${JSON.stringify(syncDevices)}`);

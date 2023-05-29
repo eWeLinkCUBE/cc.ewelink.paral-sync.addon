@@ -66,9 +66,12 @@ export default async function openControlDevice(req: Request, res: Response) {
                 await srcTokenAndIPInvalid("token", srcGatewayInfo.mac);
                 logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
                 return res.json(FAIL_RESULT);
-            } else {
+            } else if (cubeApiRes.error === 1000) {
                 await srcTokenAndIPInvalid("ip", srcGatewayInfo.mac);
                 logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
+                return res.json(FAIL_RESULT);
+            } else {
+                logger.info(`(service.openControlDevice) client.updateDeviceState() unknown error :${JSON.stringify(cubeApiRes)}`);
                 return res.json(FAIL_RESULT);
             }
         } else {
