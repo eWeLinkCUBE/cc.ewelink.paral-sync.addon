@@ -51,6 +51,7 @@ const dynamicBtnColor = computed(()=>{
 
 /** 获取token按钮的状态  获取token 、*/
 const btnLoadingStatus = computed<boolean>(() => {
+    clearInterval(timer.value);
     if (!props.gateWayData) {
         clearInterval(timer.value);
         return false;
