@@ -49,6 +49,7 @@ mDns.on('response', (response: any) => {
     if (isExistInMDns) {
         return;
     }
+
     mDnsGatewayMapUtil.setMDnsGateway(gatewayInfo);
 
     logger.info('lan nsPro gatewayInfo --------------------------------------------------------', gatewayInfo);
