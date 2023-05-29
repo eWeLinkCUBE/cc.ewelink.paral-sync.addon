@@ -172,9 +172,12 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         await srcTokenAndIPInvalid('token', srcMac);
         logger.info(`[sse delete device] target token invalid`);
         return;
-    } else {
+    } else if (cubeApiRes.error === 1000) {
         await srcTokenAndIPInvalid('ip', srcMac);
         logger.info(`[sse delete device] target ip address invalid`);
+        return;
+    } else {
+        logger.warn(`[sse delete device] unknown error: ${JSON.stringify(cubeApiRes)}`);
         return;
     }
 }
@@ -296,11 +299,15 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
         await destTokenInvalid();
         logger.info(`[sse update device info or get device info] target token invalid`);
         return;
-    } else {
+    } else if (cubeApiRes.error === 1000) {
         logger.info(`[sse update device info or get device info] target ip address invalid`);
+        return;
+    } else {
+        logger.info(`[sse update device info or get device info] unknown error: ${JSON.stringify(cubeApiRes)}`);
         return;
     }
 }
+
 
 /**
  * @description 筛选有效网关
@@ -309,6 +316,7 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
  */
 function whichGatewayValid(gateways: IGatewayInfoItem[]): IGatewayInfoItem[] {
     const validGatewayList = gateways.flatMap(gateways => {
+        if (gateways.ipValid === false) return [];
         if (gateways.tokenValid === false) return [];
         if (!gateways.token) return [];
 

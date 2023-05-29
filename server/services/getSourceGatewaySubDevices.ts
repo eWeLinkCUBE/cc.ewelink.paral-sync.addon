@@ -9,7 +9,8 @@ import {
     ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID,
     ERR_CUBEAPI_GET_DEVICE_TIMEOUT,
     ERR_SUCCESS,
-    toResponse
+    toResponse,
+    ERR_INTERNAL_ERROR
 } from '../utils/error';
 import logger from '../log';
 import DB, { wait } from '../utils/db';
@@ -92,10 +93,13 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             await srcTokenAndIPInvalid('token', localSrcGatewayInfo.mac);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
-        } else {
+        } else if (cubeApiRes.error === 1000) {
             await srcTokenAndIPInvalid('ip', localSrcGatewayInfo.mac);
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+        } else {
+            logger.warn(`(service.getSourceGatewaySubDevices) srcGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
+            return res.json(toResponse(ERR_INTERNAL_ERROR));
         }
 
         // 获取同步目标网关的设备列表
@@ -107,9 +111,12 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
             await destTokenInvalid();
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
-        } else {
+        } else if (cubeApiRes.error === 1000) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
             return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+        } else {
+            logger.warn(`(service.getSourceGatewaySubDevices) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
+            return res.json(toResponse(ERR_INTERNAL_ERROR));
         }
 
         /** 来源 MAC 地址为请求网关 MAC 地址的同步目标网关的设备列表 */
