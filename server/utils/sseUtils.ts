@@ -246,9 +246,7 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
             cubeApiRes = await destGatewayApiClient.updateDeviceOnline({
                 serial_number: syncedDevice.serial_number,
                 third_serial_number: serial_number,
-                params: {
-                    state: payload
-                }
+                params: payload
             });
             logger.info(`[sse update device online] updateDeviceOnline res: ${JSON.stringify(cubeApiRes)}`);
             const resError = _.get(cubeApiRes, 'error');
