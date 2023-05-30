@@ -66,7 +66,7 @@ export const useDeviceStore = defineStore('addon_device', {
             });
 
             if(!mac){
-                this.step = stepsList.FIRST;
+                this.step = stepsList.SECOND;
                 router.push('/setting');
                 return;
             };
