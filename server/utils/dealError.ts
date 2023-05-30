@@ -107,10 +107,11 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
                 logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s ${key} already false`);
                 return;
             };
-            if (sse.status === ESseStatus.OPEN) {
-                logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s SSE still open`);
-                return;
-            };
+            // 因为 NSPro 凭证失效后，SSE 连接不断开，等 NSPro 后续修复这个问题
+            // if (sse.status === ESseStatus.OPEN) {
+            //     logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s SSE still open`);
+            //     return;
+            // };
             destGatewayInfo[key] = false;
             _allRelevantDeviceOffline(srcMac);
             await db.setDbValue('destGatewayInfo', destGatewayInfo);
@@ -124,10 +125,11 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
                     logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s ${key} already false`);
                     return;
                 }
-                if (sse.status === ESseStatus.OPEN) {
-                    logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s SSE still open`);
-                    return;
-                };
+                // 因为 NSPro 凭证失效后，SSE 连接不断开，等 NSPro 后续修复这个问题
+                // if (sse.status === ESseStatus.OPEN) {
+                //     logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s SSE still open`);
+                //     return;
+                // };
                 _allRelevantDeviceOffline(srcMac);
                 gateway[key] = false;
             }
