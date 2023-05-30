@@ -18,17 +18,17 @@ onMounted(() => {
     judgeToken();
 });
 const judgeToken = () =>{
-    const hsaOneIHostToken = deviceStore.iHostList.some((item)=>item.tokenValid);
+    const hsaOneIHostToken = deviceStore.iHostList.some((item)=>(item.tokenValid&&item.ipValid));
     if(deviceStore.iHostList.length < 1 || !hsaOneIHostToken){
-        console.log('跳回第一步----------》');
+        console.log('app.vue jump first step----------》');
         deviceStore.setStep(stepsList.FIRST);
         router.push('/setting');
         return;
     }
 
-    const hsaOneNsProToken = deviceStore.nsProList.some((item)=>item.tokenValid);
+    const hsaOneNsProToken = deviceStore.nsProList.some((item)=>(item.tokenValid&&item.ipValid));
     if(deviceStore.nsProList.length < 1 || !hsaOneNsProToken){
-        console.log('跳回第二步---------》');
+        console.log('app.vue jump second step---------》');
         deviceStore.setStep(stepsList.SECOND);
         router.push('/setting');
         return;

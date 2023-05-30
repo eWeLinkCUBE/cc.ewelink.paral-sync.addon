@@ -9,6 +9,7 @@
             @click="getToken(gateWayData.mac)"
             :disabled="gateWayData.tokenValid || !gateWayData.ipValid || disabledBtn ? true : false"
             :loading="btnLoadingStatus"
+            :style="dynamicBtnColor"
         >
             <span v-if="btnLoadingStatus">{{ formatCount(countdownTime) }}</span>
             <span v-else>{{ showWhichContent }}</span>
@@ -30,31 +31,45 @@ const props = defineProps<{
 
 const emits = defineEmits(['openNsProTipModal']);
 const openNsProTipModal = () => emits('openNsProTipModal');
+const dynamicBtnColor = computed(()=>{
+    //ip失效，灰色
+    if(!props.gateWayData.ipValid){
+        return {'background-color':'#999999 !important'}
+    }
+    //已经获取一个token，按钮淡蓝色
+    if(props.gateWayData.tokenValid){
+        return {'background-color':'#FFFFFF !important','color':'#1890FF!important'}
+    }
+
+    //有一个nsPro在倒计时，按钮淡蓝色
+    console.log('disabledBtn',disabledBtn.value);
+    if(disabledBtn.value){
+        return {'background-color':'#1890FF!important'}
+    }
+    return {}
+});
 
 /** 获取token按钮的状态  获取token 、*/
 const btnLoadingStatus = computed<boolean>(() => {
+    clearInterval(timer.value);
     if (!props.gateWayData) {
-        clearInterval(timer.value);
         return false;
     }
     const { tokenValid, ts } = props.gateWayData;
     const requestTime = Number(ts);
     //已经获取token
     if (tokenValid) {
-        clearInterval(timer.value);
         return false;
     }
 
     //没有ts,显示获取token
     if (!requestTime) {
-        clearInterval(timer.value);
         return false;
     } else {
         //有ts,再判断距离当前时间是否小于五分钟
         const nowTime = moment();
         const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
         if (seconds > 300) {
-            clearInterval(timer.value);
             return false;
         } else {
             setCutDownTimer(requestTime);
@@ -72,10 +87,9 @@ const disabledBtn = computed(() => {
     if (hasOneTokenItem && hasOneTokenItem.mac === props.gateWayData.mac) {
         notSelf = false;
     }
+    console.log('hasTokenOrTs',deviceStore.hasTokenOrTs , notSelf)
     return deviceStore.hasTokenOrTs && notSelf;
 });
-
-const timeGap = ref(300);
 /** 倒计时时间 */
 const countdownTime = ref(300);
 
@@ -100,7 +114,7 @@ const setCutDownTimer = (requestTime: number) => {
 
     const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
 
-    if (seconds > 300) return;
+    if (seconds >= 300) return;
     countdownTime.value = 300 - seconds;
 
     if (timer.value) {
@@ -114,7 +128,7 @@ const setCutDownTimer = (requestTime: number) => {
             countdownTime.value--;
         } else {
             window.clearInterval(timer.value);
-            countdownTime.value = timeGap.value;
+            countdownTime.value = 0;
         }
         console.log('------------------>', countdownTime.value);
     }, 1000);

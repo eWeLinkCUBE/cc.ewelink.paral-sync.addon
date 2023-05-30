@@ -11,11 +11,10 @@ const cn = {
     STEP01_TOKEN:'Step 01 获取本机Token',
     GET_ACCESS_TOKEN:'请点击获取token按钮获取本机的token以便将局域网内其他网关的设备同步到本机中',
     NEXT:'下一步',
-    STEP02_TOKEN:'Step 02 获取同步设备Token',
+    STEP02_TOKEN:'Step 02 获取NSPanelPro的Token',
     THE_FOLLOWING:'局域网内发现如下网关，点击获取token按钮进行授权，获取权限后可同步网关里的设备',
-    STEP1:'Step1：点击“获取token”按钮',
-    STEP2:'Step2：前往屏端的“设置”>”关于本机”页面10s内连续点击“设备名称”7次',
-    STEP3:'Step3：返回该页面',
+    STEP1:'点击“获取token”按钮',
+    STEP2:'请前往屏端的“设置”>”关于本机”页面10s内连续点击“设备名称”7次',
     DEVICE_LIST:'设备列表',
     SYNCED_FROM_NSPANEL:'设备将从NSPanel Pro同步到iHost',
     AUTO_SYNC_NEW:'新增设备自动同步',
@@ -35,6 +34,13 @@ const cn = {
     GET_NS_PRO_TOKEN:'获取NSPanel Pro 的token(缺)',
     GET_IT:'我知道了',
     SYNC_ALL_DEVICE_WAIT:'正在同步所有设备，请稍等(缺)',
+    GATEWAY_IP_INVALID:'网关name IP无法连接，请到设置页面检查并更新(缺)',
+    DEVICE_SYNC_SUCCESS:'{number} 个设备同步成功（缺）',
+    IHOST_IP_INVALID:'{name} IP无法访问',
+    TOKEN_INVALID:'{name} token已失效，请重新获取token(缺)',
+    NS_PRO_IP_CANT_ACCESS:'{name} IP无法访问，请点击“查找”按钮重新输入IP,连接成功后恢复使用',
+    SYNC_SUCCESS:'同步成功',
+    CANCEL_SYNC_SUCCESS:'取消同步成功',
 };
 
 export default cn;

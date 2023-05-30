@@ -22,9 +22,6 @@ import { LoadingOutlined } from '@ant-design/icons-vue';
 import i18n from '@/i18n';
 import api from '@/api';
 import { useDeviceStore } from '@/store/device';
-import router from '@/router';
-import type { INsProDeviceData } from '@/api/ts/interface/IGateWay';
-import { stepsList } from '@/api/ts/interface/IGateWay';
 const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
 const indicator = h(LoadingOutlined, {
