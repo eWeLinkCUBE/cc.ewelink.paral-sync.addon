@@ -176,6 +176,22 @@ export const useDeviceStore = defineStore('addon_device', {
             });
             return hasTokenOrTs;
         },
+        /** iHost网关的IP有效,iHost只有一个*/
+        effectIHostIp(state){
+            return state.iHostList.some((item)=>item.ipValid);
+        },
+        /** iHost网关的token有效,iHost只有一个 */
+        effectIHostToken(state){
+            return state.iHostList.some((item)=>item.tokenValid);
+        },
+        /** nsPro网关存在至少一个失效的IP */
+        hasOneInvalidNsProIP(state){
+            return state.nsProList.some((item)=>!item.ipValid);
+        },
+        /** nsPro网关存在至少一个失效的token */
+        hasOneInvalidNsProToken(state){
+            return state.nsProList.some((item)=>!item.tokenValid);
+        },
     },
     persist: true,
 });

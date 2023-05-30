@@ -70,7 +70,7 @@ async function getAutoSyncState() {
  * 同步所有设备
  */
 async function syncAllDevice() {
-    return await request(`/devices/sync`, {}, EReqMethod.POST);
+    return await request<{syncDeviceIdList:string[]}>(`/devices/sync`, {}, EReqMethod.POST);
 }
 
 export default {

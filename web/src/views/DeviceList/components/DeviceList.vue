@@ -54,9 +54,8 @@ const syncDevice = async (item: INsProDeviceData) => {
     const res = await api.NSPanelPro.syncSingleDevice(item.id, item.from);
     await deviceStore.getDeviceList();
     if (res.error === 0) {
-        message.success('success');
+        message.success(i18n.global.t('SYNC_SUCCESS'));
     }
-    //todo:[1501,1502,1503] 同步来源网关错误
     deviceStore.setLoading(item, false);
 };
 
@@ -66,7 +65,7 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
     const resp = await api.NSPanelPro.cancelSyncSingleDevice(item.id, item.from);
     await deviceStore.getDeviceList();
     if (resp.error === 0) {
-        message.success('success');
+        message.success(i18n.global.t('CANCEL_SYNC_SUCCESS'));
     }
     deviceStore.setLoading(item, false);
 };

@@ -53,27 +53,23 @@ const dynamicBtnColor = computed(()=>{
 const btnLoadingStatus = computed<boolean>(() => {
     clearInterval(timer.value);
     if (!props.gateWayData) {
-        clearInterval(timer.value);
         return false;
     }
     const { tokenValid, ts } = props.gateWayData;
     const requestTime = Number(ts);
     //已经获取token
     if (tokenValid) {
-        clearInterval(timer.value);
         return false;
     }
 
     //没有ts,显示获取token
     if (!requestTime) {
-        clearInterval(timer.value);
         return false;
     } else {
         //有ts,再判断距离当前时间是否小于五分钟
         const nowTime = moment();
         const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
         if (seconds > 300) {
-            clearInterval(timer.value);
             return false;
         } else {
             setCutDownTimer(requestTime);
@@ -94,8 +90,6 @@ const disabledBtn = computed(() => {
     console.log('hasTokenOrTs',deviceStore.hasTokenOrTs , notSelf)
     return deviceStore.hasTokenOrTs && notSelf;
 });
-
-const timeGap = ref(300);
 /** 倒计时时间 */
 const countdownTime = ref(300);
 
@@ -120,7 +114,7 @@ const setCutDownTimer = (requestTime: number) => {
 
     const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
 
-    if (seconds > 300) return;
+    if (seconds >= 300) return;
     countdownTime.value = 300 - seconds;
 
     if (timer.value) {
@@ -134,7 +128,7 @@ const setCutDownTimer = (requestTime: number) => {
             countdownTime.value--;
         } else {
             window.clearInterval(timer.value);
-            countdownTime.value = timeGap.value;
+            countdownTime.value = 0;
         }
         console.log('------------------>', countdownTime.value);
     }, 1000);

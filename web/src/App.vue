@@ -18,7 +18,7 @@ onMounted(() => {
     judgeToken();
 });
 const judgeToken = () =>{
-    const hsaOneIHostToken = deviceStore.iHostList.some((item)=>item.tokenValid);
+    const hsaOneIHostToken = deviceStore.iHostList.some((item)=>(item.tokenValid&&item.ipValid));
     if(deviceStore.iHostList.length < 1 || !hsaOneIHostToken){
         console.log('app.vue jump first step----------》');
         deviceStore.setStep(stepsList.FIRST);
@@ -26,7 +26,7 @@ const judgeToken = () =>{
         return;
     }
 
-    const hsaOneNsProToken = deviceStore.nsProList.some((item)=>item.tokenValid);
+    const hsaOneNsProToken = deviceStore.nsProList.some((item)=>(item.tokenValid&&item.ipValid));
     if(deviceStore.nsProList.length < 1 || !hsaOneNsProToken){
         console.log('app.vue jump second step---------》');
         deviceStore.setStep(stepsList.SECOND);

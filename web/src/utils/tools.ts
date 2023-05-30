@@ -28,11 +28,27 @@ export function jumpCorrespondStep(errCode:number){
     if(step1List.includes(errCode)){
         deviceStore.setStep(stepsList.FIRST);
         router.push('/setting');
-        console.log('errCode jump first step--------->',errCode);
+        console.log('errCode jump first step--------->',errCode,deviceStore.step);
     }
     if(step2List.includes(errCode)){
         deviceStore.setStep(stepsList.SECOND);
         router.push('/setting');
-        console.log('errCode jump second step--------->',errCode);
+        console.log('errCode jump second step--------->',errCode,deviceStore.step);
     }
+}
+
+/**
+ *
+ * ip校验（link IP）
+ * @date 30/05/2023
+ * @export
+ * @param {string} ip
+ * @returns {*}
+ */
+export function checkIpValid(ipAddress:string){
+    const reg = new RegExp(/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/);
+    if (!reg.test(ipAddress)) {
+        return false;
+    }
+    return true;
 }
