@@ -15,7 +15,7 @@
         <div class="header-right" ref="headerRightRef">
             <div class="auto-sync">
                 {{ $t('AUTO_SYNC_NEW') }}
-                <a-switch style="margin-left: 10px" :disabled="isDisabled" @change="handleAutoSync" :checked="etcStore.autoSync" />
+                <a-switch style="margin-left: 10px" @change="handleAutoSync" :checked="etcStore.autoSync" />
             </div>
             <a-popover trigger="hover" :getPopupContainer="() => headerRightRef">
                 <template #content>

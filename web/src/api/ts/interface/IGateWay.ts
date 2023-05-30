@@ -14,6 +14,8 @@ export interface IGateWayInfoData{
     ipValid: boolean;
     /** 凭证是否有效 */
     tokenValid: boolean;
+    /** 加密后的token */
+    token?:string
 }
 
 /** nsPro 设备 */
