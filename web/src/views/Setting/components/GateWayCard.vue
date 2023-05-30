@@ -42,9 +42,8 @@ const dynamicBtnColor = computed(()=>{
     }
 
     //有一个nsPro在倒计时，按钮淡蓝色
-    console.log('disabledBtn',disabledBtn.value);
     if(disabledBtn.value){
-        return {'background-color':'#1890FF!important'}
+        return {'background-color':'#1890FF!important','opacity':'0.5!important'}
     }
     return {}
 });
@@ -81,14 +80,7 @@ const btnLoadingStatus = computed<boolean>(() => {
 /**有一个nsPro在获取token倒计时或者已经获取token,按钮禁用*/
 const disabledBtn = computed(() => {
     if (props.type === 'iHost') return false;
-
-    const hasOneTokenItem = deviceStore.nsProList.find((item) => item.tokenValid || item.ts);
-    let notSelf = true;
-    if (hasOneTokenItem && hasOneTokenItem.mac === props.gateWayData.mac) {
-        notSelf = false;
-    }
-    console.log('hasTokenOrTs',deviceStore.hasTokenOrTs , notSelf)
-    return deviceStore.hasTokenOrTs && notSelf;
+    return deviceStore.hasTokenOrTs;
 });
 /** 倒计时时间 */
 const countdownTime = ref(300);
