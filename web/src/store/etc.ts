@@ -21,7 +21,7 @@ export const useEtcStore = defineStore('addon_etc', {
             /** 控制context Loading变量 */
             isLoading: false,
             /** 自动同步新增设备状态 */
-            autoSync:false,
+            autoSync:true,
             /** IP无法连接提示控制变量 */
             isIPUnableToConnect:false
         };
