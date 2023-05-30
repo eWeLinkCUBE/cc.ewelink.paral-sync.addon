@@ -148,6 +148,15 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
     if (cubeApiRes.error === 0) {
         const syncedDevice = cubeApiRes.data.device_list.find((device: IThirdpartyDevice) => device.third_serial_number === serial_number);
         logger.info(`[sse delete device] cubeApiRes.data.device_list`, cubeApiRes.data.device_list)
+        // send delete sse
+        destSse.send({
+            name: "device_deleted_report",
+            data: {
+                deviceId: serial_number,
+                mac: srcMac
+            }
+        })
+        logger.info(`sended device_deleted_report`);
         // 未同步的设备不需要取消同步
         if (!syncedDevice) return;
 
@@ -155,13 +164,6 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         cubeApiRes = await destGatewayApiClient.deleteDevice(syncedDevice.serial_number);
 
         if (cubeApiRes.error === 0) {
-            destSse.send({
-                name: "device_deleted_report",
-                data: {
-                    deviceId: serial_number,
-                    mac: srcMac
-                }
-            })
             logger.info(`[sse delete device] delete device ${serial_number} success`);
             return;
         }
