@@ -42,17 +42,17 @@ class ServerSendStream {
         this.req.on('close', () => {
             ssePool.delete(this.connectionId);
             clearInterval(this.heartbeat!);
-            logger.error('close');
+            logger.error(`see connection ${this.connectionId} close`);
         });
         this.req.on('finish', () => {
             ssePool.delete(this.connectionId);
             clearInterval(this.heartbeat!);
-            logger.info('finish');
+            logger.info(`see connection ${this.connectionId} finish`);
         });
         this.req.on('error', () => {
             ssePool.delete(this.connectionId);
             clearInterval(this.heartbeat!);
-            logger.error('error');
+            logger.error(`see connection ${this.connectionId} error`);
         });
         this.res.write(`retry: ${this.retryInterval}\n\n`);
     }
@@ -76,6 +76,8 @@ function buildStreamContext(req: Request, res: Response) {
  * @param {Object} event.data  时间数据 例如 {设备数据}
  */
 function send(event: ISendEvent) {
+    console.log(`send sse - data:${JSON.stringify(event)}`)
+    console.log(`sse connection size :${ssePool.size}`)
     //广播数据
     for (const entry of ssePool.entries()) {
         const sse = entry[1];
