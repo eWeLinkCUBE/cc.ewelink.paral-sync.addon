@@ -4,7 +4,8 @@ import logger from '../log';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import IResponse from '../lib/cube-api/ts/interface/IResponse';
 import CubeApi from '../lib/cube-api';
-import { ESseStatus, srcSsePool } from '../ts/class/srcSse';
+import { ESseStatus } from '../ts/class/srcSse';
+import { srcSsePool } from './tmp';
 
 /**
  * @description 将所有网关相关设备下线
