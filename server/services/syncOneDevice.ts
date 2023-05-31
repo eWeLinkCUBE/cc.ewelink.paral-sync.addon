@@ -23,6 +23,7 @@ import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import CONFIG from '../config';
 import { srcDeviceInDestGateway } from './getSourceGatewaySubDevices';
 import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
+import { updateSrcGatewayDeviceGroup } from '../utils/tmp';
 
 /**
  * 创建设备的 tags
@@ -176,6 +177,9 @@ export default async function syncOneDevice(req: Request, res: Response) {
                 logger.info(`(service.syncOneDevice) response: ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID`);
                 return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID));
             } else {
+                updateSrcGatewayDeviceGroup(srcGatewayMac, srcGatewayDeviceList);
+
+                // TODO: 将以下功能迁移到 SSE 中
                 // 同步成功后，需要设置设备的在线状态
                 cubeApiRes = await destGatewayClient.getDeviceList();
                 logger.info(`(service.syncOneDevice) destGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
