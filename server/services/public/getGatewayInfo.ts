@@ -92,6 +92,7 @@ export default async (ipAddress: string, type: EGatewayType) => {
  * @returns {*}  {IGatewayInfoItem}
  */
 function encryptToken(gatewayInfo: IGatewayInfoItem): IGatewayInfoItem {
-    gatewayInfo.token = encryption.encryptAES(config.auth.appSecret, gatewayInfo.token);
+    const { token } = gatewayInfo;
+    gatewayInfo.token = token ? encryption.encryptAES(config.auth.appSecret, token) : "";
     return gatewayInfo;
 }

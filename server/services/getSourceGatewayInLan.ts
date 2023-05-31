@@ -4,6 +4,8 @@ import logger from '../log';
 import _ from 'lodash';
 import db from '../utils/db';
 import mDns from '../utils/initMDns';
+import config from '../config';
+import encryption from '../utils/encryption';
 
 /** 获取局域网内的iHost及NsPanelPro设备(1300) */
 export default async function getSourceGatewayInLan(req: Request, res: Response) {
@@ -12,7 +14,10 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
 
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
 
-        const sourceGatewayList = srcGatewayInfoList.map((item) => _.omit(item, 'token'));
+        const sourceGatewayList = srcGatewayInfoList.map((item) => {
+            item.token = item.token ? encryption.encryptAES(config.auth.appSecret, item.token) : "";
+            return item;
+        });
 
         return res.json(toResponse(0, 'success', sourceGatewayList));
     } catch (error: any) {
