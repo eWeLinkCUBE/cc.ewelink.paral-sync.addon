@@ -61,6 +61,9 @@ export const ERR_GATEWAY_TOKEN_INVALID = 503;
 /** 数据库锁繁忙 */
 export const ERR_DB_LOCK_BUSY = 504;
 
+/** NSPro 需要登录 */
+export const ERR_NSPRO_NEED_LOGIN = 1400;
+
 /** 取消同步的设备不存在 */
 export const ERR_UNSYNC_DEVICE_NOT_FOUND = 1800;
 
