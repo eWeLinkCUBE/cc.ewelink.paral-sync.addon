@@ -42,17 +42,17 @@ class ServerSendStream {
         this.req.on('close', () => {
             ssePool.delete(this.connectionId);
             clearInterval(this.heartbeat!);
-            logger.error('close');
+            logger.error('sse connection close');
         });
         this.req.on('finish', () => {
             ssePool.delete(this.connectionId);
             clearInterval(this.heartbeat!);
-            logger.info('finish');
+            logger.info('sse connection finish');
         });
         this.req.on('error', () => {
             ssePool.delete(this.connectionId);
             clearInterval(this.heartbeat!);
-            logger.error('error');
+            logger.error('sse connection error');
         });
         this.res.write(`retry: ${this.retryInterval}\n\n`);
     }

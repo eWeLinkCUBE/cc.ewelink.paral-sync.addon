@@ -8,8 +8,10 @@ import { createDeviceServiceAddr, createDeviceTags } from '../services/syncOneDe
 import { IThirdpartyDevice } from '../lib/cube-api';
 import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 import sse from '../ts/class/sse';
-import srcSse, { ESseStatus, srcSsePool } from '../ts/class/srcSse';
+import srcSse, { ESseStatus } from '../ts/class/srcSse';
 import CubeApi from '../lib/cube-api';
+import { destSseEvent, getSrcGatewayDeviceGroup, srcSsePool } from './tmp';
+import destSse from '../ts/class/destSse';
 
 
 type IUpdateOneDevice = IUpdateDeviceSate | IUpdateInfoSate | IUpdateOnlineSate
@@ -309,6 +311,61 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
 }
 
 
+
+/**
+ * @description 同步已添加设备的在线状态
+ * @param {IAddDevicePayload} device
+ */
+async function syncOneDeviceToSrcForOnline(device: IAddDevicePayload) {
+    const { serial_number, tags } = device;
+    const nsProAddonData = _.get(tags, ["__nsproAddonData"])
+    if (!nsProAddonData) {
+        logger.info(`[dest sse sync new device online] device ${serial_number} not target device`);
+        return;
+    }
+    const { srcGatewayMac, deviceId } = nsProAddonData;
+    /** 同步目标网关的 MAC 地址 */
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
+    if (!destGatewayInfo) {
+        logger.info(`[dest sse sync new device online] target gateway missing`);
+        return;
+    }
+    if (!destGatewayInfo.ipValid) {
+        logger.info(`[dest sse sync new device online] target gateway ip invalid`);
+        return;
+    }
+    if (!destGatewayInfo.tokenValid) {
+        logger.info(`[dest sse sync new device online] target gateway token invalid`);
+        return;
+    }
+
+    /** 缓存的设备列表 */
+    const srcDeviceList = await getSrcGatewayDeviceGroup(srcGatewayMac);
+
+    if (srcDeviceList.error !== 0) {
+        logger.info(`[dest sse sync new device online] get target device list fail ${JSON.stringify(srcDeviceList)}`);
+        return;
+    }
+
+    const curSrcDevice = _.find(srcDeviceList.data, { serial_number: deviceId });
+    if (!curSrcDevice) {
+        logger.info(`[dest sse sync new device online] device ${deviceId} not found in ${JSON.stringify(srcDeviceList)}`);
+        return;
+    }
+
+    /** 同步目标网关的 eWeLink Cube API client */
+    const ApiClient = CubeApi.ihostApi;
+    const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
+
+    destGatewayApiClient.updateDeviceOnline({
+        serial_number,
+        third_serial_number: deviceId,
+        params: {
+            online: curSrcDevice.online
+        }
+    })
+}
+
 /**
  * @description 筛选有效网关
  * @param {IGatewayInfoItem[]} gateways
@@ -332,8 +389,10 @@ function whichGatewayValid(gateways: IGatewayInfoItem[]): IGatewayInfoItem[] {
  */
 async function checkForSse() {
     logger.info("[checkForSse] init all sse")
-    /** 所有目标网关的信息 */
+    /** 所有来源网关的信息 */
     const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
+    /** 所有目标网关的信息 */
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     /** 有效网关列表 */
     const validGatewayList = whichGatewayValid(srcGatewayInfoList);
     logger.info("[checkForSse] validGatewayList => ", JSON.stringify(validGatewayList))
@@ -348,14 +407,24 @@ async function checkForSse() {
             continue;
         }
 
-        // 有sse的判断状态，不正确则重连
-        if (sse.status === ESseStatus.RECONNECTING) {
-            sse.updateSseParams(gateway);
-            continue;
-        }
-
         srcSsePool.delete(gateway.mac);
         await srcSse.buildServerSendEvent(gateway);
+    }
+
+    if (!destGatewayInfo) {
+        logger.info("[checkForSse] destGatewayInfo doesn't exist", destGatewayInfo);
+        return;
+    }
+
+    if (!destGatewayInfo.tokenValid || !destGatewayInfo.ipValid) {
+        logger.info("[checkForSse] dest gateway token invalid or ip invalid", destGatewayInfo)
+        return;
+    }
+
+    // 目标SSE不存在或者状态不正确直接重新起新的SSE
+    if (!destSseEvent || destSseEvent.status === ESseStatus.CLOSED) {
+        await destSse.buildServerSendEvent(destGatewayInfo);
+        return;
     }
 }
 
@@ -366,5 +435,6 @@ export default {
     syncOneDevice,
     deleteOneDevice,
     updateOneDevice,
-    checkForSse
+    checkForSse,
+    syncOneDeviceToSrcForOnline
 }
