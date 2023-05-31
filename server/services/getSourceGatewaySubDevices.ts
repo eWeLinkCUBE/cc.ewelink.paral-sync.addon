@@ -3,14 +3,15 @@ import { Request, Response } from 'express';
 import {
     ERR_DEST_GATEWAY_IP_INVALID,
     ERR_DEST_GATEWAY_TOKEN_INVALID,
-    ERR_GATEWAY_IP_INVALID,
-    ERR_GATEWAY_TOKEN_INVALID,
-    ERR_NO_SUCH_GATEWAY,
     ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID,
     ERR_CUBEAPI_GET_DEVICE_TIMEOUT,
     ERR_SUCCESS,
     toResponse,
-    ERR_INTERNAL_ERROR
+    ERR_INTERNAL_ERROR,
+    ERR_NSPRO_NEED_LOGIN,
+    ERR_NO_SRC_GATEWAY_INFO,
+    ERR_SRC_GATEWAY_IP_INVALID,
+    ERR_SRC_GATEWAY_TOKEN_INVALID
 } from '../utils/error';
 import logger from '../log';
 import DB, { wait } from '../utils/db';
@@ -50,18 +51,18 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
         logger.info(`(service.getSourceGatewaySubDevices) localSrcGatewayInfo: ${JSON.stringify(localSrcGatewayInfo)}`);
 
         if (!localSrcGatewayInfo) {
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_NO_SUCH_GATEWAY`);
-            return res.json(toResponse(ERR_NO_SUCH_GATEWAY));
+            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
+            return res.json(toResponse(ERR_NO_SRC_GATEWAY_INFO));
         }
 
         if (!localSrcGatewayInfo.ipValid) {
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_GATEWAY_IP_INVALID`);
-            return res.json(toResponse(ERR_GATEWAY_IP_INVALID));
+            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_SRC_GATEWAY_IP_INVALID`);
+            return res.json(toResponse(ERR_SRC_GATEWAY_IP_INVALID));
         }
 
         if (!localSrcGatewayInfo.tokenValid) {
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_GATEWAY_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_GATEWAY_TOKEN_INVALID));
+            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_SRC_GATEWAY_TOKEN_INVALID`);
+            return res.json(toResponse(ERR_SRC_GATEWAY_TOKEN_INVALID));
         }
 
         /** 本地存储的同步目标网关信息 */
@@ -91,7 +92,7 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
             srcGatewayDeviceList = cubeApiRes.data.device_list;
         } else if (cubeApiRes.error === 400) {
             logger.warn(`(service.getSourceGatewaySubDevices) srcGatewayClient.getDeviceList() NSPro should LOGIN!!!`);
-            return res.json(toResponse(ERR_INTERNAL_ERROR));
+            return res.json(toResponse(ERR_NSPRO_NEED_LOGIN));
         } else if (cubeApiRes.error === 401) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
             await srcTokenAndIPInvalid('token', localSrcGatewayInfo.mac);
