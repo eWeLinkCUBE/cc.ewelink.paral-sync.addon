@@ -15,7 +15,7 @@ const sseStore = useSseStore();
 onMounted(() => {
     sseStore.startSse();
     //判断有没有token，跳转对应的页面
-    judgeToken();
+    // judgeToken();
 });
 const judgeToken = () =>{
     const hsaOneIHostToken = deviceStore.iHostList.some((item)=>(item.tokenValid&&item.ipValid));

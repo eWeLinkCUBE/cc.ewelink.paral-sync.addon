@@ -5,7 +5,6 @@ import _ from 'lodash';
 import type { IGateWayInfoData , IAddDeviceData, INsProDeviceData} from '@/api/ts/interface/IGateWay';
 import router from '@/router';
 import moment from 'moment';
-const BACK_SETTING_PAGE_ERROR:number[] = [600,601,701,702,703];
 
 interface IDeviceState {
     /** 用户所处的步骤 */
@@ -66,7 +65,6 @@ export const useDeviceStore = defineStore('addon_device', {
             });
 
             if(!mac){
-                this.step = stepsList.SECOND;
                 router.push('/setting');
                 return;
             };
@@ -81,11 +79,7 @@ export const useDeviceStore = defineStore('addon_device', {
                 this.deviceList = [];
             }
 
-            if (BACK_SETTING_PAGE_ERROR.includes(res.error)) {
-                //失效错误码，回到第一步；
-                this.step = stepsList.FIRST;
-                router.push('/setting');
-            }
+
         },
 
         /** 设置loading转圈 */
@@ -190,7 +184,7 @@ export const useDeviceStore = defineStore('addon_device', {
         },
         /** nsPro网关存在至少一个失效的token */
         hasOneInvalidNsProToken(state){
-            return state.nsProList.some((item)=>!item.tokenValid);
+            return state.nsProList.some((item)=>(!item.tokenValid && item.token));
         },
     },
     persist: true,

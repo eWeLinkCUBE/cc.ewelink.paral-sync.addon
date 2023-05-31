@@ -105,8 +105,13 @@ const isRefresh = ref(false);
 const hasIHostToken = computed(() => deviceStore.effectIHostIp && deviceStore.effectIHostToken);
 /** 是否获取到一个nsPro的ip有效token */
 const hasNsProToken = computed(() => deviceStore.nsProList.some((item) => item.tokenValid && item.ipValid));
-/** iHost的ip不能访问或者token无效 */
-const iHostIpOrTokenInvalid = computed(() => !deviceStore.effectIHostIp || !deviceStore.effectIHostToken);
+/** iHost的ip不能访问或者token失效 */
+const iHostIpOrTokenInvalid = computed(() =>{
+    //曾经获取过token，token才会有值
+    const onceObtainedToken = deviceStore.iHostList.some((item)=>item.token);
+    //ip无效 或者 onceObtainedToken+token无效
+    return !deviceStore.effectIHostIp || (!deviceStore.effectIHostToken && onceObtainedToken);
+});
 /**nsPro中ip不能访问的网关*/
 const nsProIpInvalidNameStr = ref('');
 /** nsPro中token无效的网关 */
