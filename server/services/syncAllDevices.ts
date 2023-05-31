@@ -100,7 +100,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
                     });
                 }
             } else if (cubeApiRes.error === 400) {
-                // TODO: NSPro need login (NSPro should restart)
+                logger.warn(`(service.syncAllDevice) srcGatewayClient.getDeviceList() NSPro should LOGIN!!!`);
             } else if (cubeApiRes.error === 401) {
                 await srcTokenAndIPInvalid('token', gateway.mac);
             } else if (cubeApiRes.error === 1000) {

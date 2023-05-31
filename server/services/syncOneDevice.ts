@@ -100,6 +100,9 @@ export default async function syncOneDevice(req: Request, res: Response) {
         logger.info(`(service.syncOneDevice) srcGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
         if (cubeApiRes.error === 0) {
             srcGatewayDeviceList = cubeApiRes.data.device_list;
+        } else if (cubeApiRes.error === 400) {
+            logger.warn(`(service.syncOneDevice) srcGatewayClient.getDeviceList() NSPro should LOGIN!!!`);
+            return res.json(toResponse(ERR_INTERNAL_ERROR));
         } else if (cubeApiRes.error === 401) {
             await srcTokenAndIPInvalid('token', srcGatewayInfo.mac);
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
