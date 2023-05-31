@@ -41,13 +41,17 @@ mDns.on('response', (response: any) => {
     if (!gatewayInfo.ip || !gatewayInfo.name || !gatewayInfo.deviceId) {
         return;
     }
+    // logger.info('mDns response-------------', responseDataList);
     const mDnsGatewayList = mDnsGatewayMapUtil.getMDnsGatewayList();
     const isExistInMDns = mDnsGatewayList.some((item) => item.deviceId === gatewayInfo.deviceId && item.ip === gatewayInfo.ip);
+
     if (isExistInMDns) {
+        mDnsGatewayMapUtil.updateMDnsGateway(gatewayInfo);
+        logger.info('updateMDnsGateway----------------------', gatewayInfo);
         return;
     }
 
-    mDnsGatewayMapUtil.setMDnsGateway(gatewayInfo);
+    mDnsGatewayMapUtil.setNewMDnsGateway(gatewayInfo);
 
     logger.info('lan nsPro gatewayInfo --------------------------------------------------------', gatewayInfo);
 });

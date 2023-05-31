@@ -9,7 +9,7 @@ import encryption from '../../utils/encryption';
 import config from '../../config';
 
 /** 接口获取网关信息并存储到数据库中 */
-export default async (ipAddress: string, type: EGatewayType) => {
+export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
     try {
         let ip = ipAddress;
         if (type === EGatewayType.NS_PANEL_PRO) {
@@ -46,6 +46,8 @@ export default async (ipAddress: string, type: EGatewayType) => {
             ipValid: true,
             /** 凭证是否有效 */
             tokenValid: false,
+            /** 网关设备id */
+            deviceId,
         };
 
         if (type === EGatewayType.IHOST) {
@@ -58,7 +60,7 @@ export default async (ipAddress: string, type: EGatewayType) => {
             const newDestGatewayInfo = _.merge(destGatewayInfo, { mac, ip, domain, ipValid: true });
 
             await db.setDbValue('destGatewayInfo', newDestGatewayInfo);
-            return encryptToken(newDestGatewayInfo);
+            return encryptToken(_.merge(newDestGatewayInfo, { ip: gatewayRes.data.ip }));
         }
 
         if (type === EGatewayType.NS_PANEL_PRO) {
@@ -92,7 +94,8 @@ export default async (ipAddress: string, type: EGatewayType) => {
  * @returns {*}  {IGatewayInfoItem}
  */
 function encryptToken(gatewayInfo: IGatewayInfoItem): IGatewayInfoItem {
+    gatewayInfo = _.omit(gatewayInfo, 'deviceId');
     const { token } = gatewayInfo;
-    gatewayInfo.token = token ? encryption.encryptAES(config.auth.appSecret, token) : "";
+    gatewayInfo.token = token ? encryption.encryptAES(config.auth.appSecret, token) : '';
     return gatewayInfo;
 }

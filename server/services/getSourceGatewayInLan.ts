@@ -6,16 +6,22 @@ import db from '../utils/db';
 import mDns from '../utils/initMDns';
 import config from '../config';
 import encryption from '../utils/encryption';
+import EErrorCode from '../ts/enum/EErrorCode';
 
 /** 获取局域网内的iHost及NsPanelPro设备(1300) */
 export default async function getSourceGatewayInLan(req: Request, res: Response) {
     try {
         queryMDns();
 
+        const destGatewayInfo = await db.getDbValue('destGatewayInfo');
+        if (!destGatewayInfo) {
+            //  return res.json(toResponse(EErrorCode.));
+        }
+
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
 
         const sourceGatewayList = srcGatewayInfoList.map((item) => {
-            item.token = item.token ? encryption.encryptAES(config.auth.appSecret, item.token) : "";
+            item.token = item.token ? encryption.encryptAES(config.auth.appSecret, item.token) : '';
             return item;
         });
 

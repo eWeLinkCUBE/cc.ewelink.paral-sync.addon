@@ -150,7 +150,6 @@ export async function initDb(filename: string, isDbFileExist: boolean) {
     }
 }
 
-
 type DbKey = keyof IDbData;
 
 /**
@@ -173,6 +172,8 @@ export interface IGatewayInfoItem {
     ipValid: boolean;
     /** 凭证是否有效 */
     tokenValid: boolean;
+    /** 网关设备id */
+    deviceId?: string;
 }
 
 /**
@@ -189,7 +190,6 @@ export interface IDeviceItem {
     isSynced: boolean;
 }
 
-
 interface IDbData {
     /** 是否自动 */
     autoSync: boolean;
@@ -202,7 +202,7 @@ interface IDbData {
 export const dbDataTmp: IDbData = {
     autoSync: true,
     destGatewayInfo: null,
-    srcGatewayInfoList: []
+    srcGatewayInfoList: [],
 };
 
 /** 获取所有数据 */

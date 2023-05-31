@@ -4,17 +4,23 @@ import EGatewayType from '../ts/enum/EGatewayType';
 import sse from '../ts/class/sse';
 import tools from './tools';
 import logger from '../log';
+import db from './db';
 
 /** 获取已搜索到的局域网设备 */
 function getMDnsGatewayList() {
     const arr = Array.from(mDnsGatewayClass.mDnsGatewayMap.values());
     return arr;
 }
+interface IGatewayInfo {
+    ip: string;
+    name: string;
+    deviceId: string;
+}
 
 /** 局域网设备加入 */
-async function setMDnsGateway(gatewayInfo: { ip: string; name: string; deviceId: string }) {
+async function setNewMDnsGateway(gatewayInfo: IGatewayInfo) {
     mDnsGatewayClass.mDnsGatewayMap.set(gatewayInfo.deviceId, gatewayInfo);
-    let nsProGatewayInfo = await getGatewayInfo(gatewayInfo.ip, EGatewayType.NS_PANEL_PRO);
+    let nsProGatewayInfo = await getGatewayInfo(gatewayInfo.ip, EGatewayType.NS_PANEL_PRO, gatewayInfo.deviceId);
 
     //防止nsPro设备刚启动时，mDns扫描到了，服务还没起来的情况
     if (!nsProGatewayInfo) {
@@ -35,7 +41,23 @@ async function setMDnsGateway(gatewayInfo: { ip: string; name: string; deviceId:
     });
 }
 
+/** 更新已存在的网关信息，ip */
+async function updateMDnsGateway(gatewayInfo: IGatewayInfo) {
+    mDnsGatewayClass.mDnsGatewayMap.set(gatewayInfo.deviceId, gatewayInfo);
+    let srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
+    srcGatewayInfoList = srcGatewayInfoList.map((item) => {
+        if (item.deviceId === gatewayInfo.deviceId) {
+            item.ip = gatewayInfo.ip;
+            item.ipValid = true;
+        }
+        return item;
+    });
+    logger.info('update---------------------mdns-------------db', srcGatewayInfoList);
+    await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
+}
+
 export default {
     getMDnsGatewayList,
-    setMDnsGateway,
+    setNewMDnsGateway,
+    updateMDnsGateway,
 };
