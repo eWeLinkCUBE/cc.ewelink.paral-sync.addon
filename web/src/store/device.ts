@@ -119,6 +119,7 @@ export const useDeviceStore = defineStore('addon_device', {
             this.nsProList = this.nsProList.map((element)=>{
                 return element.mac === item.mac ? item :element;
             });
+            console.log('失败时的时间差------------>',moment(moment()).diff(moment(Number(item.ts)), 'seconds'));
         },
 
         /** nsPanePro网关信息推送（区分新增还是修改）*/
@@ -169,7 +170,9 @@ export const useDeviceStore = defineStore('addon_device', {
                 }
                 if (item.ts && item.ipValid) {
                     const timeGap = moment(moment()).diff(moment(Number(item.ts)), 'seconds');
-                    if (timeGap <= 300 && timeGap >= 0) {
+                    console.log('timeGap------->',timeGap);
+                    if (timeGap < 300) {
+                        console.log('hasTokenOrTs  true')
                         return true;
                     }
                 }

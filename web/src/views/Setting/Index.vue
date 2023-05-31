@@ -62,9 +62,9 @@
         <a-spin class="spin"></a-spin>
     </div>
 
-    <LinkIpModal :findIpVisible="findIpVisible" @closeLinkIpModal="closeLinkIpModal"/>
+    <LinkIpModal :findIpVisible="findIpVisible" @closeLinkIpModal="closeLinkIpModal" v-if="findIpVisible"/>
 
-    <GetNsProTokenModal :nsProTipModalVisible="nsProTipModalVisible" @closeNsProTipModal="closeNsProTipModal"/>
+    <GetNsProTokenModal :nsProTipModalVisible="nsProTipModalVisible" @closeNsProTipModal="closeNsProTipModal" v-if="nsProTipModalVisible"/>
 </template>
 
 <script setup lang="ts">

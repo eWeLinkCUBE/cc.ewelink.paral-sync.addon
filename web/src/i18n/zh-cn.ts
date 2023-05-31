@@ -44,6 +44,8 @@ const cn = {
     GET_DEVICE_FAIL:'设备获取失败，请检查：（缺）',
     NS_PRO_RUN_NORMAL:'NSPanel Pro是否正常运行（缺）',
     NS_PRO_LOGIN:' 是否已在 NSPanel Pro 中登录易微联账号（缺）',
+    PLEASE_INPUT_IP:'请输入ip',
+    PLEASE_INPUT_RIGHT_IP:'请输入一个正确的ip',
 };
 
 export default cn;

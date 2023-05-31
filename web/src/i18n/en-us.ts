@@ -44,6 +44,8 @@ const en = {
     GET_DEVICE_FAIL:'设备获取失败，请检查：',
     NS_PRO_RUN_NORMAL:'NSPanel Pro是否正常运行',
     NS_PRO_LOGIN:' 是否已在 NSPanel Pro 中登录易微联账号',
+    PLEASE_INPUT_IP:'Please enter ip',
+    PLEASE_INPUT_RIGHT_IP:'Please enter a correct ip',
 }
 
 export default en;
