@@ -5,6 +5,7 @@ import _ from 'lodash';
 import type { IGateWayInfoData , IAddDeviceData, INsProDeviceData} from '@/api/ts/interface/IGateWay';
 import router from '@/router';
 import moment from 'moment';
+import { message } from 'ant-design-vue';
 
 interface IDeviceState {
     /** 用户所处的步骤 */
@@ -15,6 +16,8 @@ interface IDeviceState {
     nsProList:IGateWayInfoData[],
     /** 网关下所有的子设备 */
     deviceList: INsProDeviceData[],
+    /** nsPro是否登录 */
+    nsProLogin:boolean,
 }
 
 export const useDeviceStore = defineStore('addon_device', {
@@ -24,6 +27,7 @@ export const useDeviceStore = defineStore('addon_device', {
             iHostList:[],
             nsProList:[],
             deviceList:[],
+            nsProLogin:false,
         };
     },
     actions: {
@@ -71,15 +75,18 @@ export const useDeviceStore = defineStore('addon_device', {
 
             const res = await api.NSPanelPro.getDeviceList(mac);
             if (res.error === 0 && res.data) {
+                this.nsProLogin = true;
                 this.deviceList = res.data;
                 this.deviceList.map((device) => {
                     return device.spinLoading=false;
                 });
             }else{
                 this.deviceList = [];
+                if(res.error === 1400){
+                    this.nsProLogin = false;
+                }
             }
-
-
+            return res;
         },
 
         /** 设置loading转圈 */

@@ -15,13 +15,25 @@
                     <img class="loading-icon" src="@/assets/img/loading.jpg" alt="" v-if="item.spinLoading" />
                 </div>
             </div>
+            <!-- length为0 -->
             <div v-else class="empty">
+                <!-- loading状态 -->
                 <div class="loading" v-if="loading">
                     <a-spin></a-spin>
                 </div>
+                <!-- 没登陆或者空状态 -->
                 <div v-else>
-                    <img src="@/assets/img/empty.png" />
-                    <div>{{ i18n.global.t('NO_DATA') }}</div>
+                    <img :src="nsProLogin ? Empty : NoLogin" alt="" :class="nsProLogin ? 'no-data':'nsPro-no-login' "/>
+                    <p v-if="nsProLogin">
+                        {{ i18n.global.t('NO_DATA') }}
+                    </p>
+                    <div v-else class="nsPro_no_login">
+                        <p  style="margin-top:16px">{{ i18n.global.t('GET_DEVICE_FAIL') }}</p>
+                        <ul>
+                            <li>{{ i18n.global.t('NS_PRO_RUN_NORMAL') }}</li>
+                            <li>{{ i18n.global.t('NS_PRO_LOGIN') }}</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -36,10 +48,13 @@ import { message } from 'ant-design-vue';
 import i18n from '@/i18n/index';
 import router from '@/router';
 import api from '@/api';
+import Empty from '@/assets/img/empty.png';
+import NoLogin from '@/assets/img/no-login.png';
 
 const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
 const loading = ref(false);
+const nsProLogin = computed(() => deviceStore.nsProLogin);
 
 onMounted(async () => {
     loading.value = true;
@@ -74,7 +89,7 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
 <style scoped lang="scss">
 .device {
     height: calc(100vh - 95px);
-    min-width:800px;
+    min-width: 800px;
     .table-header {
         display: flex;
         align-items: center;
@@ -132,7 +147,7 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
                     animation: rotate 2s linear infinite;
                 }
             }
-            .common{
+            .common {
                 overflow: hidden;
                 white-space: nowrap;
                 text-overflow: ellipsis;
@@ -148,15 +163,38 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
             top: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            img {
+            .no-data {
                 width: 365px;
                 height: 279px;
-                margin-bottom: 44px;
             }
-            div {
+            .nsPro-no-login{
+                width: 225px;
+                height: 172px;
+            }
+
+            p {
                 font-size: 20px;
                 font-weight: 500;
                 color: rgba(66, 66, 66, 0.5);
+                margin-top: 44px;
+            }
+            .nsPro_no_login {
+                width: 340px;
+                margin-top: 16px;
+                p {
+                    margin-bottom: 8px;
+                    font-size: 18px;
+                    font-weight: 500;
+                    color: #424242;
+                }
+                ul {
+                    li {
+                        text-align: left;
+                        font-size: 16px;
+                        font-weight: 500;
+                        color: #424242;
+                    }
+                }
             }
         }
     }
