@@ -7,7 +7,7 @@ import type { IAddDevicePayload, IDeviceInfoUpdatePayload, IDeviceOnOrOfflinePay
 import { createDeviceServiceAddr, createDeviceTags } from '../services/syncOneDevice';
 import { IThirdpartyDevice } from '../lib/cube-api';
 import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
-import destSse from '../ts/class/destSse';
+import sse from '../ts/class/sse';
 import srcSse, { ESseStatus, srcSsePool } from '../ts/class/srcSse';
 import CubeApi from '../lib/cube-api';
 
@@ -99,7 +99,7 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     } else if (resType === 'INVALID_PARAMETERS') {
         logger.info(`[sse sync new device]  sync device params invalid`);
     } else {
-        destSse.send({
+        sse.send({
             name: "device_added_report",
             data: {
                 id: serial_number,
@@ -149,7 +149,7 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         const syncedDevice = cubeApiRes.data.device_list.find((device: IThirdpartyDevice) => device.third_serial_number === serial_number);
         logger.info(`[sse delete device] cubeApiRes.data.device_list`, cubeApiRes.data.device_list)
         // send delete sse
-        destSse.send({
+        sse.send({
             name: "device_deleted_report",
             data: {
                 deviceId: serial_number,
@@ -227,7 +227,7 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
             logger.info(`[sse update device info] updateDeviceState res: ${JSON.stringify(cubeApiRes)}`);
             if (cubeApiRes.error === 0) {
                 const { name } = payload as IDeviceInfoUpdatePayload;
-                destSse.send({
+                sse.send({
                     name: "device_info_change_report",
                     data: {
                         id: serial_number,

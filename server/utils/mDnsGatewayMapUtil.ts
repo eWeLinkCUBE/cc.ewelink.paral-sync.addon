@@ -1,7 +1,7 @@
 import getGatewayInfo from '../services/public/getGatewayInfo';
 import mDnsGatewayClass from '../ts/class/mDnsGatewayClass';
 import EGatewayType from '../ts/enum/EGatewayType';
-import destSse from '../ts/class/destSse';
+import sse from '../ts/class/sse';
 import tools from './tools';
 import logger from '../log';
 
@@ -29,7 +29,7 @@ async function setMDnsGateway(gatewayInfo: { ip: string; name: string; deviceId:
         return;
     }
 
-    destSse.send({
+    sse.send({
         name: 'gateway_info_report',
         data: nsProGatewayInfo,
     });

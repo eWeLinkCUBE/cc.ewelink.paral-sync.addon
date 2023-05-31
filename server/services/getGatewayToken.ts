@@ -14,7 +14,7 @@ import logger from '../log';
 import DB, { acquireLock, releaseLock } from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import CONFIG from '../config';
-import SSE from '../ts/class/destSse';
+import SSE from '../ts/class/sse';
 import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 import sseUtils from '../utils/sseUtils';
 
