@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
-import { toResponse } from '../utils/error';
+import { toResponse, ERR_NO_DEST_GATEWAY_INFO } from '../utils/error';
 import logger from '../log';
 import _ from 'lodash';
 import db from '../utils/db';
 import mDns from '../utils/initMDns';
 import config from '../config';
 import encryption from '../utils/encryption';
-import EErrorCode from '../ts/enum/EErrorCode';
 
 /** 获取局域网内的iHost及NsPanelPro设备(1300) */
 export default async function getSourceGatewayInLan(req: Request, res: Response) {
@@ -15,7 +14,7 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
 
         const destGatewayInfo = await db.getDbValue('destGatewayInfo');
         if (!destGatewayInfo) {
-            //  return res.json(toResponse(EErrorCode.));
+            return res.json(toResponse(ERR_NO_DEST_GATEWAY_INFO));
         }
 
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');

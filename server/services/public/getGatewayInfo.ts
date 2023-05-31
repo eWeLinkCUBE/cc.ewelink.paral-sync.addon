@@ -1,12 +1,12 @@
 import _ from 'lodash';
 import logger from '../../log';
-import EErrorCode from '../../ts/enum/EErrorCode';
 import EGatewayType from '../../ts/enum/EGatewayType';
 import db from '../../utils/db';
 import CubeApi from '../../lib/cube-api';
 import { IGatewayInfoItem } from '../../utils/db';
 import encryption from '../../utils/encryption';
 import config from '../../config';
+import { ERR_IP_CAN_NOT_CONNECT } from '../../utils/error';
 
 /** 接口获取网关信息并存储到数据库中 */
 export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
@@ -24,7 +24,7 @@ export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
         logger.info('gatewayRes----------------', gatewayRes);
 
         if (gatewayRes.error !== 0 || !gatewayRes.data) {
-            return EErrorCode.IP_CAN_NOT_CONNECT;
+            return ERR_IP_CAN_NOT_CONNECT;
         }
 
         const { mac, domain } = gatewayRes.data;

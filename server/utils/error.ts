@@ -5,8 +5,8 @@ export function toResponse(error: number, msg?: string, data?: any) {
 
     const res = {
         error,
-        msg: msg || errorMsg || "Internal Error",
-    }
+        msg: msg || errorMsg || 'Internal Error',
+    };
 
     return data ? Object.assign(res, { data }) : res;
 }
@@ -16,6 +16,8 @@ export function toResponse(error: number, msg?: string, data?: any) {
 export const ERR_SUCCESS = 0;
 /** 内部错误 */
 export const ERR_INTERNAL_ERROR = 500;
+/** ip无法连接 */
+export const ERR_IP_CAN_NOT_CONNECT = 1101;
 
 /** 无同步目标网关的信息 */
 export const ERR_NO_DEST_GATEWAY_INFO = 701;
@@ -69,7 +71,6 @@ export const ERR_UNSYNC_DEVICE_NOT_FOUND = 1800;
 
 /** 删除的网关不存在 */
 export const ERR_DELETE_GATEWAY_NOT_FOUND = 2000;
-
 
 // 错误映射
 const ERROR_MAPPING: any = {};
