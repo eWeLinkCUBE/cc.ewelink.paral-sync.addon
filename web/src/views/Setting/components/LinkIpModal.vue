@@ -39,11 +39,11 @@ const ipFail = ref(false);
 /**通过ip获取nsPanePro网关信息 */
 const linkNsProGateWay = async () => {
     if (!ipVal.value || !ipVal.value.trim()) {
-        message.warning('ip cant empty');
+        message.warning(i18n.global.t('PLEASE_INPUT_IP'));
         return;
     }
     if (!checkIpValid(ipVal.value)) {
-        return message.warning('please input right ip address');
+        return message.warning(i18n.global.t('PLEASE_INPUT_RIGHT_IP'));
     }
     ipFail.value = false;
     findIpLoading.value = true;

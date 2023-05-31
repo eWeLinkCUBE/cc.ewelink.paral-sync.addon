@@ -68,7 +68,8 @@ const btnLoadingStatus = computed<boolean>(() => {
         //有ts,再判断距离当前时间是否小于五分钟
         const nowTime = moment();
         const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
-        if (seconds > 300) {
+        console.log('状态处的second------>',seconds);
+        if (seconds >= 300) {
             return false;
         } else {
             setCutDownTimer(requestTime);

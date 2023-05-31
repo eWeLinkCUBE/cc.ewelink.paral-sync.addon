@@ -62,9 +62,9 @@
         <a-spin class="spin"></a-spin>
     </div>
 
-    <LinkIpModal :findIpVisible="findIpVisible" @closeLinkIpModal="closeLinkIpModal"/>
+    <LinkIpModal :findIpVisible="findIpVisible" @closeLinkIpModal="closeLinkIpModal" v-if="findIpVisible"/>
 
-    <GetNsProTokenModal :nsProTipModalVisible="nsProTipModalVisible" @closeNsProTipModal="closeNsProTipModal"/>
+    <GetNsProTokenModal :nsProTipModalVisible="nsProTipModalVisible" @closeNsProTipModal="closeNsProTipModal" v-if="nsProTipModalVisible"/>
 </template>
 
 <script setup lang="ts">
@@ -152,7 +152,6 @@ watch(
 
 /** 判断获取iHost列表还是nsPro的列表 */
 onMounted(async () => {
-    console.log('mounted------------->',steps.value);
     if (steps.value === stepsList.FIRST) {
         const response = await deviceStore.getIHostGateWatList();
         //不在iHost上启动
@@ -232,6 +231,7 @@ const goDeviceListPage = () => {
     .card-list {
         display: flex;
         flex-wrap: wrap;
+        justify-content: center;
         gap: 24px;
         margin-top: 40px;
         padding: 0 80px;
