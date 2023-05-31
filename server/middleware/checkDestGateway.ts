@@ -1,10 +1,7 @@
 import _ from 'lodash';
 import { Request, Response, NextFunction } from 'express';
 import DB from '../utils/db';
-import {
-    ERR_NO_DEST_GATEWAY_INFO,
-    toResponse
-} from '../utils/error';
+import { toResponse } from '../utils/error';
 import logger from '../log';
 
 /**
@@ -35,7 +32,7 @@ export async function checkDestGateway(req: Request, res: Response, next: NextFu
         const localDestGatewayInfo = await DB.getDbValue('destGatewayInfo');
         if (!localDestGatewayInfo) {
             logger.info(`(middle.checkDestGateway) response: ERR_NO_DEST_GATEWAY_INFO`);
-            return res.json(toResponse(ERR_NO_DEST_GATEWAY_INFO));
+            return res.json(toResponse(701));
         }
     }
 

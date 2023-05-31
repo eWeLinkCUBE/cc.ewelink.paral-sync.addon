@@ -1,17 +1,6 @@
 import _ from 'lodash';
 import { Request, Response } from 'express';
-import {
-    ERR_CUBEAPI_GET_DEVICE_TIMEOUT,
-    ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID,
-    ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID,
-    ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT,
-    ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID,
-    ERR_DEST_GATEWAY_IP_INVALID,
-    ERR_DEST_GATEWAY_TOKEN_INVALID,
-    ERR_INTERNAL_ERROR,
-    ERR_SUCCESS,
-    toResponse
-} from '../utils/error';
+import { toResponse } from '../utils/error';
 import logger from '../log';
 import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
@@ -32,11 +21,11 @@ export default async function syncAllDevices(req: Request, res: Response) {
         logger.info(`(service.syncAllDevices) destGatewayInfo: ${JSON.stringify(destGatewayInfo)}`);
         if (!destGatewayInfo?.ipValid) {
             logger.info(`(service.syncAllDevice) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_IP_INVALID));
+            return res.json(toResponse(702));
         }
         if (!destGatewayInfo?.tokenValid) {
             logger.info(`(service.syncAllDevice) RESPONSE: ERR_DEST_GATEWAY_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_TOKEN_INVALID));
+            return res.json(toResponse(703));
         }
 
         /** 同步来源网关的信息列表 */
@@ -62,13 +51,13 @@ export default async function syncAllDevices(req: Request, res: Response) {
         } else if (cubeApiRes.error === 401) {
             await destTokenInvalid();
             logger.info(`(service.syncAllDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
+            return res.json(toResponse(600));
         } else if (cubeApiRes.error === 1000) {
             logger.info(`(service.syncAllDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+            return res.json(toResponse(601));
         } else {
             logger.info(`(service.syncAllDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-            return res.json(toResponse(ERR_INTERNAL_ERROR));
+            return res.json(toResponse(500));
         }
 
         // 拉取所有有效的同步来源设备并汇总
@@ -120,14 +109,14 @@ export default async function syncAllDevices(req: Request, res: Response) {
         const resType = _.get(res, 'payload.type');
         if (resError === 1000) {
             logger.info(`(service.syncAllDevice) response: ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT`);
-            return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT));
+            return res.json(toResponse(603));
         } else if (resType === 'AUTH_FAILURE') {
             await destTokenInvalid();
             logger.info(`(service.syncAllDevice) response: ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID));
+            return res.json(toResponse(605));
         } else if (resType === 'INVALID_PARAMETERS') {
             logger.info(`(service.syncAllDevice) response: ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID`);
-            return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID));
+            return res.json(toResponse(604));
         } else {
             // TODO: 将以下功能迁移到 SSE 中
             // 同步成功后，需要设置设备的在线状态
@@ -138,13 +127,13 @@ export default async function syncAllDevices(req: Request, res: Response) {
             } else if (cubeApiRes.error === 401) {
                 await destTokenInvalid();
                 logger.info(`(service.syncAllDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-                return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
+                return res.json(toResponse(600));
             } else if (cubeApiRes.error === 1000) {
                 logger.info(`(service.syncAllDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-                return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+                return res.json(toResponse(601));
             } else {
                 logger.info(`(service.syncAllDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-                return res.json(toResponse(ERR_INTERNAL_ERROR));
+                return res.json(toResponse(500));
             }
             for (const srcDeviceGroupItem of srcDeviceGroup) {
                 // 遍历每一组
@@ -172,7 +161,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
                 }
             }
 
-            return res.json(toResponse(ERR_SUCCESS, 'Success', { syncDeviceIdList: syncDevices.map((item) => item.third_serial_number) }));
+            return res.json(toResponse(0, 'Success', { syncDeviceIdList: syncDevices.map((item) => item.third_serial_number) }));
         }
 
     } catch (error: any) {

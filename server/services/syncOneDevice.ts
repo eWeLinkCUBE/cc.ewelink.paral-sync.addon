@@ -1,21 +1,6 @@
 import _ from 'lodash';
 import { Request, Response } from 'express';
-import {
-    toResponse,
-    ERR_INTERNAL_ERROR,
-    ERR_DEST_GATEWAY_IP_INVALID,
-    ERR_DEST_GATEWAY_TOKEN_INVALID,
-    ERR_NO_SRC_GATEWAY_INFO,
-    ERR_SRC_GATEWAY_TOKEN_INVALID,
-    ERR_SRC_GATEWAY_IP_INVALID,
-    ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID,
-    ERR_CUBEAPI_GET_DEVICE_TIMEOUT,
-    ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY,
-    ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT,
-    ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID,
-    ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID,
-    ERR_SUCCESS,
-} from '../utils/error';
+import { toResponse } from '../utils/error';
 import logger from '../log';
 import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
@@ -66,11 +51,11 @@ export default async function syncOneDevice(req: Request, res: Response) {
         const destGatewayInfo = await DB.getDbValue('destGatewayInfo');
         if (!destGatewayInfo?.ipValid) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_IP_INVALID));
+            return res.json(toResponse(702));
         }
         if (!destGatewayInfo?.tokenValid) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_DEST_GATEWAY_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_TOKEN_INVALID));
+            return res.json(toResponse(703));
         }
 
         /** 同步来源网关的信息列表 */
@@ -78,15 +63,15 @@ export default async function syncOneDevice(req: Request, res: Response) {
         const srcGatewayInfo = _.find(srcGatewayInfoList, { mac: srcGatewayMac });
         if (!srcGatewayInfo) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
-            return res.json(toResponse(ERR_NO_SRC_GATEWAY_INFO));
+            return res.json(toResponse(1500));
         }
         if (!srcGatewayInfo.ipValid) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_SRC_GATEWAY_IP_INVALID`);
-            return res.json(toResponse(ERR_SRC_GATEWAY_IP_INVALID));
+            return res.json(toResponse(1501));
         }
         if (!srcGatewayInfo.tokenValid) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_SRC_GATEWAY_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_SRC_GATEWAY_TOKEN_INVALID));
+            return res.json(toResponse(1502));
         }
 
         const ApiClient = CubeApi.ihostApi;
@@ -103,18 +88,18 @@ export default async function syncOneDevice(req: Request, res: Response) {
             srcGatewayDeviceList = cubeApiRes.data.device_list;
         } else if (cubeApiRes.error === 400) {
             logger.warn(`(service.syncOneDevice) srcGatewayClient.getDeviceList() NSPro should LOGIN!!!`);
-            return res.json(toResponse(ERR_INTERNAL_ERROR));
+            return res.json(toResponse(500));
         } else if (cubeApiRes.error === 401) {
             await srcTokenAndIPInvalid('token', srcGatewayInfo.mac);
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
+            return res.json(toResponse(600));
         } else if (cubeApiRes.error === 1000) {
             await srcTokenAndIPInvalid('ip', srcGatewayInfo.mac);
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+            return res.json(toResponse(601));
         } else {
             logger.warn(`(service.syncOneDevice) srcGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-            return res.json(toResponse(ERR_INTERNAL_ERROR));
+            return res.json(toResponse(500));
         }
 
         // 获取同步目标网关的设备列表
@@ -124,14 +109,14 @@ export default async function syncOneDevice(req: Request, res: Response) {
             destGatewayDeviceList = cubeApiRes.data.device_list;
         } else if (cubeApiRes.error === 401) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
+            return res.json(toResponse(600));
         } else if (cubeApiRes.error === 1000) {
             await destTokenInvalid();
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+            return res.json(toResponse(601));
         } else {
             logger.warn(`(service.syncOneDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-            return res.json(toResponse(ERR_INTERNAL_ERROR));
+            return res.json(toResponse(500));
         }
 
         /** 将要被同步的设备数据 */
@@ -139,12 +124,12 @@ export default async function syncOneDevice(req: Request, res: Response) {
         logger.info(`(service.syncOneDevice) srcDeviceData: ${JSON.stringify(srcDeviceData)}`);
         if (!srcDeviceData) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY`);
-            return res.json(toResponse(ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY));
+            return res.json(toResponse(1503));
         }
 
         if (srcDeviceInDestGateway(srcDeviceData.serial_number, destGatewayDeviceList)) {
             // 当前设备已经被同步过了
-            return res.json(toResponse(ERR_SUCCESS));
+            return res.json(toResponse(0));
         } else {
             // 调用添加第三方设备的接口
             const syncDevices = [
@@ -168,14 +153,14 @@ export default async function syncOneDevice(req: Request, res: Response) {
             const resType = _.get(res, 'payload.type');
             if (resError === 1000) {
                 logger.info(`(service.syncOneDevice) response: ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT`);
-                return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT));
+                return res.json(toResponse(603));
             } else if (resType === 'AUTH_FAILURE') {
                 await destTokenInvalid();
                 logger.info(`(service.syncOneDevice) response: ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID`);
-                return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID));
+                return res.json(toResponse(605));
             } else if (resType === 'INVALID_PARAMETERS') {
                 logger.info(`(service.syncOneDevice) response: ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID`);
-                return res.json(toResponse(ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID));
+                return res.json(toResponse(604));
             } else {
                 updateSrcGatewayDeviceGroup(srcGatewayMac, srcGatewayDeviceList);
 
@@ -187,14 +172,14 @@ export default async function syncOneDevice(req: Request, res: Response) {
                     destGatewayDeviceList = cubeApiRes.data.device_list;
                 } else if (cubeApiRes.error === 401) {
                     logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-                    return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
+                    return res.json(toResponse(600));
                 } else if (cubeApiRes.error === 1000) {
                     await destTokenInvalid();
                     logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-                    return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+                    return res.json(toResponse(601));
                 } else {
                     logger.warn(`(service.syncOneDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-                    return res.json(toResponse(ERR_INTERNAL_ERROR));
+                    return res.json(toResponse(500));
                 }
                 for (const destDevice of destGatewayDeviceList) {
                     const sDevId = _.get(destDevice, 'tags.__nsproAddonData.deviceId');
@@ -215,11 +200,11 @@ export default async function syncOneDevice(req: Request, res: Response) {
                 }
 
                 logger.info(`(service.syncOneDevice) RESPONSE: ERR_SUCCESS`);
-                return res.json(toResponse(ERR_SUCCESS));
+                return res.json(toResponse(0));
             }
         }
     } catch (error: any) {
         logger.error(`(service.syncOneDevice) error: ${error.message}`);
-        return res.json(toResponse(ERR_INTERNAL_ERROR));
+        return res.json(toResponse(500));
     }
 }

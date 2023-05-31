@@ -1,10 +1,6 @@
 import _ from 'lodash';
 import { Request, Response } from 'express';
-import {
-    ERR_DELETE_GATEWAY_NOT_FOUND,
-    ERR_SUCCESS,
-    toResponse
-} from '../utils/error';
+import { toResponse } from '../utils/error';
 import logger from '../log';
 import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
@@ -53,13 +49,13 @@ export default async function deleteGateway(req: Request, res: Response) {
         logger.info(`(service.deleteGateway) i: ${i}`);
         if (i === -1) {
             logger.info(`(service.deleteGateway) RESPONSE: ERR_DELETE_GATEWAY_NOT_FOUND`);
-            return res.json(toResponse(ERR_DELETE_GATEWAY_NOT_FOUND));
+            return res.json(toResponse(2000));
         } else {
             const updatedList = srcGatewayList.splice(i, 1);
             await DB.setDbValue('srcGatewayInfoList', updatedList);
             await unsyncDevice(reqGatewayMac);
             logger.info(`(service.deleteGateway) RESPONSE: ERR_SUCCESS`);
-            return res.json(toResponse(ERR_SUCCESS));
+            return res.json(toResponse(0));
         }
     } catch (error: any) {
         logger.error(`(service.deleteGateway) error: ${error.message}`);

@@ -1,15 +1,6 @@
 import _ from 'lodash';
 import { Request, Response } from 'express';
-import {
-    ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT,
-    ERR_DB_LOCK_BUSY,
-    ERR_DEST_GATEWAY_IP_INVALID,
-    ERR_INTERNAL_ERROR,
-    ERR_NO_SRC_GATEWAY_INFO,
-    ERR_SRC_GATEWAY_IP_INVALID,
-    ERR_SUCCESS,
-    toResponse
-} from '../utils/error';
+import { toResponse } from '../utils/error';
 import logger from '../log';
 import DB, { acquireLock, releaseLock } from '../utils/db';
 import CubeApi from '../lib/cube-api';
@@ -49,7 +40,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
             if (localDestGatewayInfo) { // 前端访问该接口时，同步目标网关信息一定存在
                 if (!localDestGatewayInfo.ipValid) {
                     logger.info(`(service.getGatewayToken) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
-                    return res.json(toResponse(ERR_DEST_GATEWAY_IP_INVALID));
+                    return res.json(toResponse(702));
                 }
 
                 if (!localDestGatewayInfo.tokenValid) { // 如果同步目标网关的凭证已失效，则需要重新获取
@@ -59,7 +50,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     // 直接返回网关信息给前端
                     logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
                     hasReturn = true;
-                    res.json(toResponse(ERR_SUCCESS, 'Success', localDestGatewayInfo));
+                    res.json(toResponse(0, 'Success', localDestGatewayInfo));
 
                     // 通过 SSE 通知前端，开始获取网关凭证
                     logger.info(`(service.getGatewayToken) SSE.send(): begin_obtain_token_report`);
@@ -102,7 +93,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     }
                 } else { // 同步目标网关的凭证未失效，直接返回给前端
                     logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
-                    return res.json(toResponse(ERR_SUCCESS, 'Success', localDestGatewayInfo));
+                    return res.json(toResponse(0, 'Success', localDestGatewayInfo));
                 }
             }
         } else { // 请求凭证的网关是同步来源网关
@@ -111,14 +102,14 @@ export default async function getGatewayToken(req: Request, res: Response) {
             const i = _.findIndex(localSrcGatewayInfoList, { mac: reqGatewayMac });
             if (i === -1) {
                 logger.info(`(service.getGatewayToken) RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
-                return res.json(toResponse(ERR_NO_SRC_GATEWAY_INFO));
+                return res.json(toResponse(1500));
             }
 
             /** 本地存储的同步来源网关信息 */
             const localSrcGatewayInfo = localSrcGatewayInfoList[i];
             if (!localSrcGatewayInfo.ipValid) {
                 logger.info(`(service.getGatewayToken) RESPONSE: ERR_SRC_GATEWAY_IP_INVALID`);
-                return res.json(toResponse(ERR_SRC_GATEWAY_IP_INVALID));
+                return res.json(toResponse(1501));
             }
 
             if (!localSrcGatewayInfo.tokenValid) { // 同步来源网关的凭证已失效，重新获取
@@ -128,7 +119,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                 // 直接返回网关信息给前端
                 logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
                 hasReturn = true;
-                res.json(toResponse(ERR_SUCCESS, 'Success', localSrcGatewayInfo));
+                res.json(toResponse(0, 'Success', localSrcGatewayInfo));
 
                 // 通过 SSE 通知前端，开始获取网关凭证
                 logger.info(`(service.getGatewayToken) SSE.send(): begin_obtain_token_report`);
@@ -171,14 +162,14 @@ export default async function getGatewayToken(req: Request, res: Response) {
                 }
             } else { // 同步来源网关的凭证未失效，直接返回给前端
                 logger.info(`(service.getGatewayToken) RESPONSE: ERR_SUCCESS`);
-                return res.json(toResponse(ERR_SUCCESS, 'Success', localSrcGatewayInfo));
+                return res.json(toResponse(0, 'Success', localSrcGatewayInfo));
             }
         }
 
     } catch (error: any) {
         logger.error(`(service.getGatewayToken) error: ${error.message}`);
         if (!hasReturn) {
-            return res.json(toResponse(ERR_INTERNAL_ERROR));
+            return res.json(toResponse(500));
         }
     } finally {
         // if (lockId) {

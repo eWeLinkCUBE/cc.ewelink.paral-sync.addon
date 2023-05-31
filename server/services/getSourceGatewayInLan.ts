@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { toResponse, ERR_NO_DEST_GATEWAY_INFO } from '../utils/error';
+import { toResponse } from '../utils/error';
 import logger from '../log';
 import _ from 'lodash';
 import db from '../utils/db';
@@ -14,7 +14,7 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
 
         const destGatewayInfo = await db.getDbValue('destGatewayInfo');
         if (!destGatewayInfo) {
-            return res.json(toResponse(ERR_NO_DEST_GATEWAY_INFO));
+            return res.json(toResponse(701));
         }
 
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
