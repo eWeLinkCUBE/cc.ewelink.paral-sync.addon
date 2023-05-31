@@ -23,7 +23,7 @@ export interface GatewayDeviceItem {
     /** 设备协议 */
     protocol: string;
     /** 能力具体属性 */
-    state: string;
+    state: any;
     /** tag */
     tags: any;
     /** 是否在线 */

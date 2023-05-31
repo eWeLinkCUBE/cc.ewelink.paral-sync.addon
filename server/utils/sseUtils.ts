@@ -10,8 +10,9 @@ import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 import sse from '../ts/class/sse';
 import srcSse, { ESseStatus } from '../ts/class/srcSse';
 import CubeApi from '../lib/cube-api';
-import { destSseEvent, getSrcGatewayDeviceGroup, srcSsePool } from './tmp';
+import { destSseEvent, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool, updateSrcGatewayDeviceGroup } from './tmp';
 import destSse from '../ts/class/destSse';
+import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 
 
 type IUpdateOneDevice = IUpdateDeviceSate | IUpdateInfoSate | IUpdateOnlineSate
@@ -67,6 +68,23 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
         logger.info(`[sse sync new device] target gateway token invalid`);
         return;
     }
+
+    // 将新设备添加到缓存数据中
+    const srcGatewayRes = await getSrcGatewayDeviceGroup(mac, true);
+    if (srcGatewayRes.error !== 0) {
+        logger.info(`[sse sync new device] get src gateway device group error ${JSON.stringify(srcGatewayRes)}`);
+        return;
+    }
+
+    const srcDeviceGroup = srcGatewayRes.data as GatewayDeviceItem[];
+    const curDevice = _.find(srcDeviceGroup, { serial_number });
+    if (!curDevice) {
+        logger.info(`[sse sync new device] new device not exist in SrcGatewayDeviceGroup ${JSON.stringify(srcDeviceGroup)}`);
+        return;
+    }
+    srcDeviceGroup.push(curDevice);
+    await updateSrcGatewayDeviceGroup(mac, srcDeviceGroup);
+
 
     /** 同步目标网关的 eWeLink Cube API client */
     const ApiClient = CubeApi.ihostApi;
@@ -141,6 +159,20 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         return;
     }
 
+
+    // 将设备在缓存的数据中删除
+    const srcGatewayRes = await getSrcGatewayDeviceGroup(srcMac);
+    if (srcGatewayRes.error !== 0) {
+        logger.info(`[sse delete device] get src gateway device group error ${JSON.stringify(srcGatewayRes)}`);
+        return;
+    }
+
+    const srcDeviceGroup = srcGatewayRes.data as GatewayDeviceItem[];
+    // 删除符合条件的设备
+    _.remove(srcDeviceGroup, { serial_number });
+    // 更新缓存数据
+    await updateSrcGatewayDeviceGroup(srcMac, srcDeviceGroup);
+
     /** 同步目标网关的 eWeLink Cube API client */
     const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
@@ -211,6 +243,32 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
         logger.info(`[sse update device online] target gateway token invalid`);
         return;
     }
+
+    // 更新缓存数据
+    const srcGatewayRes = await getSrcGatewayDeviceGroup(srcMac);
+    if (srcGatewayRes.error !== 0) {
+        logger.info(`[sse update device online] get src gateway device group error ${JSON.stringify(srcGatewayRes)}`);
+        return;
+    }
+
+    const srcDeviceGroup = srcGatewayRes.data as GatewayDeviceItem[];
+    srcDeviceGroup.forEach(device => {
+        if (device.serial_number === serial_number) {
+            if (type === 'info') {
+                device.name = payload.name
+            }
+
+            if (type === 'online') {
+                device.online = payload.online;
+            }
+
+            if (type === 'state') {
+                device.state = payload;
+            }
+        }
+    })
+    await updateSrcGatewayDeviceGroup(srcMac, srcDeviceGroup);
+
     /** 同步目标网关的 eWeLink Cube API client */
     const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });

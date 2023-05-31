@@ -72,16 +72,18 @@ export async function updateSrcGatewayDeviceGroup(srcGatewayMac: string, deviceL
 }
 
 
+
 /**
  * @description 获取指定来源网关的设备列表
  * @export
- * @param {string} srcGatewayMac
+ * @param {string} srcGatewayMac 目标网关的mac
+ * @param {boolean} [noCache=false] 是否使用缓存
  * @returns {*}  {Promise<IResponse>}
  */
-export async function getSrcGatewayDeviceGroup(srcGatewayMac: string): Promise<IResponse> {
+export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = false): Promise<IResponse> {
     const groupItem = _.find(srcGatewayDeviceGroup, { srcGatewayMac });
     // 存在直接返回
-    if (groupItem) {
+    if (groupItem && !noCache) {
         return {
             error: 0,
             msg: "success",
