@@ -5,7 +5,7 @@ import { ServerSentEvent } from '../ts/class/srcSse';
 import logger from '../log';
 import db from './db';
 import CubeApi from '../lib/cube-api';
-import { ERR_CUBEAPI_GET_DEVICE_TIMEOUT, ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID, ERR_DEST_GATEWAY_IP_INVALID, ERR_DEST_GATEWAY_TOKEN_INVALID, ERR_INTERNAL_ERROR, ERR_NO_SRC_GATEWAY_INFO, ERR_SRC_GATEWAY_IP_INVALID, ERR_SRC_GATEWAY_TOKEN_INVALID, toResponse } from './error';
+import { toResponse } from './error';
 import IResponse from '../ts/interface/IResponse';
 import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 
@@ -49,15 +49,15 @@ export async function updateSrcGatewayDeviceGroup(srcGatewayMac: string, deviceL
     const srcGatewayInfo = _.find(srcGatewayInfoList, { mac: srcGatewayMac });
     if (!srcGatewayInfo) {
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
-        return toResponse(ERR_NO_SRC_GATEWAY_INFO);
+        return toResponse(1500);
     }
     if (!srcGatewayInfo.ipValid) {
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_SRC_GATEWAY_IP_INVALID`);
-        return toResponse(ERR_SRC_GATEWAY_IP_INVALID);
+        return toResponse(1501);
     }
     if (!srcGatewayInfo.tokenValid) {
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_SRC_GATEWAY_TOKEN_INVALID`);
-        return toResponse(ERR_SRC_GATEWAY_TOKEN_INVALID);
+        return toResponse(1502);
     }
 
     const groupItem = _.find(srcGatewayDeviceGroup, { srcGatewayMac });
@@ -112,18 +112,18 @@ export async function getSrcGatewayDeviceGroup(srcGatewayMac: string): Promise<I
         return cubeApiRes;
     } else if (cubeApiRes.error === 400) {
         logger.warn(`[getSrcGatewayDeviceGroup] NSPro should LOGIN!!!`);
-        return toResponse(ERR_INTERNAL_ERROR);
+        return toResponse(500);
     } else if (cubeApiRes.error === 401) {
         logger.info(`[getSrcGatewayDeviceGroup] RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
         await srcTokenAndIPInvalid('token', srcGateway.mac);
-        return toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID);
+        return toResponse(600);
     } else if (cubeApiRes.error === 1000) {
         logger.info(`[getSrcGatewayDeviceGroup] RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
         await srcTokenAndIPInvalid('ip', srcGateway.mac);
-        return toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT);
+        return toResponse(601);
     } else {
         logger.warn(`[getSrcGatewayDeviceGroup]  unknown error: ${JSON.stringify(cubeApiRes)}`);
-        return toResponse(ERR_INTERNAL_ERROR);
+        return toResponse(500);
     }
 }
 
@@ -138,11 +138,11 @@ export async function updateDestGatewayDeviceGroup(deviceList: GatewayDeviceItem
     const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     if (!destGatewayInfo?.ipValid) {
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
-        toResponse(ERR_DEST_GATEWAY_IP_INVALID);
+        toResponse(702);
     }
     if (!destGatewayInfo?.tokenValid) {
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_DEST_GATEWAY_TOKEN_INVALID`);
-        toResponse(ERR_DEST_GATEWAY_TOKEN_INVALID);
+        toResponse(703);
     }
 
     destGatewayDeviceGroup = deviceList;
@@ -188,13 +188,13 @@ export async function getDestGatewayDeviceGroup(): Promise<IResponse> {
         return cubeApiRes;
     } else if (cubeApiRes.error === 401) {
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-        return toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID);
+        return toResponse(600);
     } else if (cubeApiRes.error === 1000) {
         await destTokenInvalid();
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-        return toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT);
+        return toResponse(601);
     } else {
         logger.warn(`(service.syncOneDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-        return toResponse(ERR_INTERNAL_ERROR);
+        return toResponse(500);
     }
 }
