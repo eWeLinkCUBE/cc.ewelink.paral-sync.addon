@@ -200,7 +200,7 @@ interface IDbData {
 }
 
 export const dbDataTmp: IDbData = {
-    autoSync: false,
+    autoSync: true,
     destGatewayInfo: null,
     srcGatewayInfoList: []
 };
