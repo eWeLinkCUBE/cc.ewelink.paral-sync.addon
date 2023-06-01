@@ -54,7 +54,7 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
         let destGatewayDeviceList: GatewayDeviceItem[] = [];
 
         // 拉取同步目标网关的设备列表
-        const destRes = await getDestGatewayDeviceGroup();
+        const destRes = await getDestGatewayDeviceGroup(true);
         logger.info(`(service.unsyncOneDevice) destRes: ${JSON.stringify(destRes)}`);
         if (destRes.error === 0) {
             destGatewayDeviceList = destRes.data.device_list;

@@ -56,9 +56,9 @@ async function test() {
     console.log('time 4:\n', Date.now());
     console.log('device:\n', JSON.stringify(cubeApiRes));
 
-    for (const device of cubeApiRes.data.device_list) {
-        await apiClient.deleteDevice(device.serial_number);
-    }
+    //for (const device of cubeApiRes.data.device_list) {
+    //    await apiClient.deleteDevice(device.serial_number);
+    //}
 
 }
 
