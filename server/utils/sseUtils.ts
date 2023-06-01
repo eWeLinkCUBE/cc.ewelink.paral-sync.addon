@@ -52,6 +52,16 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     const autoSync = await db.getDbValue('autoSync');
     const { serial_number, name, manufacturer, model, display_category, capabilities, state, firmware_version } = device;
     if (!autoSync) {
+        sse.send({
+            name: "device_added_report",
+            data: {
+                id: serial_number,
+                name,
+                from: mac,
+                isSynced: false,
+                isSupported: isSupportDevice(device as unknown as GatewayDeviceItem)
+            }
+        })
         logger.info(`[sse sync new device] auto sync is close, stop sync`);
         return;
     };
