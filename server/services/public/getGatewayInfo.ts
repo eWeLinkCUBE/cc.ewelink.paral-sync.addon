@@ -54,12 +54,14 @@ export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
             const destGatewayInfo = await db.getDbValue('destGatewayInfo');
             if (!destGatewayInfo) {
                 await db.setDbValue('destGatewayInfo', defaultGatewayInfo);
-                return encryptToken(defaultGatewayInfo);
+                //返回ip，不返回ihost
+                return encryptToken(_.merge(defaultGatewayInfo, { ip: gatewayRes.data.ip }));
             }
 
             const newDestGatewayInfo = _.merge(destGatewayInfo, { mac, ip, domain, ipValid: true });
 
             await db.setDbValue('destGatewayInfo', newDestGatewayInfo);
+            //返回ip，不返回ihost
             return encryptToken(_.merge(newDestGatewayInfo, { ip: gatewayRes.data.ip }));
         }
 
@@ -71,12 +73,13 @@ export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
             }
 
             const srcGatewayInfo = srcGatewayInfoList.find((item) => item.mac === mac);
-
+            //存在nsPro网关信息
             if (srcGatewayInfo) {
                 _.merge(srcGatewayInfo, { ip, ipValid: true });
                 await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
                 return encryptToken(srcGatewayInfo);
             } else {
+                //不存在nsPro网关信息
                 srcGatewayInfoList.push(defaultGatewayInfo);
                 await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
                 return encryptToken(defaultGatewayInfo);
