@@ -10,7 +10,7 @@ import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 import sse from '../ts/class/sse';
 import srcSse, { ESseStatus } from '../ts/class/srcSse';
 import CubeApi from '../lib/cube-api';
-import { destSseEvent, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool, updateSrcGatewayDeviceGroup } from './tmp';
+import { destSseEvent, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool, updateDestGatewayDeviceGroup, updateSrcGatewayDeviceGroup } from './tmp';
 import destSse from '../ts/class/destSse';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 
@@ -76,7 +76,7 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
         return;
     }
 
-    const srcDeviceGroup = srcGatewayRes.data as GatewayDeviceItem[];
+    const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
     const curDevice = _.find(srcDeviceGroup, { serial_number });
     if (!curDevice) {
         logger.info(`[sse sync new device] new device not exist in SrcGatewayDeviceGroup ${JSON.stringify(srcDeviceGroup)}`);
@@ -167,7 +167,7 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         return;
     }
 
-    const srcDeviceGroup = srcGatewayRes.data as GatewayDeviceItem[];
+    const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
     // 删除符合条件的设备
     _.remove(srcDeviceGroup, { serial_number });
     // 更新缓存数据
@@ -251,7 +251,7 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
         return;
     }
 
-    const srcDeviceGroup = srcGatewayRes.data as GatewayDeviceItem[];
+    const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
     srcDeviceGroup.forEach(device => {
         if (device.serial_number === serial_number) {
             if (type === 'info') {
@@ -368,7 +368,26 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
     }
 }
 
-
+/**
+ * 从同步目标网关设备缓存中删除一条数据
+ *
+ * @param endpoint Cube API 返回的数据
+ */
+async function removeOneDeviceFromDestCache(endpoint: IEndpoint) {
+    const destRes = await getDestGatewayDeviceGroup();
+    if (destRes.error === 0) {
+        const deviceList = destRes.data.device_list;
+        const i = _.findIndex(deviceList, { serial_number: endpoint.serial_number });
+        if (i === -1) {
+            logger.warn(`[sse removeOneDeviceFromDestCache] endpoint device not found`);
+        } else {
+            deviceList.splice(i, 1);
+            await updateDestGatewayDeviceGroup(deviceList);
+        }
+    } else {
+        logger.warn(`[sse removeOneDeviceFromDestCache] get dest gateway device failed`);
+    }
+}
 
 /**
  * @description 同步已添加设备的在线状态
@@ -405,7 +424,7 @@ async function syncOneDeviceToSrcForOnline(device: IAddDevicePayload) {
         return;
     }
 
-    const curSrcDevice = _.find(srcDeviceList.data, { serial_number: deviceId });
+    const curSrcDevice = _.find(srcDeviceList.data.device_list, { serial_number: deviceId });
     if (!curSrcDevice) {
         logger.info(`[dest sse sync new device online] device ${deviceId} not found in ${JSON.stringify(srcDeviceList)}`);
         return;
@@ -415,7 +434,7 @@ async function syncOneDeviceToSrcForOnline(device: IAddDevicePayload) {
     const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
 
-    destGatewayApiClient.updateDeviceOnline({
+    await destGatewayApiClient.updateDeviceOnline({
         serial_number,
         third_serial_number: deviceId,
         params: {
@@ -494,5 +513,6 @@ export default {
     deleteOneDevice,
     updateOneDevice,
     checkForSse,
-    syncOneDeviceToSrcForOnline
+    syncOneDeviceToSrcForOnline,
+    removeOneDeviceFromDestCache
 }

@@ -130,6 +130,7 @@ export class DestServerSentEvent {
         this.source.addEventListener('device#v1#deleteDevice', (event) => {
             logger.info(`dest sse ${this.connectionId} delete device ${event.data}`);
             const { endpoint } = JSON.parse(event.data) as IDeviceDeleted;
+            sseUtils.removeOneDeviceFromDestCache(endpoint);
             // 取消同步设备
             // sseUtils.deleteOneDevice(endpoint, this.initParams.mac);
         })
@@ -175,7 +176,7 @@ export class DestServerSentEvent {
 
         if (this.status !== ESseStatus.OPEN) {
             // 重连失败
-            // 1.关闭重连 
+            // 1.关闭重连
             // 2.主动关闭sse
             this.status = ESseStatus.CLOSED;
             this.source.close();
@@ -185,7 +186,7 @@ export class DestServerSentEvent {
      * @description 生成重试间隔
      * @private
      * @param {number} retryInterval
-     * @returns {number} 
+     * @returns {number}
      * @memberof DestServerSentEvent
      */
     private _getRetryInterval(retryInterval: number): number {

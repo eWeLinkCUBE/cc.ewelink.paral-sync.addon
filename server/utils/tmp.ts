@@ -112,7 +112,7 @@ export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = 
     const srcGatewayClint = new ApiClient({ ip: srcGateway.ip, at: srcGateway.token });
     const cubeApiRes = await srcGatewayClint.getDeviceList();
     if (cubeApiRes.error === 0) {
-        await updateSrcGatewayDeviceGroup(srcGatewayMac, cubeApiRes.data);
+        await updateSrcGatewayDeviceGroup(srcGatewayMac, cubeApiRes.data.device_list);
         return cubeApiRes;
     } else if (cubeApiRes.error === 400) {
         logger.warn(`[getSrcGatewayDeviceGroup] NSPro should LOGIN!!!`);

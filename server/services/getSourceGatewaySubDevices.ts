@@ -67,10 +67,6 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
             return res.json(toResponse(703));
         }
 
-        const ApiClient = CubeApi.ihostApi;
-        const srcGatewayClient = new ApiClient({ ip: localSrcGatewayInfo.ip, at: localSrcGatewayInfo.token });
-        const destGatewayClient = new ApiClient({ ip: localDestGatewayInfo.ip, at: localDestGatewayInfo.token });
-        let cubeApiRes = null;
         let srcGatewayDeviceList: GatewayDeviceItem[] = [];
         let destGatewayDeviceList: GatewayDeviceItem[] = [];
 
@@ -83,26 +79,6 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
             return res.json(toResponse(srcRes.error));
         }
 
-        //cubeApiRes = await srcGatewayClient.getDeviceList();
-        //logger.info(`(service.getSourceGatewaySubDevices) srcGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
-        //if (cubeApiRes.error === 0) {
-        //    srcGatewayDeviceList = cubeApiRes.data.device_list;
-        //} else if (cubeApiRes.error === 400) {
-        //    logger.warn(`(service.getSourceGatewaySubDevices) srcGatewayClient.getDeviceList() NSPro should LOGIN!!!`);
-        //    return res.json(toResponse(1400));
-        //} else if (cubeApiRes.error === 401) {
-        //    logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-        //    await srcTokenAndIPInvalid('token', localSrcGatewayInfo.mac);
-        //    return res.json(toResponse(600));
-        //} else if (cubeApiRes.error === 1000) {
-        //    await srcTokenAndIPInvalid('ip', localSrcGatewayInfo.mac);
-        //    logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-        //    return res.json(toResponse(601));
-        //} else {
-        //    logger.warn(`(service.getSourceGatewaySubDevices) srcGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-        //    return res.json(toResponse(500));
-        //}
-
         // 获取同步目标网关的设备列表
         const destRes = await getDestGatewayDeviceGroup();
         logger.info(`(service.getSourceGatewaySubDevices) destRes: ${JSON.stringify(destRes)}`);
@@ -111,22 +87,6 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
         } else {
             return res.json(toResponse(destRes.error));
         }
-
-        //cubeApiRes = await destGatewayClient.getDeviceList();
-        //logger.info(`(service.getSourceGatewaySubDevices) destGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
-        //if (cubeApiRes.error === 0) {
-        //    destGatewayDeviceList = cubeApiRes.data.device_list;
-        //} else if (cubeApiRes.error === 401) {
-        //    await destTokenInvalid();
-        //    logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-        //    return res.json(toResponse(600));
-        //} else if (cubeApiRes.error === 1000) {
-        //    logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-        //    return res.json(toResponse(601));
-        //} else {
-        //    logger.warn(`(service.getSourceGatewaySubDevices) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-        //    return res.json(toResponse(500));
-        //}
 
         /** 来源 MAC 地址为请求网关 MAC 地址的同步目标网关的设备列表 */
         const destGatewayDeviceListMatched: GatewayDeviceItem[] = [];
@@ -137,16 +97,6 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
             }
         }
         logger.info(`(service.getSourceGatewaySubDevices) destGatewayDeviceListMatched: ${JSON.stringify(destGatewayDeviceListMatched)}`);
-
-        // 将已经不在同步来源网关中的设备从同步目标网关中删除掉
-        for (const device of destGatewayDeviceListMatched) {
-            const srcGatewayDeviceId = _.get(device, 'tags.__nsproAddonData.deviceId');
-            const found = _.find(srcGatewayDeviceList, { serial_number: srcGatewayDeviceId });
-            if (!found) {
-                cubeApiRes = await destGatewayClient.deleteDevice(device.serial_number);
-                logger.info(`(service.getSourceGatewaySubDevices) destGatewayClient.deleteDevice() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
-            }
-        }
 
         // 将同步来源网关的设备数据与同步目标网关的设备数据相比较
         // 并返回比较结果给前端
