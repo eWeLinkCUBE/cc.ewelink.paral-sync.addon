@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import logger from '../log';
 
 const ERROR_LIST = [
     {
@@ -109,17 +110,20 @@ const ERROR_LIST = [
 
 export function toResponse(error: number, msg?: string, data?: any) {
     const found = _.find(ERROR_LIST, { errCode: error });
+    let result = null;
     if (found) {
-        return {
+        result = {
             error: found.errCode,
             msg: msg || found.errMsg,
             data
         };
     } else {
-        return {
+        result = {
             error: 500,
             msg: msg || 'Internal Error',
             data
         };
     }
+    logger.info(`(toResponse) result: ${JSON.stringify(result)}`);
+    return result;
 }

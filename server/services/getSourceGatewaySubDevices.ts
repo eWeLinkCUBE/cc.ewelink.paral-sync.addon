@@ -3,9 +3,7 @@ import { Request, Response } from 'express';
 import { toResponse } from '../utils/error';
 import logger from '../log';
 import DB from '../utils/db';
-import CubeApi from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
-import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup } from '../utils/tmp';
 import { isSupportDevice } from '../utils/categoryCapabilityMaping';
 
