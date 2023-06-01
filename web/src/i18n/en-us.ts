@@ -47,6 +47,7 @@ const en = {
     PLEASE_INPUT_IP:'Please enter ip',
     PLEASE_INPUT_RIGHT_IP:'Please enter a correct ip',
     NOT_SUPPORTED:'Not yet supported',
+    SYNC_FAIL:'同步失败（缺）'
 }
 
 export default en;
