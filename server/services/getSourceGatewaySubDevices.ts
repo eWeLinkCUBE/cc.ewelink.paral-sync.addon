@@ -7,6 +7,7 @@ import CubeApi from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup } from '../utils/tmp';
+import { isSupportDevice } from '../utils/categoryCapabilityMaping';
 
 /**
  * 判断同步来源网关的设备是否在同步目标网关中
@@ -107,14 +108,16 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
                     name: device.name,
                     id: device.serial_number,
                     from: reqGatewayMac,
-                    isSynced: true
+                    isSynced: true,
+                    isSupported: isSupportDevice(device)
                 });
             } else {
                 result.push({
                     name: device.name,
                     id: device.serial_number,
                     from: reqGatewayMac,
-                    isSynced: false
+                    isSynced: false,
+                    isSupported: isSupportDevice(device)
                 });
             }
         }

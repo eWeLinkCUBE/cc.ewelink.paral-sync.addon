@@ -13,6 +13,7 @@ import CubeApi from '../lib/cube-api';
 import { destSseEvent, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool, updateDestGatewayDeviceGroup, updateSrcGatewayDeviceGroup } from './tmp';
 import destSse from '../ts/class/destSse';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
+import { isSupportDevice } from './categoryCapabilityMaping';
 
 
 type IUpdateOneDevice = IUpdateDeviceSate | IUpdateInfoSate | IUpdateOnlineSate
@@ -125,7 +126,8 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
                 id: serial_number,
                 name,
                 from: mac,
-                isSynced: true
+                isSynced: true,
+                isSupported: isSupportDevice(curDevice)
             }
         })
         logger.info(`[sse sync new device]  sync success`);
@@ -252,8 +254,10 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
     }
 
     const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
+    let srcDeviceData = null;
     srcDeviceGroup.forEach(device => {
         if (device.serial_number === serial_number) {
+            srcDeviceData = device;
             if (type === 'info') {
                 device.name = payload.name
             }
@@ -293,7 +297,8 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
                         id: serial_number,
                         name,
                         from: srcMac,
-                        isSynced: true
+                        isSynced: true,
+                        isSupported: srcDeviceData ? isSupportDevice(srcDeviceData) : false
                     }
                 })
                 logger.info(`[sse update device info] update device ${serial_number} ${syncedDevice.serial_number} success`);

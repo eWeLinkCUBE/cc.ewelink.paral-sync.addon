@@ -188,6 +188,8 @@ export interface IDeviceItem {
     from: string;
     /** 设备是否已同步 */
     isSynced: boolean;
+    /** 设备是否被支持 */
+    isSupported: boolean;
 }
 
 interface IDbData {
