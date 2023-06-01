@@ -87,7 +87,9 @@ export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = 
         return {
             error: 0,
             msg: "success",
-            data: groupItem
+            data: {
+                device_list: groupItem.deviceList
+            }
         };
     }
 
@@ -102,7 +104,7 @@ export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = 
         return {
             error: 606,
             msg: "src gateway not exist",
-            data: []
+            data: {}
         };
     }
 
@@ -114,7 +116,7 @@ export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = 
         return cubeApiRes;
     } else if (cubeApiRes.error === 400) {
         logger.warn(`[getSrcGatewayDeviceGroup] NSPro should LOGIN!!!`);
-        return toResponse(500);
+        return toResponse(1400);
     } else if (cubeApiRes.error === 401) {
         logger.info(`[getSrcGatewayDeviceGroup] RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
         await srcTokenAndIPInvalid('token', srcGateway.mac);
@@ -163,7 +165,9 @@ export async function getDestGatewayDeviceGroup(): Promise<IResponse> {
         return {
             error: 0,
             msg: "success",
-            data: destGatewayDeviceGroup
+            data: {
+                device_list: destGatewayDeviceGroup
+            }
         };
     }
 
@@ -175,7 +179,7 @@ export async function getDestGatewayDeviceGroup(): Promise<IResponse> {
         return {
             error: 606,
             msg: "dest gateway not exist",
-            data: []
+            data: {}
         };
     }
 
