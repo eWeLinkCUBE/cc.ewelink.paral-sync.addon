@@ -88,13 +88,22 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
     }
 
     const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
-    const curDevice = _.find(srcDeviceGroup, { serial_number });
-    if (!curDevice) {
-        logger.info(`[sse sync new device] new device not exist in SrcGatewayDeviceGroup ${JSON.stringify(srcDeviceGroup)}`);
+    await updateSrcGatewayDeviceGroup(mac, srcDeviceGroup);
+
+    if(!isSupportDevice(device as unknown as GatewayDeviceItem)) {
+        sse.send({
+            name: "device_added_report",
+            data: {
+                id: serial_number,
+                name,
+                from: mac,
+                isSynced: false,
+                isSupported: false
+            }
+        });
+        logger.info(`[sse sync new device] device ${serial_number} not supported.`);
         return;
     }
-    srcDeviceGroup.push(curDevice);
-    await updateSrcGatewayDeviceGroup(mac, srcDeviceGroup);
 
 
     /** 同步目标网关的 eWeLink Cube API client */
@@ -137,7 +146,7 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
                 name,
                 from: mac,
                 isSynced: true,
-                isSupported: isSupportDevice(curDevice)
+                isSupported: true
             }
         })
         logger.info(`[sse sync new device]  sync success`);
