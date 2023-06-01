@@ -154,11 +154,11 @@ watch(
 onMounted(async () => {
     if (steps.value === stepsList.FIRST) {
         const response = await deviceStore.getIHostGateWatList();
+        startInIHost.value = 'NORMAL';
         //不在iHost上启动
         if (response.error === 1101) {
             startInIHost.value = 'UNUSUAL';
         }
-        startInIHost.value = 'NORMAL';
     } else {
         startInIHost.value = 'NORMAL';
         await deviceStore.getNsProGateWayList();

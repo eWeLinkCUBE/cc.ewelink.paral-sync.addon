@@ -10,9 +10,14 @@
                 <span class="name common">{{ item.name }}</span>
                 <span class="id common">{{ item.id }}</span>
                 <div class="option common">
-                    <span class="sync" v-if="!item.isSynced && !item.spinLoading" @click="syncDevice(item)">{{ i18n.global.t('SYNC') }}</span>
-                    <span class="cancel-sync" v-if="item.isSynced && !item.spinLoading" @click="cancelSyncSingleDevice(item)">{{ i18n.global.t('CANCEL_SYNC') }}</span>
-                    <img class="loading-icon" src="@/assets/img/loading.jpg" alt="" v-if="item.spinLoading" />
+                    <div v-if="item.isSupported">
+                        <span class="sync" v-if="!item.isSynced && !item.spinLoading" @click="syncDevice(item)">{{ i18n.global.t('SYNC') }}</span>
+                        <span class="cancel-sync" v-if="item.isSynced && !item.spinLoading" @click="cancelSyncSingleDevice(item)">{{ i18n.global.t('CANCEL_SYNC') }}</span>
+                        <img class="loading-icon" src="@/assets/img/loading.jpg" alt="" v-if="item.spinLoading" />
+                    </div>
+                    <div v-else>
+                        <span style="color: ##a1a1a1">{{ i18n.global.t('NOT_SUPPORTED') }}</span>
+                    </div>
                 </div>
             </div>
             <!-- length为0 -->
@@ -23,12 +28,14 @@
                 </div>
                 <!-- 没登陆或者空状态 -->
                 <div v-else>
-                    <img :src="nsProLogin ? Empty : NoLogin" alt="" :class="nsProLogin ? 'no-data':'nsPro-no-login' "/>
+                    <img :src="nsProLogin ? Empty : NoLogin" alt="" :class="nsProLogin ? 'no-data' : 'nsPro-no-login'" />
+                    <!-- 登录了设备列表为空 -->
                     <p v-if="nsProLogin">
                         {{ i18n.global.t('NO_DATA') }}
                     </p>
+                    <!-- 没有登录nsPro -->
                     <div v-else class="nsPro_no_login">
-                        <p  style="margin-top:16px">{{ i18n.global.t('GET_DEVICE_FAIL') }}</p>
+                        <p style="margin-top: 16px">{{ i18n.global.t('GET_DEVICE_FAIL') }}</p>
                         <ul>
                             <li>{{ i18n.global.t('NS_PRO_RUN_NORMAL') }}</li>
                             <li>{{ i18n.global.t('NS_PRO_LOGIN') }}</li>
@@ -67,8 +74,11 @@ onMounted(async () => {
 const syncDevice = async (item: INsProDeviceData) => {
     deviceStore.setLoading(item, true);
     const res = await api.NSPanelPro.syncSingleDevice(item.id, item.from);
-    await deviceStore.getDeviceList();
+    /** 方案一：查询设备列表接口 */
+    // await deviceStore.getDeviceList();
     if (res.error === 0) {
+        /** 方案二：根据error为0的时候，改变本地缓存数据,未同步状态  */
+        deviceStore.modifyDeviceSyncStatusById(item.id, true);
         message.success(i18n.global.t('SYNC_SUCCESS'));
     }
     deviceStore.setLoading(item, false);
@@ -78,8 +88,11 @@ const syncDevice = async (item: INsProDeviceData) => {
 const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
     deviceStore.setLoading(item, true);
     const resp = await api.NSPanelPro.cancelSyncSingleDevice(item.id, item.from);
-    await deviceStore.getDeviceList();
+    /** 方案一：查询设备列表接口 */
+    // await deviceStore.getDeviceList();
     if (resp.error === 0) {
+        /** 方案二：根据error为0的时候，改变本地缓存数据,未同步状态 */
+        deviceStore.modifyDeviceSyncStatusById(item.id, false);
         message.success(i18n.global.t('CANCEL_SYNC_SUCCESS'));
     }
     deviceStore.setLoading(item, false);
@@ -167,7 +180,7 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
                 width: 365px;
                 height: 279px;
             }
-            .nsPro-no-login{
+            .nsPro-no-login {
                 width: 225px;
                 height: 172px;
             }

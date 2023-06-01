@@ -23,7 +23,7 @@ import router from '@/router';
  */
 export function jumpCorrespondStep(errCode:number){
     const deviceStore = useDeviceStore();
-    const step1List = [ 602,603,604,606,607,608,701,702,703,1800 ];
+    const step1List = [ 602,603,604,606,607,608,701,702,703 ];
     const step2List = [ 501,502,503,600,601,1500,1501,1502,1503];
     if(step1List.includes(errCode)){
         deviceStore.setStep(stepsList.FIRST);

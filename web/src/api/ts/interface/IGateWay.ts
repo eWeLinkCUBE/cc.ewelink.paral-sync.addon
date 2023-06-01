@@ -20,11 +20,18 @@ export interface IGateWayInfoData{
 
 /** nsPro 设备 */
 export interface INsProDeviceData{
+    /** 设备来源 */
     from:string,
+    /** 设备id */
     id:string,
+    /** 是否同步 */
     isSynced:boolean,
+    /** 设备名 */
     name:string,
+    /** 前端加的转圈状态  */
     spinLoading?:boolean,
+    /** 是否是支持的设备 */
+    isSupported?:boolean,
 }
 
 export enum stepsList{

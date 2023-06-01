@@ -1,5 +1,5 @@
 <template>
-    <div class="card" :class="{'disabled':(gateWayData.tokenValid || !gateWayData.ipValid || disabledBtn )}">
+    <div class="card" :class="{ disabled: gateWayData.tokenValid || !gateWayData.ipValid || disabledBtn }">
         <div class="name">{{ gateWayData.name || 'Name' }}</div>
         <div class="ip">IP：{{ formatIp }}</div>
         <div class="mac">MAC：{{ gateWayData.mac }}</div>
@@ -31,21 +31,21 @@ const props = defineProps<{
 
 const emits = defineEmits(['openNsProTipModal']);
 const openNsProTipModal = () => emits('openNsProTipModal');
-const dynamicBtnColor = computed(()=>{
+const dynamicBtnColor = computed(() => {
     //ip失效，灰色
-    if(!props.gateWayData.ipValid){
-        return {'background-color':'#999999 !important'}
+    if (!props.gateWayData.ipValid) {
+        return { 'background-color': '#999999 !important' };
     }
     //已经获取一个token，按钮淡蓝色
-    if(props.gateWayData.tokenValid){
-        return {'background-color':'#FFFFFF !important','color':'#1890FF!important'}
+    if (props.gateWayData.tokenValid) {
+        return { 'background-color': '#FFFFFF !important', color: '#1890FF!important' };
     }
 
     //有一个nsPro在倒计时，按钮淡蓝色
-    if(disabledBtn.value){
-        return {'background-color':'#1890FF!important','opacity':'0.5!important'}
+    if (disabledBtn.value) {
+        return { 'background-color': '#1890FF!important', opacity: '0.5!important' };
     }
-    return {}
+    return {};
 });
 
 /** 获取token按钮的状态  获取token 、*/
@@ -68,11 +68,11 @@ const btnLoadingStatus = computed<boolean>(() => {
         //有ts,再判断距离当前时间是否小于五分钟
         const nowTime = moment();
         const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
-        console.log('状态处的second------>',seconds);
+        console.log('状态处的second------>', seconds);
         if (seconds >= 300) {
             return false;
         } else {
-            setCutDownTimer(requestTime);
+            setCutDownTimer(seconds, requestTime);
             return true;
         }
     }
@@ -102,19 +102,19 @@ const showWhichContent = computed(() => {
 });
 
 /** 开始倒计时 */
-const setCutDownTimer = (requestTime: number) => {
-    const nowTime = moment();
+const setCutDownTimer = (seconds: number, requestTime: number) => {
+    // const nowTime = moment();
 
-    const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
+    // const seconds = moment(moment()).diff(moment(requestTime), 'seconds');
 
-    if (seconds >= 300) return;
+    // if (seconds >= 300) return;
     countdownTime.value = 300 - seconds;
 
     if (timer.value) {
         window.clearInterval(timer.value);
     }
 
-    countdownTime.value--;
+    // countdownTime.value--;
 
     timer.value = window.setInterval(() => {
         if (countdownTime.value > 0) {
@@ -122,6 +122,8 @@ const setCutDownTimer = (requestTime: number) => {
         } else {
             window.clearInterval(timer.value);
             countdownTime.value = 0;
+            console.log('倒计时到0刷新网关数据');
+            refreshGateWayList();
         }
         console.log('------------------>', countdownTime.value);
     }, 1000);
@@ -135,11 +137,7 @@ const getToken = async (mac: string) => {
     const isSyncTarget = props.type === 'iHost' ? 1 : 0;
     const res = await api.getToken(mac, isSyncTarget);
     if (res.error === 0 && res.data) {
-        if (props.type === 'iHost') {
-            deviceStore.getIHostGateWatList();
-        } else {
-            deviceStore.getNsProGateWayList();
-        }
+        refreshGateWayList();
     }
 };
 
@@ -160,6 +158,15 @@ const formatIp = computed(() => {
 
     return props.gateWayData.ip;
 });
+
+/** 刷新网关数据 */
+const refreshGateWayList = () => {
+    if (props.type === 'iHost') {
+        deviceStore.getIHostGateWatList();
+    } else {
+        deviceStore.getNsProGateWayList();
+    }
+};
 </script>
 
 <style scoped lang="scss">
@@ -197,8 +204,8 @@ const formatIp = computed(() => {
     scale: 1.02;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
-.disabled:hover{
-    scale:1 !important;
+.disabled:hover {
+    scale: 1 !important;
     cursor: not-allowed !important;
 }
 </style>
