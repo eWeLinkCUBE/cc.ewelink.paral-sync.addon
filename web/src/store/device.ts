@@ -5,6 +5,7 @@ import _ from 'lodash';
 import type { IGateWayInfoData , IAddDeviceData, INsProDeviceData} from '@/api/ts/interface/IGateWay';
 import router from '@/router';
 import moment from 'moment';
+import { message } from 'ant-design-vue';
 
 interface IDeviceState {
     /** 用户所处的步骤 */
@@ -15,6 +16,8 @@ interface IDeviceState {
     nsProList:IGateWayInfoData[],
     /** 网关下所有的子设备 */
     deviceList: INsProDeviceData[],
+    /** nsPro是否登录 */
+    nsProLogin:boolean,
 }
 
 export const useDeviceStore = defineStore('addon_device', {
@@ -24,6 +27,7 @@ export const useDeviceStore = defineStore('addon_device', {
             iHostList:[],
             nsProList:[],
             deviceList:[],
+            nsProLogin:false,
         };
     },
     actions: {
@@ -71,15 +75,18 @@ export const useDeviceStore = defineStore('addon_device', {
 
             const res = await api.NSPanelPro.getDeviceList(mac);
             if (res.error === 0 && res.data) {
+                this.nsProLogin = true;
                 this.deviceList = res.data;
                 this.deviceList.map((device) => {
                     return device.spinLoading=false;
                 });
             }else{
                 this.deviceList = [];
+                if(res.error === 1400){
+                    this.nsProLogin = false;
+                }
             }
-
-
+            return res;
         },
 
         /** 设置loading转圈 */
@@ -112,6 +119,7 @@ export const useDeviceStore = defineStore('addon_device', {
             this.nsProList = this.nsProList.map((element)=>{
                 return element.mac === item.mac ? item :element;
             });
+            console.log('失败时的时间差------------>',moment(moment()).diff(moment(Number(item.ts)), 'seconds'));
         },
 
         /** nsPanePro网关信息推送（区分新增还是修改）*/
@@ -162,7 +170,9 @@ export const useDeviceStore = defineStore('addon_device', {
                 }
                 if (item.ts && item.ipValid) {
                     const timeGap = moment(moment()).diff(moment(Number(item.ts)), 'seconds');
-                    if (timeGap <= 300 && timeGap >= 0) {
+                    console.log('timeGap------->',timeGap);
+                    if (timeGap < 300) {
+                        console.log('hasTokenOrTs  true')
                         return true;
                     }
                 }

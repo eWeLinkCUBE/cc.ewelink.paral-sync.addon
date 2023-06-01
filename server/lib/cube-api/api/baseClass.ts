@@ -11,7 +11,7 @@ import IHttpConfig from "../ts/interface/IHttpConfig"
 import IResponse from "../ts/interface/IResponse"
 import ISseEvent from '../ts/interface/ISseEvent'
 
-// import logger from '../../../log';
+import logger from '../../../log';
 
 export default abstract class baseClass {
 	private ip: string = ''
@@ -70,6 +70,7 @@ export default abstract class baseClass {
 	private async getBridgeATHandler() {
 		// console.log('----->', new Date().getTime() - this.time);
 		const resp = await this.httpRequest({ path: EPath.BRIDGE_TOKEN, method: EMethod.GET, isNeedAT: false })
+		logger.info(`AAAAAAAAAAAAAAAAAAAAAAAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT: ${JSON.stringify(resp)}`);
 		if (resp.error === 0) {
 			this.interval && clearInterval(this.interval)
 			//	set at

@@ -3,20 +3,10 @@ import { Request, Response } from 'express';
 import logger from '../log';
 import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
-import {
-    ERR_CUBEAPI_DELETE_DEVICE_NOT_FOUND,
-    ERR_CUBEAPI_DELETE_DEVICE_TIMEOUT,
-    ERR_CUBEAPI_DELETE_DEVICE_TOKEN_INVALID,
-    ERR_CUBEAPI_GET_DEVICE_TIMEOUT,
-    ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID,
-    ERR_DEST_GATEWAY_IP_INVALID,
-    ERR_DEST_GATEWAY_TOKEN_INVALID,
-    ERR_INTERNAL_ERROR,
-    ERR_SUCCESS,
-    ERR_UNSYNC_DEVICE_NOT_FOUND,
-    toResponse
-} from '../utils/error';
+import { toResponse } from '../utils/error';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
+import { getDestGatewayDeviceGroup } from '../utils/tmp';
+import sseUtils from '../utils/sseUtils';
 
 /**
  * 从同步目标网关中返回符合条件的设备数据，如果没找到则返回 null
@@ -52,11 +42,11 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
         logger.info(`(service.unsyncOneDevice) destGatewayInfo: ${JSON.stringify(destGatewayInfo)}`);
         if (!destGatewayInfo?.ipValid) {
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_IP_INVALID));
+            return res.json(toResponse(702));
         }
         if (!destGatewayInfo?.tokenValid) {
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_DEST_GATEWAY_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_TOKEN_INVALID));
+            return res.json(toResponse(703));
         }
 
         const ApiClient = CubeApi.ihostApi;
@@ -64,43 +54,41 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
         let destGatewayDeviceList: GatewayDeviceItem[] = [];
 
         // 拉取同步目标网关的设备列表
-        let cubeApiRes = await destGatewayClient.getDeviceList();
-        logger.info(`(service.unsyncOneDevice) destGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
-        if (cubeApiRes.error === 0) {
-            destGatewayDeviceList = cubeApiRes.data.device_list;
-        } else if (cubeApiRes.error === 401) {
-            logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
-        } else if (cubeApiRes.error === 1000) {
-            logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+        const destRes = await getDestGatewayDeviceGroup();
+        logger.info(`(service.unsyncOneDevice) destRes: ${JSON.stringify(destRes)}`);
+        if (destRes.error === 0) {
+            destGatewayDeviceList = destRes.data.device_list;
         } else {
-            logger.info(`(service.unsyncOneDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-            return res.json(toResponse(ERR_INTERNAL_ERROR));
+            return res.json(toResponse(destRes.error));
         }
 
         const deviceData = findDeviceInDestGateway(willUnsyncDeviceId, reqSrcGatewayMac, destGatewayDeviceList);
         logger.info(`(service.unsyncOneDevice) deviceData: ${JSON.stringify(deviceData)}`);
         if (!deviceData) {
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_UNSYNC_DEVICE_NOT_FOUND`);
-            return res.json(toResponse(ERR_UNSYNC_DEVICE_NOT_FOUND));
+            return res.json(toResponse(1800));
         }
 
         // 调用删除设备接口
-        cubeApiRes = await destGatewayClient.deleteDevice(deviceData.serial_number);
+        const cubeApiRes = await destGatewayClient.deleteDevice(deviceData.serial_number);
         logger.info(`(service.unsyncOneDevice) destGatewayClient.deleteDevice() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
         if (cubeApiRes.error === 0) {
+            const endpoint = {
+                serial_number: deviceData.serial_number,
+                third_serial_number: willUnsyncDeviceId
+            };
+            sseUtils.removeOneDeviceFromDestCache(endpoint);
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_SUCCESS`);
-            return res.json(toResponse(ERR_SUCCESS));
+            return res.json(toResponse(0));
         } else if (cubeApiRes.error === 401) {
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_CUBEAPI_DELETE_DEVICE_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_CUBEAPI_DELETE_DEVICE_TOKEN_INVALID));
+            return res.json(toResponse(606));
         } else if (cubeApiRes.error === 110000) {
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_CUBEAPI_DELETE_DEVICE_NOT_FOUND`);
-            return res.json(toResponse(ERR_CUBEAPI_DELETE_DEVICE_NOT_FOUND));
+            return res.json(toResponse(608));
         } else {
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_CUBEAPI_DELETE_DEVICE_TIMEOUT`);
-            return res.json(toResponse(ERR_CUBEAPI_DELETE_DEVICE_TIMEOUT));
+            return res.json(toResponse(607));
         }
     } catch (error: any) {
         logger.error(`(service.unsyncOneDevice) error: ${error.message}`);

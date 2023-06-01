@@ -1,23 +1,13 @@
 import _ from 'lodash';
 import { Request, Response } from 'express';
-import {
-    ERR_DEST_GATEWAY_IP_INVALID,
-    ERR_DEST_GATEWAY_TOKEN_INVALID,
-    ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID,
-    ERR_CUBEAPI_GET_DEVICE_TIMEOUT,
-    ERR_SUCCESS,
-    toResponse,
-    ERR_INTERNAL_ERROR,
-    ERR_NSPRO_NEED_LOGIN,
-    ERR_NO_SRC_GATEWAY_INFO,
-    ERR_SRC_GATEWAY_IP_INVALID,
-    ERR_SRC_GATEWAY_TOKEN_INVALID
-} from '../utils/error';
+import { toResponse } from '../utils/error';
 import logger from '../log';
-import DB, { wait } from '../utils/db';
+import DB from '../utils/db';
 import CubeApi from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
+import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup } from '../utils/tmp';
+import { isSupportDevice } from '../utils/categoryCapabilityMaping';
 
 /**
  * 判断同步来源网关的设备是否在同步目标网关中
@@ -52,17 +42,17 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
         if (!localSrcGatewayInfo) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
-            return res.json(toResponse(ERR_NO_SRC_GATEWAY_INFO));
+            return res.json(toResponse(1500));
         }
 
         if (!localSrcGatewayInfo.ipValid) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_SRC_GATEWAY_IP_INVALID`);
-            return res.json(toResponse(ERR_SRC_GATEWAY_IP_INVALID));
+            return res.json(toResponse(1501));
         }
 
         if (!localSrcGatewayInfo.tokenValid) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_SRC_GATEWAY_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_SRC_GATEWAY_TOKEN_INVALID));
+            return res.json(toResponse(1502));
         }
 
         /** 本地存储的同步目标网关信息 */
@@ -70,57 +60,33 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
         logger.info(`(service.getSourceGatewaySubDevices) localDestGatewayInfo: ${JSON.stringify(localDestGatewayInfo)}`);
         if (!localDestGatewayInfo?.ipValid) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_IP_INVALID));
+            return res.json(toResponse(702));
         }
 
         if (!localDestGatewayInfo?.tokenValid) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_DEST_GATEWAY_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_DEST_GATEWAY_TOKEN_INVALID));
+            return res.json(toResponse(703));
         }
 
-        const ApiClient = CubeApi.ihostApi;
-        const srcGatewayClient = new ApiClient({ ip: localSrcGatewayInfo.ip, at: localSrcGatewayInfo.token });
-        const destGatewayClient = new ApiClient({ ip: localDestGatewayInfo.ip, at: localDestGatewayInfo.token });
-        let cubeApiRes = null;
         let srcGatewayDeviceList: GatewayDeviceItem[] = [];
         let destGatewayDeviceList: GatewayDeviceItem[] = [];
 
         // 获取同步来源网关的设备列表
-        cubeApiRes = await srcGatewayClient.getDeviceList();
-        logger.info(`(service.getSourceGatewaySubDevices) srcGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
-        if (cubeApiRes.error === 0) {
-            srcGatewayDeviceList = cubeApiRes.data.device_list;
-        } else if (cubeApiRes.error === 400) {
-            logger.warn(`(service.getSourceGatewaySubDevices) srcGatewayClient.getDeviceList() NSPro should LOGIN!!!`);
-            return res.json(toResponse(ERR_NSPRO_NEED_LOGIN));
-        } else if (cubeApiRes.error === 401) {
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-            await srcTokenAndIPInvalid('token', localSrcGatewayInfo.mac);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
-        } else if (cubeApiRes.error === 1000) {
-            await srcTokenAndIPInvalid('ip', localSrcGatewayInfo.mac);
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+        const srcRes = await getSrcGatewayDeviceGroup(localSrcGatewayInfo.mac);
+        logger.info(`(service.getSourceGatewaySubDevices) srcRes: ${JSON.stringify(srcRes)}`);
+        if (srcRes.error === 0) {
+            srcGatewayDeviceList = srcRes.data.device_list;
         } else {
-            logger.warn(`(service.getSourceGatewaySubDevices) srcGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-            return res.json(toResponse(ERR_INTERNAL_ERROR));
+            return res.json(toResponse(srcRes.error));
         }
 
         // 获取同步目标网关的设备列表
-        cubeApiRes = await destGatewayClient.getDeviceList();
-        logger.info(`(service.getSourceGatewaySubDevices) destGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
-        if (cubeApiRes.error === 0) {
-            destGatewayDeviceList = cubeApiRes.data.device_list;
-        } else if (cubeApiRes.error === 401) {
-            await destTokenInvalid();
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID));
-        } else if (cubeApiRes.error === 1000) {
-            logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-            return res.json(toResponse(ERR_CUBEAPI_GET_DEVICE_TIMEOUT));
+        const destRes = await getDestGatewayDeviceGroup();
+        logger.info(`(service.getSourceGatewaySubDevices) destRes: ${JSON.stringify(destRes)}`);
+        if (destRes.error === 0) {
+            destGatewayDeviceList = destRes.data.device_list;
         } else {
-            logger.warn(`(service.getSourceGatewaySubDevices) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
-            return res.json(toResponse(ERR_INTERNAL_ERROR));
+            return res.json(toResponse(destRes.error));
         }
 
         /** 来源 MAC 地址为请求网关 MAC 地址的同步目标网关的设备列表 */
@@ -133,16 +99,6 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
         }
         logger.info(`(service.getSourceGatewaySubDevices) destGatewayDeviceListMatched: ${JSON.stringify(destGatewayDeviceListMatched)}`);
 
-        // 将已经不在同步来源网关中的设备从同步目标网关中删除掉
-        for (const device of destGatewayDeviceListMatched) {
-            const srcGatewayDeviceId = _.get(device, 'tags.__nsproAddonData.deviceId');
-            const found = _.find(srcGatewayDeviceList, { serial_number: srcGatewayDeviceId });
-            if (!found) {
-                cubeApiRes = await destGatewayClient.deleteDevice(device.serial_number);
-                logger.info(`(service.getSourceGatewaySubDevices) destGatewayClient.deleteDevice() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
-            }
-        }
-
         // 将同步来源网关的设备数据与同步目标网关的设备数据相比较
         // 并返回比较结果给前端
         const result = [];
@@ -152,20 +108,22 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
                     name: device.name,
                     id: device.serial_number,
                     from: reqGatewayMac,
-                    isSynced: true
+                    isSynced: true,
+                    isSupported: isSupportDevice(device)
                 });
             } else {
                 result.push({
                     name: device.name,
                     id: device.serial_number,
                     from: reqGatewayMac,
-                    isSynced: false
+                    isSynced: false,
+                    isSupported: isSupportDevice(device)
                 });
             }
         }
 
         logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_SUCCESS`);
-        return res.json(toResponse(ERR_SUCCESS, 'Success', result));
+        return res.json(toResponse(0, 'Success', result));
 
     } catch (error: any) {
         logger.error(`(service.getSourceGatewaySubDevices) error: ${error.message}`);

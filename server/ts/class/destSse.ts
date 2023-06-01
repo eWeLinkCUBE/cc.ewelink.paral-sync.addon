@@ -6,7 +6,7 @@ import sseUtils from "../../utils/sseUtils";
 import tools from "../../utils/tools";
 import db, { IGatewayInfoItem } from "../../utils/db";
 import { srcTokenAndIPInvalid } from "../../utils/dealError";
-import { srcSsePool } from "../../utils/tmp";
+import { updateDestSse } from "../../utils/tmp";
 
 
 export enum ESseStatus {
@@ -24,9 +24,9 @@ export enum ESseStatus {
 /**
  * @description 目标网关SSE类
  * @export
- * @class ServerSentEvent
+ * @class DestServerSentEvent
  */
-export class ServerSentEvent {
+export class DestServerSentEvent {
     /** sse连接的id，默认为网关的mac地址 */
     public connectionId: string;
     /** sse连接初始化参数 */
@@ -56,7 +56,7 @@ export class ServerSentEvent {
 
     /**
      * @description 初始化通用事件
-     * @memberof ServerSentEvent
+     * @memberof DestServerSentEvent
      */
     private _initUniversalEvent() {
         return new Promise(resolve => {
@@ -81,7 +81,7 @@ export class ServerSentEvent {
             this.source.onerror = async (event) => {
                 logger.info('init sse error', event)
                 // 将相关设备下线
-                await srcTokenAndIPInvalid("ip", this.initParams.mac);
+                // await srcTokenAndIPInvalid("ip", this.initParams.mac);
                 if (this.status !== ESseStatus.RECONNECTING) {
                     await this._reconnectSse();
                     this.status = ESseStatus.RECONNECTING;
@@ -94,49 +94,50 @@ export class ServerSentEvent {
 
     /**
      * @description 初始化监听事件
-     * @memberof ServerSentEvent
+     * @memberof DestServerSentEvent
      */
     private _initGatewayEvent() {
         /** 新增设备 */
         this.source.addEventListener('device#v1#addDevice', (event) => {
             const { payload } = JSON.parse(event.data) as IAddDevice;
-            logger.info(`sse ${this.connectionId} added new device ${event.data}`);
+            logger.info(`dest sse ${this.connectionId} added new device ${event.data}`);
             // 同步设备
-            sseUtils.syncOneDevice(payload, this.initParams.mac);
+            sseUtils.syncOneDeviceToSrcForOnline(payload);
         })
 
         /** 设备状态更新 */
         this.source.addEventListener('device#v1#updateDeviceState', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceStateUpdate;
-            logger.info(`sse ${this.connectionId} update device state ${event.data}`);
-            sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
+            logger.info(`dest sse ${this.connectionId} update device state ${event.data}`);
+            // sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备信息更新 */
         this.source.addEventListener('device#v1#updateDeviceInfo', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceInfoUpdate;
-            logger.info(`sse ${this.connectionId} update device info ${event.data}`);
-            sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
+            logger.info(`dest sse ${this.connectionId} update device info ${event.data}`);
+            // sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备上下线 */
         this.source.addEventListener('device#v1#updateDeviceOnline', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceOnOrOffline;
-            logger.info(`sse ${this.connectionId} update device online ${event.data}`);
-            sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
+            logger.info(`dest sse ${this.connectionId} update device online ${event.data}`);
+            // sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备被删除 */
         this.source.addEventListener('device#v1#deleteDevice', (event) => {
-            logger.info(`sse ${this.connectionId} delete device ${event.data}`);
+            logger.info(`dest sse ${this.connectionId} delete device ${event.data}`);
             const { endpoint } = JSON.parse(event.data) as IDeviceDeleted;
+            sseUtils.removeOneDeviceFromDestCache(endpoint);
             // 取消同步设备
-            sseUtils.deleteOneDevice(endpoint, this.initParams.mac);
+            // sseUtils.deleteOneDevice(endpoint, this.initParams.mac);
         })
     }
     /**
      * @description 重连sse
-     * @memberof ServerSentEvent
+     * @memberof DestServerSentEvent
      */
     private async _reconnectSse() {
         // 不论成功或失败 每个长连接实例都只会重试50次
@@ -175,7 +176,7 @@ export class ServerSentEvent {
 
         if (this.status !== ESseStatus.OPEN) {
             // 重连失败
-            // 1.关闭重连 
+            // 1.关闭重连
             // 2.主动关闭sse
             this.status = ESseStatus.CLOSED;
             this.source.close();
@@ -185,8 +186,8 @@ export class ServerSentEvent {
      * @description 生成重试间隔
      * @private
      * @param {number} retryInterval
-     * @returns {number} 
-     * @memberof ServerSentEvent
+     * @returns {number}
+     * @memberof DestServerSentEvent
      */
     private _getRetryInterval(retryInterval: number): number {
         const TWO_HOURS = 7200000;
@@ -203,7 +204,7 @@ export class ServerSentEvent {
     /**
      * @description 更新sse连接参数
      * @param {IGatewayInfoItem} params
-     * @memberof ServerSentEvent
+     * @memberof DestServerSentEvent
      */
     updateSseParams(params: IGatewayInfoItem) {
         this.initParams = params;
@@ -211,9 +212,8 @@ export class ServerSentEvent {
 }
 
 async function buildServerSendEvent(gateway: IGatewayInfoItem) {
-    const stream = new ServerSentEvent(gateway);
-    srcSsePool.set(stream.connectionId, stream);
-    logger.info(`gateway sse connections count:${srcSsePool.size}`);
+    const stream = new DestServerSentEvent(gateway);
+    updateDestSse(stream);
 }
 
 export default {

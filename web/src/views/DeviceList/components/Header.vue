@@ -4,10 +4,7 @@
             <div class="name">{{ $t('DEVICE_LIST') }}</div>
             <div v-if="etcStore.isIPUnableToConnect" class="warning-tip">
                 <warning-outlined />
-                <span>
-                    {{ $t('DEVICE_LIST') }}
-                    <span style="color:red">{{ $t('GATEWAY_IP_INVALID') }}</span>
-                </span>
+                <span style="color: red">{{ $t('GATEWAY_IP_INVALID') }}</span>
             </div>
             <div class="description">{{ $t('SYNCED_FROM_NSPANEL') }}</div>
         </div>
@@ -21,7 +18,7 @@
                 <template #content>
                     <span>{{ $t('ALL_DEVICES') }}</span>
                 </template>
-                <img @click="syncAllDevice" class="all-sync" :class="{ 'disabled-syncAllDevice': isDisabled }" src="@/assets/img/sync-all-device.png" />
+                <img @click="syncAllDevice" class="all-sync" :class="{ 'disabled-syncAllDevice': isDisabled }" :src="isDisabled ? SyncAllDeviceDisabled : SyncAllDevice" />
             </a-popover>
             <img class="setting" @click="goSetting" src="@/assets/img/setting.png" />
         </div>
@@ -37,6 +34,8 @@ import { useEtcStore } from '@/store/etc';
 import { useDeviceStore } from '@/store/device';
 import { message } from 'ant-design-vue';
 import i18n from '@/i18n';
+import SyncAllDeviceDisabled from '@/assets/img/sync-device-disabled.png';
+import SyncAllDevice from '@/assets/img/sync-all-device.png';
 const headerRightRef = ref();
 const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
@@ -51,7 +50,7 @@ const handleAutoSync = async (e: boolean) => {
 };
 
 const syncAllDevice = async () => {
-    if(isDisabled.value)return;
+    if (isDisabled.value) return;
     etcStore.setIsLoading(true);
     const res = await api.NSPanelPro.syncAllDevice();
     if (res.error === 0 && res.data) {
@@ -59,18 +58,18 @@ const syncAllDevice = async () => {
         //根据同步所有设备接口返回的deviceId列表数据，去再次查询设备列表中同步成功的设备
         let count = 0;
         const syncDeviceIdList = res.data?.syncDeviceIdList;
-        if(syncDeviceIdList.length>0 && deviceStore.deviceList.length>0){
-            for(const item of syncDeviceIdList){
-                for(const element of deviceStore.deviceList){
-                    if(item === element.id && element.isSynced){
+        if (syncDeviceIdList.length > 0 && deviceStore.deviceList.length > 0) {
+            for (const item of syncDeviceIdList) {
+                for (const element of deviceStore.deviceList) {
+                    if (item === element.id && element.isSynced) {
                         count++;
                         break;
                     }
                 }
             }
         }
-        if(count>0){
-            message.success(i18n.global.t('DEVICE_SYNC_SUCCESS',{number:count}));
+        if (count > 0) {
+            message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
         }
     }
     etcStore.setIsLoading(false);
@@ -125,13 +124,7 @@ const isDisabled = computed(() => (deviceStore.deviceList.length < 1 ? true : fa
             margin-left: 40px;
         }
         .disabled-syncAllDevice {
-            pointer-events: none;
-            -webkit-filter: grayscale(100%);
-            -moz-filter: grayscale(100%);
-            -ms-filter: grayscale(100%);
-            -o-filter: grayscale(100%);
-            filter: grayscale(100%);
-            user-select: not-allowed;
+            user-select: none;
         }
         .setting {
             height: 27px;

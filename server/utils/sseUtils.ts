@@ -8,8 +8,12 @@ import { createDeviceServiceAddr, createDeviceTags } from '../services/syncOneDe
 import { IThirdpartyDevice } from '../lib/cube-api';
 import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 import sse from '../ts/class/sse';
-import srcSse, { ESseStatus, srcSsePool } from '../ts/class/srcSse';
+import srcSse, { ESseStatus } from '../ts/class/srcSse';
 import CubeApi from '../lib/cube-api';
+import { destSseEvent, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool, updateDestGatewayDeviceGroup, updateSrcGatewayDeviceGroup } from './tmp';
+import destSse from '../ts/class/destSse';
+import { GatewayDeviceItem } from '../ts/interface/CubeApi';
+import { isSupportDevice } from './categoryCapabilityMaping';
 
 
 type IUpdateOneDevice = IUpdateDeviceSate | IUpdateInfoSate | IUpdateOnlineSate
@@ -66,6 +70,23 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
         return;
     }
 
+    // 将新设备添加到缓存数据中
+    const srcGatewayRes = await getSrcGatewayDeviceGroup(mac, true);
+    if (srcGatewayRes.error !== 0) {
+        logger.info(`[sse sync new device] get src gateway device group error ${JSON.stringify(srcGatewayRes)}`);
+        return;
+    }
+
+    const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
+    const curDevice = _.find(srcDeviceGroup, { serial_number });
+    if (!curDevice) {
+        logger.info(`[sse sync new device] new device not exist in SrcGatewayDeviceGroup ${JSON.stringify(srcDeviceGroup)}`);
+        return;
+    }
+    srcDeviceGroup.push(curDevice);
+    await updateSrcGatewayDeviceGroup(mac, srcDeviceGroup);
+
+
     /** 同步目标网关的 eWeLink Cube API client */
     const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
@@ -105,7 +126,8 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
                 id: serial_number,
                 name,
                 from: mac,
-                isSynced: true
+                isSynced: true,
+                isSupported: isSupportDevice(curDevice)
             }
         })
         logger.info(`[sse sync new device]  sync success`);
@@ -138,6 +160,20 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         logger.info(`[sse delete device] target gateway token invalid`);
         return;
     }
+
+
+    // 将设备在缓存的数据中删除
+    const srcGatewayRes = await getSrcGatewayDeviceGroup(srcMac);
+    if (srcGatewayRes.error !== 0) {
+        logger.info(`[sse delete device] get src gateway device group error ${JSON.stringify(srcGatewayRes)}`);
+        return;
+    }
+
+    const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
+    // 删除符合条件的设备
+    _.remove(srcDeviceGroup, { serial_number });
+    // 更新缓存数据
+    await updateSrcGatewayDeviceGroup(srcMac, srcDeviceGroup);
 
     /** 同步目标网关的 eWeLink Cube API client */
     const ApiClient = CubeApi.ihostApi;
@@ -209,6 +245,34 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
         logger.info(`[sse update device online] target gateway token invalid`);
         return;
     }
+
+    // 更新缓存数据
+    const srcGatewayRes = await getSrcGatewayDeviceGroup(srcMac);
+    if (srcGatewayRes.error !== 0) {
+        logger.info(`[sse update device online] get src gateway device group error ${JSON.stringify(srcGatewayRes)}`);
+        return;
+    }
+
+    const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
+    let srcDeviceData = null;
+    srcDeviceGroup.forEach(device => {
+        if (device.serial_number === serial_number) {
+            srcDeviceData = device;
+            if (type === 'info') {
+                device.name = payload.name
+            }
+
+            if (type === 'online') {
+                device.online = payload.online;
+            }
+
+            if (type === 'state') {
+                device.state = payload;
+            }
+        }
+    })
+    await updateSrcGatewayDeviceGroup(srcMac, srcDeviceGroup);
+
     /** 同步目标网关的 eWeLink Cube API client */
     const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
@@ -233,7 +297,8 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
                         id: serial_number,
                         name,
                         from: srcMac,
-                        isSynced: true
+                        isSynced: true,
+                        isSupported: srcDeviceData ? isSupportDevice(srcDeviceData) : false
                     }
                 })
                 logger.info(`[sse update device info] update device ${serial_number} ${syncedDevice.serial_number} success`);
@@ -308,6 +373,80 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
     }
 }
 
+/**
+ * 从同步目标网关设备缓存中删除一条数据
+ *
+ * @param endpoint Cube API 返回的数据
+ */
+async function removeOneDeviceFromDestCache(endpoint: IEndpoint) {
+    const destRes = await getDestGatewayDeviceGroup();
+    if (destRes.error === 0) {
+        const deviceList = destRes.data.device_list;
+        const i = _.findIndex(deviceList, { serial_number: endpoint.serial_number });
+        if (i === -1) {
+            logger.warn(`[sse removeOneDeviceFromDestCache] endpoint device not found`);
+        } else {
+            deviceList.splice(i, 1);
+            await updateDestGatewayDeviceGroup(deviceList);
+        }
+    } else {
+        logger.warn(`[sse removeOneDeviceFromDestCache] get dest gateway device failed`);
+    }
+}
+
+/**
+ * @description 同步已添加设备的在线状态
+ * @param {IAddDevicePayload} device
+ */
+async function syncOneDeviceToSrcForOnline(device: IAddDevicePayload) {
+    const { serial_number, tags } = device;
+    const nsProAddonData = _.get(tags, ["__nsproAddonData"])
+    if (!nsProAddonData) {
+        logger.info(`[dest sse sync new device online] device ${serial_number} not target device`);
+        return;
+    }
+    const { srcGatewayMac, deviceId } = nsProAddonData;
+    /** 同步目标网关的 MAC 地址 */
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
+    if (!destGatewayInfo) {
+        logger.info(`[dest sse sync new device online] target gateway missing`);
+        return;
+    }
+    if (!destGatewayInfo.ipValid) {
+        logger.info(`[dest sse sync new device online] target gateway ip invalid`);
+        return;
+    }
+    if (!destGatewayInfo.tokenValid) {
+        logger.info(`[dest sse sync new device online] target gateway token invalid`);
+        return;
+    }
+
+    /** 缓存的设备列表 */
+    const srcDeviceList = await getSrcGatewayDeviceGroup(srcGatewayMac);
+
+    if (srcDeviceList.error !== 0) {
+        logger.info(`[dest sse sync new device online] get target device list fail ${JSON.stringify(srcDeviceList)}`);
+        return;
+    }
+
+    const curSrcDevice = _.find(srcDeviceList.data.device_list, { serial_number: deviceId });
+    if (!curSrcDevice) {
+        logger.info(`[dest sse sync new device online] device ${deviceId} not found in ${JSON.stringify(srcDeviceList)}`);
+        return;
+    }
+
+    /** 同步目标网关的 eWeLink Cube API client */
+    const ApiClient = CubeApi.ihostApi;
+    const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
+
+    await destGatewayApiClient.updateDeviceOnline({
+        serial_number,
+        third_serial_number: deviceId,
+        params: {
+            online: curSrcDevice.online
+        }
+    })
+}
 
 /**
  * @description 筛选有效网关
@@ -332,8 +471,10 @@ function whichGatewayValid(gateways: IGatewayInfoItem[]): IGatewayInfoItem[] {
  */
 async function checkForSse() {
     logger.info("[checkForSse] init all sse")
-    /** 所有目标网关的信息 */
+    /** 所有来源网关的信息 */
     const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
+    /** 所有目标网关的信息 */
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     /** 有效网关列表 */
     const validGatewayList = whichGatewayValid(srcGatewayInfoList);
     logger.info("[checkForSse] validGatewayList => ", JSON.stringify(validGatewayList))
@@ -348,14 +489,24 @@ async function checkForSse() {
             continue;
         }
 
-        // 有sse的判断状态，不正确则重连
-        if (sse.status === ESseStatus.RECONNECTING) {
-            sse.updateSseParams(gateway);
-            continue;
-        }
-
         srcSsePool.delete(gateway.mac);
         await srcSse.buildServerSendEvent(gateway);
+    }
+
+    if (!destGatewayInfo) {
+        logger.info("[checkForSse] destGatewayInfo doesn't exist", destGatewayInfo);
+        return;
+    }
+
+    if (!destGatewayInfo.tokenValid || !destGatewayInfo.ipValid) {
+        logger.info("[checkForSse] dest gateway token invalid or ip invalid", destGatewayInfo)
+        return;
+    }
+
+    // 目标SSE不存在或者状态不正确直接重新起新的SSE
+    if (!destSseEvent || destSseEvent.status === ESseStatus.CLOSED) {
+        await destSse.buildServerSendEvent(destGatewayInfo);
+        return;
     }
 }
 
@@ -366,5 +517,7 @@ export default {
     syncOneDevice,
     deleteOneDevice,
     updateOneDevice,
-    checkForSse
+    checkForSse,
+    syncOneDeviceToSrcForOnline,
+    removeOneDeviceFromDestCache
 }

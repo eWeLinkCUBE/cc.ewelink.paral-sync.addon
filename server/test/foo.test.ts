@@ -44,21 +44,21 @@ async function test() {
     // cubeApiRes = await apiClient.getBridgeAT({});
     // console.log(JSON.stringify(cubeApiRes));
 
-    const deviceList = createDeviceList(10);
-    console.log('time 1:\n', Date.now());
-    cubeApiRes = await apiClient.syncDevices({ devices: deviceList });
-    console.log('time 2:\n', Date.now());
-    console.log('sync result:\n', JSON.stringify(cubeApiRes));
-    await wait(10000);
+    //const deviceList = createDeviceList(10);
+    //console.log('time 1:\n', Date.now());
+    //cubeApiRes = await apiClient.syncDevices({ devices: deviceList });
+    //console.log('time 2:\n', Date.now());
+    //console.log('sync result:\n', JSON.stringify(cubeApiRes));
+    //await wait(10000);
 
     console.log('time 3:\n', Date.now());
     cubeApiRes = await apiClient.getDeviceList();
     console.log('time 4:\n', Date.now());
     console.log('device:\n', JSON.stringify(cubeApiRes));
 
-    //for (const device of cubeApiRes.data.device_list) {
-    //    await apiClient.deleteDevice(device.serial_number);
-    //}
+    for (const device of cubeApiRes.data.device_list) {
+        await apiClient.deleteDevice(device.serial_number);
+    }
 
 }
 

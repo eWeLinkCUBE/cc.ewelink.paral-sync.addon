@@ -1,106 +1,125 @@
 import _ from 'lodash';
 
+const ERROR_LIST = [
+    {
+        errCode: 0,
+        errMsg: 'Success'
+    },
+    {
+        errCode: 500,
+        errMsg: 'Internel Error'    // 服务端内部错误
+    },
+    {
+        errCode: 501,
+        errMsg: 'No such gateway'   // 无相应的网关信息 DEP
+    },
+    {
+        errCode: 502,
+        errMsg: 'Gateway IP invalid'    // 请求网关的 IP 无效 DEP
+    },
+    {
+        errCode: 503,
+        errMsg: 'Gateway token invalid'    // 请求网关的凭证无效 DEP
+    },
+    {
+        errCode: 504,
+        errMsg: 'DB lock busy'    // 数据库锁繁忙 DEP
+    },
+    {
+        errCode: 600,
+        errMsg: 'eWeLink Cube API - getDeviceList error: token invalid'    // eWeLink Cube API 获取设备列表凭证无效
+    },
+    {
+        errCode: 601,
+        errMsg: 'eWeLink Cube API - getDeviceList error: timeout'    // eWeLink Cube API 获取设备列表请求超时
+    },
+    {
+        errCode: 602,
+        errMsg: 'eWeLink Cube API - syncDevice error: token invalid'    // eWeLink Cube API 添加第三方设备凭证无效
+    },
+    {
+        errCode: 603,
+        errMsg: 'eWeLink Cube API - syncDevice error: timeout'    // eWeLink Cube API 添加第三方设备请求超时
+    },
+    {
+        errCode: 604,
+        errMsg: 'eWeLink Cube API - syncDevice error: params invalid'    // eWeLink Cube API 添加第三方设备参数错误
+    },
+    {
+        errCode: 605,
+        errMsg: 'eWeLink Cube API - getGatewayToken error: token invalid'    // eWeLink Cube API 获取网关凭证无效
+    },
+    {
+        errCode: 606,
+        errMsg: 'eWeLink Cube API - deleteDevice error: token invalid'    // eWeLink Cube API 删除设备凭证无效
+    },
+    {
+        errCode: 607,
+        errMsg: 'eWeLink Cube API - deleteDevice error: timeout'    // eWeLink Cube API 删除设备请求超时
+    },
+    {
+        errCode: 608,
+        errMsg: 'eWeLink Cube API - deleteDevice error: device not found'    // eWeLink Cube API 删除设备不存在
+    },
+    {
+        errCode: 701,
+        errMsg: 'No dest gateway info'    // 无同步目标网关的信息
+    },
+    {
+        errCode: 702,
+        errMsg: 'Dest gateway IP invalid'    // 同步目标网关的 IP 不可用
+    },
+    {
+        errCode: 703,
+        errMsg: 'Dest gateway token invalid'    // 同步目标网关的凭证不可用
+    },
+    {
+        errCode: 1101,
+        errMsg: 'IP can not connect',   // IP 地址无法连接
+    },
+    {
+        errCode: 1400,
+        errMsg: 'NSPro gateway need login'    // NSPro 网关需要登录
+    },
+    {
+        errCode: 1500,
+        errMsg: 'No src gateway info'    // 无同步来源网关的信息
+    },
+    {
+        errCode: 1501,
+        errMsg: 'Src gateway IP invalid'    // 同步来源网关的 IP 不可用
+    },
+    {
+        errCode: 1502,
+        errMsg: 'Src gateway token invalid'    // 同步来源网关的凭证不可用
+    },
+    {
+        errCode: 1503,
+        errMsg: 'Sync device not in src gateway'    // 同步设备不在同步来源网关中
+    },
+    {
+        errCode: 1800,
+        errMsg: 'Unsync device not found'    // 取消同步的设备不存在
+    },
+    {
+        errCode: 2000,
+        errMsg: 'Delete gateway not found'    // 删除的网关不存在
+    },
+];
+
 export function toResponse(error: number, msg?: string, data?: any) {
-    const errorMsg = _.get(ERROR_MAPPING, error);
-
-    const res = {
-        error,
-        msg: msg || errorMsg || 'Internal Error',
-    };
-
-    return data ? Object.assign(res, { data }) : res;
+    const found = _.find(ERROR_LIST, { errCode: error });
+    if (found) {
+        return {
+            error: found.errCode,
+            msg: msg || found.errMsg,
+            data
+        };
+    } else {
+        return {
+            error: 500,
+            msg: msg || 'Internal Error',
+            data
+        };
+    }
 }
-
-// 错误码
-/** 成功 */
-export const ERR_SUCCESS = 0;
-/** 内部错误 */
-export const ERR_INTERNAL_ERROR = 500;
-/** ip无法连接 */
-export const ERR_IP_CAN_NOT_CONNECT = 1101;
-
-/** 无同步目标网关的信息 */
-export const ERR_NO_DEST_GATEWAY_INFO = 701;
-/** 同步目标网关的 IP 不可用 */
-export const ERR_DEST_GATEWAY_IP_INVALID = 702;
-/** 同步目标网关的凭证不可用 */
-export const ERR_DEST_GATEWAY_TOKEN_INVALID = 703;
-
-/** 无同步来源网关的信息 */
-export const ERR_NO_SRC_GATEWAY_INFO = 1500;
-/** 同步来源网关的 IP 不可用 */
-export const ERR_SRC_GATEWAY_IP_INVALID = 1501;
-/** 同步来源网关的凭证不可用 */
-export const ERR_SRC_GATEWAY_TOKEN_INVALID = 1502;
-/** 同步设备不在同步来源网关中 */
-export const ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY = 1503;
-
-/** eWeLink Cube API 获取设备列表凭证无效 */
-export const ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID = 600;
-/** eWeLink Cube API 获取设备列表请求超时 */
-export const ERR_CUBEAPI_GET_DEVICE_TIMEOUT = 601;
-/** eWeLink Cube API 添加第三方设备凭证无效 */
-export const ERR_CUBEAPI_SYNC_DEVICE_TOKEN_INVALID = 602;
-/** eWeLink Cube API 添加第三方设备请求超时 */
-export const ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT = 603;
-/** eWeLink Cube API 添加第三方设备参数错误 */
-export const ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID = 604;
-/** eWeLink Cube API 获取网关凭证无效 */
-export const ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT = 605;
-/** eWeLink Cube API 删除设备凭证无效 */
-export const ERR_CUBEAPI_DELETE_DEVICE_TOKEN_INVALID = 606;
-/** eWeLink Cube API 删除设备请求超时 */
-export const ERR_CUBEAPI_DELETE_DEVICE_TIMEOUT = 607;
-/** eWeLink Cube API 删除设备不存在 */
-export const ERR_CUBEAPI_DELETE_DEVICE_NOT_FOUND = 608;
-
-/** 无相应的网关信息 */
-export const ERR_NO_SUCH_GATEWAY = 501;
-/** 请求网关的 IP 无效 */
-export const ERR_GATEWAY_IP_INVALID = 502;
-/** 请求网关的凭证无效 */
-export const ERR_GATEWAY_TOKEN_INVALID = 503;
-/** 数据库锁繁忙 */
-export const ERR_DB_LOCK_BUSY = 504;
-
-/** NSPro 需要登录 */
-export const ERR_NSPRO_NEED_LOGIN = 1400;
-
-/** 取消同步的设备不存在 */
-export const ERR_UNSYNC_DEVICE_NOT_FOUND = 1800;
-
-/** 删除的网关不存在 */
-export const ERR_DELETE_GATEWAY_NOT_FOUND = 2000;
-
-// 错误映射
-const ERROR_MAPPING: any = {};
-ERROR_MAPPING[ERR_SUCCESS] = 'Success';
-ERROR_MAPPING[ERR_INTERNAL_ERROR] = 'Internal Error';
-
-ERROR_MAPPING[ERR_NO_DEST_GATEWAY_INFO] = 'No dest gateway info';
-ERROR_MAPPING[ERR_DEST_GATEWAY_IP_INVALID] = 'Dest gateway IP invalid';
-ERROR_MAPPING[ERR_DEST_GATEWAY_TOKEN_INVALID] = 'Dest gateway token invalid';
-
-ERROR_MAPPING[ERR_NO_SRC_GATEWAY_INFO] = 'No src gateway info';
-ERROR_MAPPING[ERR_SRC_GATEWAY_IP_INVALID] = 'Src gateway IP invalid';
-ERROR_MAPPING[ERR_SRC_GATEWAY_TOKEN_INVALID] = 'Src gateway token invalid';
-ERROR_MAPPING[ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY] = 'Sync device not in src gateway';
-
-ERROR_MAPPING[ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID] = 'eWeLink Cube API - getDeviceList error: token invalid';
-ERROR_MAPPING[ERR_CUBEAPI_GET_DEVICE_TIMEOUT] = 'eWeLink Cube API - getDeviceList error: timeout';
-ERROR_MAPPING[ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID] = 'eWeLink Cube API - syncDevice error: token invalid';
-ERROR_MAPPING[ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT] = 'eWeLink Cube API - syncDevice error: timeout';
-ERROR_MAPPING[ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID] = 'eWeLink Cube API - syncDevice error: params invalid';
-ERROR_MAPPING[ERR_CUBEAPI_GET_GATEWAY_TOKEN_TIMEOUT] = 'eWeLink Cube API - getGatewayToken error: token invalid';
-ERROR_MAPPING[ERR_CUBEAPI_DELETE_DEVICE_TOKEN_INVALID] = 'eWeLink Cube API - deleteDevice error: token invalid';
-ERROR_MAPPING[ERR_CUBEAPI_DELETE_DEVICE_TIMEOUT] = 'eWeLink Cube API - deleteDevice error: timeout';
-ERROR_MAPPING[ERR_CUBEAPI_DELETE_DEVICE_NOT_FOUND] = 'eWeLink Cube API - deleteDevice error: device not found';
-
-ERROR_MAPPING[ERR_NO_SUCH_GATEWAY] = 'No such gateway';
-ERROR_MAPPING[ERR_GATEWAY_IP_INVALID] = 'Gateway IP invalid';
-ERROR_MAPPING[ERR_GATEWAY_TOKEN_INVALID] = 'Gateway token invalid';
-ERROR_MAPPING[ERR_DB_LOCK_BUSY] = 'DB lock busy';
-
-ERROR_MAPPING[ERR_UNSYNC_DEVICE_NOT_FOUND] = 'Unsync device not found';
-
-ERROR_MAPPING[ERR_DELETE_GATEWAY_NOT_FOUND] = 'Delete gateway not found';
