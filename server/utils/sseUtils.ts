@@ -10,7 +10,7 @@ import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 import sse from '../ts/class/sse';
 import srcSse, { ESseStatus } from '../ts/class/srcSse';
 import CubeApi from '../lib/cube-api';
-import { destSseEvent, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool, updateSrcGatewayDeviceGroup } from './tmp';
+import { destSseEvent, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool, updateDestGatewayDeviceGroup, updateSrcGatewayDeviceGroup } from './tmp';
 import destSse from '../ts/class/destSse';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 
@@ -368,7 +368,26 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
     }
 }
 
-
+/**
+ * 从同步目标网关设备缓存中删除一条数据
+ *
+ * @param endpoint Cube API 返回的数据
+ */
+async function removeOneDeviceFromDestCache(endpoint: IEndpoint) {
+    const destRes = await getDestGatewayDeviceGroup();
+    if (destRes.error === 0) {
+        const deviceList = destRes.data.device_list;
+        const i = _.findIndex(deviceList, { serial_number: endpoint.serial_number });
+        if (i === -1) {
+            logger.warn(`[sse removeOneDeviceFromDestCache] endpoint device not found`);
+        } else {
+            deviceList.splice(i, 1);
+            await updateDestGatewayDeviceGroup(deviceList);
+        }
+    } else {
+        logger.warn(`[sse removeOneDeviceFromDestCache] get dest gateway device failed`);
+    }
+}
 
 /**
  * @description 同步已添加设备的在线状态
@@ -494,5 +513,6 @@ export default {
     deleteOneDevice,
     updateOneDevice,
     checkForSse,
-    syncOneDeviceToSrcForOnline
+    syncOneDeviceToSrcForOnline,
+    removeOneDeviceFromDestCache
 }
