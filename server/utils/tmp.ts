@@ -158,10 +158,10 @@ export async function updateDestGatewayDeviceGroup(deviceList: GatewayDeviceItem
  * @export
  * @returns {*}  {Promise<IResponse>}
  */
-export async function getDestGatewayDeviceGroup(): Promise<IResponse> {
+export async function getDestGatewayDeviceGroup(noCache = false): Promise<IResponse> {
 
     // 存在直接返回
-    if (destGatewayDeviceGroup.length) {
+    if (destGatewayDeviceGroup.length && !noCache) {
         return {
             error: 0,
             msg: "success",
