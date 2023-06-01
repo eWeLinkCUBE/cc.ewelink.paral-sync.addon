@@ -74,6 +74,7 @@ export const useDeviceStore = defineStore('addon_device', {
             };
 
             const res = await api.NSPanelPro.getDeviceList(mac);
+            this.deviceList = [];
             if (res.error === 0 && res.data) {
                 this.nsProLogin = true;
                 this.deviceList = res.data;
@@ -81,7 +82,6 @@ export const useDeviceStore = defineStore('addon_device', {
                     return device.spinLoading=false;
                 });
             }else{
-                this.deviceList = [];
                 if(res.error === 1400){
                     this.nsProLogin = false;
                 }

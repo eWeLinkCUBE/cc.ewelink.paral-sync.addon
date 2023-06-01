@@ -52,3 +52,17 @@ export function checkIpValid(ipAddress:string){
     }
     return true;
 }
+
+/**
+ *
+ * 睡眠函数
+ * @date 01/06/2023
+ * @param {number} time
+ */
+export function sleep(time: number) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(1);
+        }, time)
+    })
+}
