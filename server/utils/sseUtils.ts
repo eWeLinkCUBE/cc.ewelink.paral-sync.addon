@@ -442,13 +442,28 @@ async function syncOneDeviceToSrcForOnline(device: IAddDevicePayload) {
 
     /** 缓存的设备列表 */
     const srcDeviceList = await getSrcGatewayDeviceGroup(srcGatewayMac);
-
+    const destDeviceList = await getDestGatewayDeviceGroup();
+    logger.info(`[dest sse sync new device online] srcDeviceList ${JSON.stringify(srcDeviceList)}`);
     if (srcDeviceList.error !== 0) {
         logger.info(`[dest sse sync new device online] get target device list fail ${JSON.stringify(srcDeviceList)}`);
         return;
     }
 
+    if (destDeviceList.error !== 0) {
+        logger.info(`[dest sse sync new device online] get dest device list fail ${JSON.stringify(destDeviceList)}`);
+        return;
+    }
+
+    const curDestDevice = _.find(destDeviceList.data.device_list, { serial_number });
+    if (!curDestDevice) {
+        destDeviceList.data.device_list.push(device);
+        await updateDestGatewayDeviceGroup(destDeviceList.data.device_list);
+        logger.info(`[dest sse sync new device online] dest device ${serial_number} not exist in cache, added it.`);
+        return;
+    }
+
     const curSrcDevice = _.find(srcDeviceList.data.device_list, { serial_number: deviceId });
+    logger.info(`[dest sse sync new device online] curSrcDevice ${JSON.stringify(curSrcDevice)}`);
     if (!curSrcDevice) {
         logger.info(`[dest sse sync new device online] device ${deviceId} not found in ${JSON.stringify(srcDeviceList)}`);
         return;
@@ -458,13 +473,14 @@ async function syncOneDeviceToSrcForOnline(device: IAddDevicePayload) {
     const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
 
-    await destGatewayApiClient.updateDeviceOnline({
+    const updateOnlineRes = await destGatewayApiClient.updateDeviceOnline({
         serial_number,
         third_serial_number: deviceId,
         params: {
             online: curSrcDevice.online
         }
     })
+    logger.info(`[dest sse sync new device online] updateOnlineRes ${JSON.stringify(updateOnlineRes)}`);
 }
 
 /**
