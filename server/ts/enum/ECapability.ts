@@ -1,25 +1,71 @@
 enum ECapability {
-    RSSI = 'rssi',
+    /** 电源通断状态 */
     POWER = 'power',
+    /** 表示无线信号强度 */
+    RSSI = 'rssi',
+    /** 固件升级 */
+    OTA = 'ota',
+    /** 当前检测 */
+    DETECT = 'detect',
+    /** 电池剩余电量 */
+    BATTERY = 'battery',
+    /** 开关能力 */
     TOGGLE = 'toggle',
-    //功率检测
-    ELECTRIC_POWER = 'electric-power',
-    VOLTAGE = 'voltage',
-    ELECTRIC_CURRENT = 'electric-current',
-    //功率统计
-    POWER_CONSUMPTION = 'power-consumption',
-    BRIGHTNESS = 'brightness',
-    COLOR_TEMPERATURE = 'color-temperature',
-    COLOR_RGB = 'color-rgb',
-
-    TEMPERATURE = 'temperature',
-    HUMIDITY = 'humidity',
-    //模式控制
-    MODE = 'mode',
-    MOTOR_CONTROL = 'motor-control',
+    /** (窗帘)某种程度的百分比 */
     PERCENTAGE = 'percentage',
-    //行程校准
+    /** (窗帘)电机开合状态 */
+    MOTOR_CONTROL = 'motor-control',
+    /** (窗帘)电机正反转设置 */
+    MOTOR_REVERSE = 'motor-reverse',
+    /** 窗帘校准行程 */
     MOTOR_CLB = 'motor-clb',
+    /** 温度 */
+    TEMPERATURE = 'temperature',
+    /** 相对湿度 */
+    HUMIDITY = 'humidity',
+    /** 按键 */
     PRESS = 'press',
+    /** 颜色 */
+    COLOR_RGB = 'color-rgb',
+    /** 色温 */
+    COLOR_TEMPERATURE = 'color-temperature',
+    /** 亮度 */
+    BRIGHTNESS = 'brightness',
+    /** 摄像头视频流能力 */
+    CAMERA_STREAM = 'camera-stream',
+    /** 通电反应 */
+    STARTUP = 'startup',
+    /** 功能配置 */
+    CONFIGURATION = 'configuration',
+    /** 水分 */
+    MOISTURE = 'moisture',
+    /** 气压 */
+    BAROMETRIC_PRESSURE = 'barometric-pressure',
+    /** 风速 */
+    WIND_SPEED = 'wind-speed',
+    /** 风向 */
+    WIND_DIRECTION = 'wind-direction',
+    /** 降水量 */
+    RAINFALL = 'rainfall',
+    /** 光照度 */
+    ILLUMINATION = 'illumination',
+    /** 紫外线指数 */
+    ULTRAVIOLET_INDEX = 'ultraviolet-index',
+    /** 二氧化碳 */
+    CO2 = 'co2',
+    /** 电导率 */
+    ELECTRICAL_CONDUCTIVITY = 'electrical-conductivity',
+    /** 系统 */
+    SYSTEM = 'system',
+    /** 电量统计 */
+    POWER_CONSUMPTION = 'power-consumption',
+    /** 电压 */
+    VOLTAGE = 'voltage',
+    /** 功率 */
+    ELECTRIC_POWER = 'electric-power',
+    /** 电流 */
+    ELECTRIC_CURRENT = 'electric-current',
+    /** 风扇灯模式 */
+    MODE = 'mode',
 }
 export default ECapability;
