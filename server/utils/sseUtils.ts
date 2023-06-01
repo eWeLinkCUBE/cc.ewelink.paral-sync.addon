@@ -76,7 +76,7 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
         return;
     }
 
-    const srcDeviceGroup = srcGatewayRes.data as GatewayDeviceItem[];
+    const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
     const curDevice = _.find(srcDeviceGroup, { serial_number });
     if (!curDevice) {
         logger.info(`[sse sync new device] new device not exist in SrcGatewayDeviceGroup ${JSON.stringify(srcDeviceGroup)}`);
@@ -167,7 +167,7 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
         return;
     }
 
-    const srcDeviceGroup = srcGatewayRes.data as GatewayDeviceItem[];
+    const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
     // 删除符合条件的设备
     _.remove(srcDeviceGroup, { serial_number });
     // 更新缓存数据
@@ -251,7 +251,7 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
         return;
     }
 
-    const srcDeviceGroup = srcGatewayRes.data as GatewayDeviceItem[];
+    const srcDeviceGroup = srcGatewayRes.data.device_list as GatewayDeviceItem[];
     srcDeviceGroup.forEach(device => {
         if (device.serial_number === serial_number) {
             if (type === 'info') {
@@ -405,7 +405,7 @@ async function syncOneDeviceToSrcForOnline(device: IAddDevicePayload) {
         return;
     }
 
-    const curSrcDevice = _.find(srcDeviceList.data, { serial_number: deviceId });
+    const curSrcDevice = _.find(srcDeviceList.data.device_list, { serial_number: deviceId });
     if (!curSrcDevice) {
         logger.info(`[dest sse sync new device online] device ${deviceId} not found in ${JSON.stringify(srcDeviceList)}`);
         return;
@@ -415,7 +415,7 @@ async function syncOneDeviceToSrcForOnline(device: IAddDevicePayload) {
     const ApiClient = CubeApi.ihostApi;
     const destGatewayApiClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
 
-    destGatewayApiClient.updateDeviceOnline({
+    await destGatewayApiClient.updateDeviceOnline({
         serial_number,
         third_serial_number: deviceId,
         params: {
