@@ -47,7 +47,7 @@ async function updateMDnsGateway(gatewayInfo: IGatewayInfo) {
     let srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
     srcGatewayInfoList = srcGatewayInfoList.map((item) => {
         if (item.deviceId === gatewayInfo.deviceId) {
-            item.ip = gatewayInfo.ip;
+            item.ip = gatewayInfo.ip + ':8081';
             item.ipValid = true;
         }
         return item;
