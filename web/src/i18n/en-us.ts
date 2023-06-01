@@ -46,6 +46,7 @@ const en = {
     NS_PRO_LOGIN:' 是否已在 NSPanel Pro 中登录易微联账号',
     PLEASE_INPUT_IP:'Please enter ip',
     PLEASE_INPUT_RIGHT_IP:'Please enter a correct ip',
+    NOT_SUPPORTED:'Not yet supported',
 }
 
 export default en;

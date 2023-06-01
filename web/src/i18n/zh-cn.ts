@@ -46,6 +46,7 @@ const cn = {
     NS_PRO_LOGIN:' 是否已在 NSPanel Pro 中登录易微联账号（缺）',
     PLEASE_INPUT_IP:'请输入ip',
     PLEASE_INPUT_RIGHT_IP:'请输入一个正确的ip',
+    NOT_SUPPORTED:'暂未支持',
 };
 
 export default cn;

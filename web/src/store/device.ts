@@ -5,7 +5,6 @@ import _ from 'lodash';
 import type { IGateWayInfoData , IAddDeviceData, INsProDeviceData} from '@/api/ts/interface/IGateWay';
 import router from '@/router';
 import moment from 'moment';
-import { message } from 'ant-design-vue';
 
 interface IDeviceState {
     /** 用户所处的步骤 */
@@ -44,7 +43,7 @@ export const useDeviceStore = defineStore('addon_device', {
             }else{
                 this.iHostList = [];
             }
-            console.log('res',res);
+            console.log('iHostList res',res);
             return res;
         },
 
@@ -69,6 +68,7 @@ export const useDeviceStore = defineStore('addon_device', {
             });
 
             if(!mac){
+                console.log('nsPro Gateway mac lose');
                 router.push('/setting');
                 return;
             };
@@ -99,8 +99,8 @@ export const useDeviceStore = defineStore('addon_device', {
             });
         },
 
-        /** 根据id去修改nsPro的数据列表（同步的时候不再查询列表） */
-        modifyNsProListById(id:string|number,status:boolean){
+        /** 根据id去修改nsPro的数据列表同步状态数据（同步的时候不再查询列表接口） */
+        modifyDeviceSyncStatusById(id:string|number,status:boolean){
             if(this.deviceList.length<1)return;
             this.deviceList.map((item)=>{
                 if(item.id === id){
@@ -119,7 +119,6 @@ export const useDeviceStore = defineStore('addon_device', {
             this.nsProList = this.nsProList.map((element)=>{
                 return element.mac === item.mac ? item :element;
             });
-            console.log('失败时的时间差------------>',moment(moment()).diff(moment(Number(item.ts)), 'seconds'));
         },
 
         /** nsPanePro网关信息推送（区分新增还是修改）*/
