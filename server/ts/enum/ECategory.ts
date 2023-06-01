@@ -1,8 +1,28 @@
+/** 设备类别 */
 enum ECategory {
+    /* 插座 **/
+    PLUG = 'plug',
+    /* 开关 **/
     SWITCH = 'switch',
-    LIGHT = 'light',
+    /* 窗帘 **/
     CURTAIN = 'curtain',
-    FAN_LIGHT = 'fanLight',
+    /* 灯 **/
+    LIGHT = 'light',
+    /* 水浸 **/
+    WATER_LEAK_DETECTOR = 'waterLeakDetector',
+    /* 烟感 **/
+    SMOKE_DETECTOR = 'smokeDetector',
+    /* 无线按钮 **/
     BUTTON = 'button',
+    /* 温湿度传感器 **/
+    TEMPERATURE_AND_HUMIDITY_SENSOR = 'temperatureAndHumiditySensor',
+    /* 温度传感器 **/
+    TEMPERATURE_SENSOR = 'temperatureSensor',
+    /* 湿度传感器 **/
+    HUMIDITY_SENSOR = 'humiditySensor',
+    /** 门磁 */
+    CONTACT_SENSOR = 'contactSensor',
+    /* 人体传感器 **/
+    MOTION_SENSOR = 'motionSensor',
 }
 export default ECategory;
