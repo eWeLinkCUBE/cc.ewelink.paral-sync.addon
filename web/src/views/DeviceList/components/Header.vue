@@ -42,7 +42,7 @@ const headerRightRef = ref();
 const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
 const retryTime = ref(0);
-const maxRetryTime = ref(15);
+const MAX_RETRY_TIME = 15;
 
 /** 自动同步所有设备按钮 */
 const handleAutoSync = async (e: boolean) => {
@@ -106,7 +106,7 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
         return;
     }else{
         retryTime.value++;
-        if(retryTime.value <= maxRetryTime.value){
+        if(retryTime.value <= MAX_RETRY_TIME){
             await deviceStore.getDeviceList();
             await sleep(2000);//15*2=30(s)
             await deviceSyncSuccessNum(syncDeviceIdList);
