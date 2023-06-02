@@ -35,7 +35,7 @@ const en = {
     GET_IT:'Got it',
     SYNC_ALL_DEVICE_WAIT:'Syncing all devices, please wait',
     GATEWAY_IP_INVALID:'IP is unreachable, please go to the setting page and click "Search Device" to enter the IP address to reconnect',
-    DEVICE_SYNC_SUCCESS:'{number} 个设备同步成功(缺)',
+    DEVICE_SYNC_SUCCESS:'{number} devices synced successfully',
     IHOST_IP_INVALID:'{name} IP is unreachable',
     TOKEN_INVALID:'{name} expired. Click to reacquire a valid access token',
     NS_PRO_IP_CANT_ACCESS:'{name} IP is unreachable,Please click "Search device" and enter an IP address to reconnect',
@@ -47,7 +47,7 @@ const en = {
     PLEASE_INPUT_IP:'Please enter ip',
     PLEASE_INPUT_RIGHT_IP:'Please enter a correct ip',
     NOT_SUPPORTED:'Not yet supported',
-    SYNC_FAIL:'同步失败（缺）'
+    SYNC_FAIL:'Sync device failed'
 }
 
 export default en;
