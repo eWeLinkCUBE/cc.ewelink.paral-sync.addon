@@ -61,25 +61,23 @@ export class ServerSentEvent {
     private _initUniversalEvent() {
         return new Promise(resolve => {
             this.source.onopen = async (event) => {
-                logger.info(`init ${this.connectionId} sse success`, event);
-                const { ipValid, tokenValid, mac } = this.initParams;
+                logger.info(`src sse init ${this.connectionId} sse success`, event);
+                const { ipValid, tokenValid } = this.initParams;
                 // token失效和ip失效时要改正
                 if (!ipValid || !tokenValid) {
-                    logger.info(`init ${this.connectionId} sse ip invalid => ${ipValid} or token invalid ${tokenValid}, correct it now`);
+                    logger.info(`src sse init ${this.connectionId} sse ip invalid => ${ipValid} or token invalid ${tokenValid}, correct it now`);
                     this.initParams.ipValid = true;
                     this.initParams.tokenValid = true;
-                    // 替换数据
-                    const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
-                    const curIndex = _.findIndex(srcGatewayInfoList, { mac });
-                    srcGatewayInfoList[curIndex] = this.initParams;
-                    await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
+                    await this._updateSseParams();
                 }
                 this.status = ESseStatus.OPEN;
                 this._initGatewayEvent();
                 resolve(true);
             }
             this.source.onerror = async (event) => {
-                logger.info('init sse error', event)
+                logger.info('src sse init sse error', event)
+                // 替换数据
+                await this._updateSseParams();
                 // 将相关设备下线
                 await srcTokenAndIPInvalid("ip", this.initParams.mac);
                 if (this.status !== ESseStatus.RECONNECTING) {
@@ -100,7 +98,7 @@ export class ServerSentEvent {
         /** 新增设备 */
         this.source.addEventListener('device#v1#addDevice', (event) => {
             const { payload } = JSON.parse(event.data) as IAddDevice;
-            logger.info(`sse ${this.connectionId} added new device ${event.data}`);
+            logger.info(`src sse ${this.connectionId} added new device ${event.data}`);
             // 同步设备
             sseUtils.syncOneDevice(payload, this.initParams.mac);
         })
@@ -108,27 +106,27 @@ export class ServerSentEvent {
         /** 设备状态更新 */
         this.source.addEventListener('device#v1#updateDeviceState', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceStateUpdate;
-            logger.info(`sse ${this.connectionId} update device state ${event.data}`);
+            logger.info(`src sse ${this.connectionId} update device state ${event.data}`);
             sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备信息更新 */
         this.source.addEventListener('device#v1#updateDeviceInfo', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceInfoUpdate;
-            logger.info(`sse ${this.connectionId} update device info ${event.data}`);
+            logger.info(`src sse ${this.connectionId} update device info ${event.data}`);
             sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备上下线 */
         this.source.addEventListener('device#v1#updateDeviceOnline', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceOnOrOffline;
-            logger.info(`sse ${this.connectionId} update device online ${event.data}`);
+            logger.info(`src sse ${this.connectionId} update device online ${event.data}`);
             sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
         })
 
         /** 设备被删除 */
         this.source.addEventListener('device#v1#deleteDevice', (event) => {
-            logger.info(`sse ${this.connectionId} delete device ${event.data}`);
+            logger.info(`src sse ${this.connectionId} delete device ${event.data}`);
             const { endpoint } = JSON.parse(event.data) as IDeviceDeleted;
             // 取消同步设备
             sseUtils.deleteOneDevice(endpoint, this.initParams.mac);
@@ -145,16 +143,16 @@ export class ServerSentEvent {
             if (this.status !== ESseStatus.OPEN) {
                 // 每次重连之前都关闭连接
                 this.source.close();
-                console.log(`sse reconnecting for ${retryCount} 次`);
-                console.log(`sse reconnect for ${retryCount} times begins in ${Date.now()}`);
+                console.log(`src sse reconnecting for ${retryCount} 次`);
+                console.log(`src sse reconnect for ${retryCount} times begins in ${Date.now()}`);
                 // 尝试重连
                 const { ip, token } = this.initParams;
                 const url = `http://${ip}/open-api/v1/sse/bridge?access_token=${token}`;
-                console.log(`sse reconnection url is ${url}`);
+                console.log(`src sse reconnection url is ${url}`);
                 this.source = new EventSource(url);
                 const res = await this._initUniversalEvent();
                 if (!res) {
-                    console.log(`sse reconnect for ${retryCount} time fails in ${Date.now()}`);
+                    console.log(`src sse reconnect for ${retryCount} time fails in ${Date.now()}`);
                     this.retryCount++;
                     if (retryCount + 1 > this.maxRetry) {
                         console.log(`reach the max retry count`);
@@ -167,7 +165,7 @@ export class ServerSentEvent {
                     continue;
                 }
             }
-            console.log(`sse reconnect for ${retryCount} 次成功`);
+            console.log(`src sse reconnect for ${retryCount} 次成功`);
             // 将重连次数清零
             this.retryCount = 0;
             break;
@@ -202,18 +200,22 @@ export class ServerSentEvent {
     }
     /**
      * @description 更新sse连接参数
-     * @param {IGatewayInfoItem} params
      * @memberof ServerSentEvent
      */
-    updateSseParams(params: IGatewayInfoItem) {
-        this.initParams = params;
+    private async _updateSseParams() {
+        const { mac } = this.initParams;
+        const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
+        logger.info(`[src sse update sse params] get ${mac} gatewayInfoList ${JSON.stringify(srcGatewayInfoList)}`);
+        const curIndex = _.findIndex(srcGatewayInfoList, { mac });
+        logger.info(`[src sse update sse params] update ${mac} for curIndex ${curIndex}`);
+        this.initParams = srcGatewayInfoList[curIndex] ? srcGatewayInfoList[curIndex] : this.initParams;
     }
 }
 
 async function buildServerSendEvent(gateway: IGatewayInfoItem) {
     const stream = new ServerSentEvent(gateway);
     srcSsePool.set(stream.connectionId, stream);
-    logger.info(`gateway sse connections count:${srcSsePool.size}`);
+    logger.info(`src sse connections count:${srcSsePool.size}`);
 }
 
 export default {
