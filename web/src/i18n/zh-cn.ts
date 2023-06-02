@@ -34,11 +34,11 @@ const cn = {
     GET_NS_PRO_TOKEN:'获取NSPanel Pro 的token',
     GET_IT:'我知道了',
     SYNC_ALL_DEVICE_WAIT:'正在同步所有设备，请稍等',
-    GATEWAY_IP_INVALID:'网关name IP无法连接，请到设置页面检查并更新(缺)',
-    DEVICE_SYNC_SUCCESS:'{number} 个设备同步成功（缺）',
+    GATEWAY_IP_INVALID:'网关name IP无法连接，请到设置页面检查并更新',
+    DEVICE_SYNC_SUCCESS:'{number} 个设备同步成功',
     IHOST_IP_INVALID:'{name} IP无法访问',
-    TOKEN_INVALID:'{name} token已失效，请重新获取token(缺)',
-    NS_PRO_IP_CANT_ACCESS:'{name} IP无法访问，请点击“查找”按钮重新输入IP,连接成功后恢复使用(缺)',
+    TOKEN_INVALID:'{name} token已失效，请重新获取token',
+    NS_PRO_IP_CANT_ACCESS:'{name} IP无法访问，请点击“查找”按钮重新输入IP,连接成功后恢复使用',
     SYNC_SUCCESS:'同步成功',
     CANCEL_SYNC_SUCCESS:'取消同步成功',
     GET_DEVICE_FAIL:'设备获取失败，请检查：（缺）',
@@ -47,7 +47,7 @@ const cn = {
     PLEASE_INPUT_IP:'请输入ip',
     PLEASE_INPUT_RIGHT_IP:'请输入一个正确的ip',
     NOT_SUPPORTED:'暂未支持',
-    SYNC_FAIL:'同步失败（缺）'
+    SYNC_FAIL:'同步失败'
 };
 
 export default cn;
