@@ -1,5 +1,5 @@
 <template>
-     <!-- nsPro 提示框 -->
+    <!-- nsPro 提示框 -->
     <a-modal :visible="nsProTipModalVisible" destroyOnClose :maskClosable="false" centered :closable="false" width="504px" class="NsPro-Modal">
         <template #title>
             <div class="nsPro-title">{{ i18n.global.t('GET_NS_PRO_TOKEN') }}</div>
@@ -7,7 +7,7 @@
         <div class="search-content" style="padding-bottom: 20px">
             <h3>{{ i18n.global.t('STEP2') }}</h3>
             <a-carousel autoplay>
-                <div class="swiper-item" v-for="(item, index) in autoplayImageList" :key="index">
+                <div class="swiper-item" v-for="(item, index) in (language ? zh_autoplayImageList : en_autoplayImageList)" :key="index">
                     <img class="swiper-image" :src="item.imgSrc" />
                 </div>
             </a-carousel>
@@ -21,19 +21,31 @@
 </template>
 
 <script setup lang="ts">
+import { useEtcStore } from '@/store/etc';
 import i18n from '@/i18n/index';
-import Setting from '@/assets/img/setting-modal.png';
-import Machine from '@/assets/img/machine-modal.png';
-import Click from '@/assets/img/click-modal.png';
-import Token from '@/assets/img/token-modal.png';
+//中文图
+import Setting_zh from '@/assets/img/setting-modal-zh.png';
+import Machine_zh from '@/assets/img/machine-modal-zh.png';
+import Click_zh from '@/assets/img/click-modal-zh.png';
+import Token_zh from '@/assets/img/token-modal-zh.png';
+//英文图
+import Setting_en from '@/assets/img/setting-modal-en.png';
+import Machine_en from '@/assets/img/machine-modal-en.png';
+import Click_en from '@/assets/img/click-modal-en.png';
+import Token_en from '@/assets/img/token-modal-en.png';
 const props = defineProps<{
     nsProTipModalVisible: boolean;
 }>();
+const etcStore = useEtcStore();
 /** 关闭弹窗回调 */
 const emits = defineEmits(['closeNsProTipModal']);
 const closeNsProTipModal = () => emits('closeNsProTipModal');
-/** 轮播图列表 */
-const autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting }, { imgSrc: Machine }, { imgSrc: Click }, { imgSrc: Token }];
+/** 当前语言环境 */
+const language = computed(() => etcStore.language === 'zh-cn');
+/** 英文轮播图列表 */
+const en_autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting_zh }, { imgSrc: Machine_zh }, { imgSrc: Click_zh }, { imgSrc: Token_zh }];
+/** 中文轮播图列表 */
+const zh_autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting_en }, { imgSrc: Machine_en }, { imgSrc: Click_en }, { imgSrc: Token_en }];
 </script>
 
 <style scoped lang="scss">

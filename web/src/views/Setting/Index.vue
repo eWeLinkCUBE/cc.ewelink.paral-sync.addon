@@ -185,8 +185,8 @@ const nextStep = () => {
 /** 点击完成 */
 const goDeviceListPage = () => {
     if (!hasNsProToken.value) return;
+    deviceStore.setStep(stepsList.THIRD);
     router.push('/deviceList');
-    deviceStore.setStep(stepsList.FIRST);
 };
 </script>
 

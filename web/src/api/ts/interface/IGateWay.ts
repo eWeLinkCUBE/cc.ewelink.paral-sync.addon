@@ -36,9 +36,11 @@ export interface INsProDeviceData{
 
 export enum stepsList{
     /**第一步 */
-    FIRST='first',
+    FIRST = 'first',
     /** 第二步 */
-    SECOND='second',
+    SECOND ='second',
+    /** 第三步 */
+    THIRD = 'third'
 }
 /** SSE子设备删除 */
 export interface IDeleteDeviceData {
