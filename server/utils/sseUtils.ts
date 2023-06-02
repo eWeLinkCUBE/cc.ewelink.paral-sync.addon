@@ -459,7 +459,6 @@ async function syncOneDeviceToSrcForOnline(device: IAddDevicePayload) {
         destDeviceList.data.device_list.push(device);
         await updateDestGatewayDeviceGroup(destDeviceList.data.device_list);
         logger.info(`[dest sse sync new device online] dest device ${serial_number} not exist in cache, added it.`);
-        return;
     }
 
     const curSrcDevice = _.find(srcDeviceList.data.device_list, { serial_number: deviceId });
