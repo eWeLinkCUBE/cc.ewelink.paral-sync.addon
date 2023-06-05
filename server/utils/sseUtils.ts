@@ -14,6 +14,7 @@ import { destSseEvent, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcS
 import destSse from '../ts/class/destSse';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import { isSupportDevice } from './categoryCapabilityMaping';
+import { getSwitchChannelNum } from './tools';
 
 
 type IUpdateOneDevice = IUpdateDeviceSate | IUpdateInfoSate | IUpdateOnlineSate
@@ -351,13 +352,33 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
 
         if (type === 'state') {
             // 更新设备信息和状态
-            const uploadRes = await destGatewayApiClient.uploadDeviceState({
+            let deviceUpdateState = null;
+            const channelNum = getSwitchChannelNum(srcDeviceData as any);
+            const powerState = _.get(payload, 'power.powerState');
+            if (powerState && channelNum !== 0) {
+                // 适配多通道设备
+                const toggle = {};
+                for (let i = 1; i <= channelNum; i++) {
+                    _.set(toggle, i, { toggleState: powerState });
+                }
+                deviceUpdateState = {
+                    power: {
+                        powerState
+                    },
+                    toggle
+                };
+            } else {
+                deviceUpdateState = payload;
+            }
+            const params = {
                 serial_number: syncedDevice.serial_number,
                 third_serial_number: serial_number,
                 params: {
-                    state: payload
+                    state: deviceUpdateState
                 }
-            })
+            };
+            logger.info(`[sse update device state] uploadDeviceState params: ${JSON.stringify(params)}`);
+            const uploadRes = await destGatewayApiClient.uploadDeviceState(params)
             logger.info(`[sse update device state] uploadDeviceState res: ${JSON.stringify(uploadRes)}`);
 
             const resError = _.get(uploadRes, 'error');
