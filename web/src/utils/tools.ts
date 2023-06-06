@@ -16,24 +16,28 @@ import i18n from '@/i18n';
 
 /**
  *
- * 错误码处理（设备列表页面用到的所有接口根据错误码跳转设置页对应的步骤）
+ * 错误码处理
  * @date 29/05/2023
  * @export
  * @param {number} errCode
  * @returns {*}
  */
 export function jumpCorrespondStep(errCode:number){
+    //设置页面用到的所有接口根据错误码跳转设置页对应的步骤，设置页面只红字提示
+    if (location.hash.indexOf('/deviceList') !== -1) return;
     const deviceStore = useDeviceStore();
     const step1List = [ 602,603,604,606,607,608,701,702,703 ];
     const step2List = [ 501,502,503,600,601,1500,1501,1502,1503];
     if(step1List.includes(errCode)){
         deviceStore.setStep(stepsList.FIRST);
         router.push('/setting');
+        deviceStore.getIHostGateWatList();
         console.log('errCode jump first step--------->',errCode,deviceStore.step);
     }
     if(step2List.includes(errCode)){
         deviceStore.setStep(stepsList.SECOND);
         router.push('/setting');
+        deviceStore.getNsProGateWayList();
         console.log('errCode jump second step--------->',errCode,deviceStore.step);
     }
 }
@@ -47,42 +51,43 @@ export function jumpCorrespondStep(errCode:number){
  */
 export function handleIpAndToken(errCode:number){
     const deviceStore = useDeviceStore();
-    let ipToken ={
-        status:true,
-        message:'',
-        step:deviceStore.step
-    }
-    console.log('errCode111111111111',errCode);
+    let ipTokenMsg =''
+    let ipTokenStep = deviceStore.step;
     if([701,702,703,1500,1501,1502].includes(errCode)){
-        ipToken.status = false;
+        deviceStore.setIpTokenStatus(false);
         console.log('errCode2222222222',errCode);
         switch(errCode){
+            //无目标网关信息、IP失效
             case 701:
             case 702:
-                ipToken.message = i18n.global.t('GATEWAY_IP_INVALID',{name:'iHost'});
-                ipToken.step = stepsList.FIRST;
-                deviceStore.getIHostGateWatList();
+                ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'iHost'});
+                ipTokenStep = stepsList.FIRST;
+                // deviceStore.getIHostGateWatList();
                 break;
+            //目标网关token失效
             case 703:
-                ipToken.message = i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'iHost'});
-                ipToken.step = stepsList.FIRST;
-                deviceStore.getIHostGateWatList();
+                ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'iHost'});
+                ipTokenStep = stepsList.FIRST;
+                // deviceStore.getIHostGateWatList();
                 break;
+            //无来源网关信息、IP失效
             case 1500:
             case 1501:
-                ipToken.message = i18n.global.t('GATEWAY_IP_INVALID',{name:'NsPanelPro'});
-                ipToken.step = stepsList.SECOND;
-                deviceStore.getNsProGateWayList();
+                ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'NsPanelPro'});
+                ipTokenStep = stepsList.SECOND;
+                // deviceStore.getNsProGateWayList();
                 break;
+            //来源网关token失效
             case 1502:
-                ipToken.message = i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'NsPanelPro'});
-                ipToken.step = stepsList.SECOND;
-                deviceStore.getNsProGateWayList();
+                ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'NsPanelPro'});
+                ipTokenStep = stepsList.SECOND;
+                // deviceStore.getNsProGateWayList();
                 break;
             default:
                 break;
         }
-        deviceStore.setIpTokenStatus(ipToken);
+        deviceStore.setIpTokenMsg(ipTokenMsg);
+        deviceStore.setIpTokenStep(ipTokenStep);
     }
 }
 
