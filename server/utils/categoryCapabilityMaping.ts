@@ -19,12 +19,22 @@ const categoryCapabilityObj = {
     [ECategory.MOTION_SENSOR]: [ECapability.DETECT],
 };
 
+/** 当前iHost不支持的设备能力 */
+const unSupportCapabilityList = [ECapability.IDENTIFY, ECapability.THERMOSTAT_MODE_DETECT, ECapability.TAMPER_ALERT, ECapability.MULTI_PRESS];
+
 /** 根据设备类别和设备能力判断该设备在iHost中是否支持 */
 export function isSupportDevice(deviceData: GatewayDeviceItem) {
     const { display_category, capabilities } = deviceData;
 
     //设备能力
-    const deviceCapabilityList = capabilities.map((item: { capability: any }) => item.capability);
+    const deviceCapabilityList = capabilities.map((item: { capability: ECapability }) => item.capability);
+
+    //是否存在不支持的能力
+    const isExistUnSupportCapability = deviceCapabilityList.some((item: ECapability) => unSupportCapabilityList.includes(item));
+    //设备存在不支持的能力，显示为不支持
+    if (isExistUnSupportCapability) {
+        return false;
+    }
 
     //必要能力
     const minCapabilityList = _.get(categoryCapabilityObj, display_category, []);
