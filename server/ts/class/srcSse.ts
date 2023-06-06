@@ -78,8 +78,11 @@ export class ServerSentEvent {
                 logger.info('src sse init sse error', event)
                 // 替换数据
                 await this._updateSseParams();
-                // 将相关设备下线
-                await srcTokenAndIPInvalid("ip", this.initParams.mac);
+                // 检查ip是否仍为无效，是则将相关设备下线
+                if (!this.initParams.ipValid) {
+                    logger.info(`src sse init sse error ip still false ${JSON.stringify(this.initParams, null, 2)}`)
+                    await srcTokenAndIPInvalid("ip", this.initParams.mac);
+                }
                 if (this.status !== ESseStatus.RECONNECTING) {
                     await this._reconnectSse();
                     this.status = ESseStatus.RECONNECTING;
@@ -209,6 +212,7 @@ export class ServerSentEvent {
         const curIndex = _.findIndex(srcGatewayInfoList, { mac });
         logger.info(`[src sse update sse params] update ${mac} for curIndex ${curIndex}`);
         this.initParams = srcGatewayInfoList[curIndex] ? srcGatewayInfoList[curIndex] : this.initParams;
+        logger.info(`[src sse update sse params] final update result ${JSON.stringify(this.initParams, null, 2)}`);
     }
 }
 
