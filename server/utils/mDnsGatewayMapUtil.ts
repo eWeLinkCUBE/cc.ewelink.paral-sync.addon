@@ -52,7 +52,7 @@ async function updateMDnsGateway(gatewayInfo: IGatewayInfo) {
         }
         return item;
     });
-    logger.info('update---------------------mdns-------------db', srcGatewayInfoList);
+    logger.info('update---------------------mdns-------------db', JSON.stringify(srcGatewayInfoList));
     await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
 }
 

@@ -47,7 +47,7 @@ mDns.on('response', (response: any) => {
 
     if (isExistInMDns) {
         mDnsGatewayMapUtil.updateMDnsGateway(gatewayInfo);
-        logger.info('updateMDnsGateway----------------------', gatewayInfo);
+        logger.info('updateMDnsGateway----------------------', JSON.stringify(gatewayInfo));
         return;
     }
 
