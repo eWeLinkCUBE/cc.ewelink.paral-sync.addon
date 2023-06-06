@@ -2,9 +2,9 @@
     <div class="header">
         <div class="header-left">
             <div class="name">{{ $t('DEVICE_LIST') }}</div>
-            <div v-if="!status" class="warning-tip">
+            <div v-if="!deviceStore.ipToken" class="warning-tip">
                 <warning-outlined />
-                <span class="warning">{{ msg }}</span>
+                <span class="warning">{{ deviceStore.ipTokenMsg }}</span>
             </div>
             <div class="description">{{ $t('SYNCED_FROM_NSPANEL') }}</div>
         </div>
@@ -44,8 +44,6 @@ const deviceStore = useDeviceStore();
 const retryTime = ref(0);
 const MAX_RETRY_TIME = 15;
 
-const status = computed(() => deviceStore.ipToken.status);
-const msg = computed(() => deviceStore.ipToken.message);
 
 /** 自动同步所有设备按钮 */
 const handleAutoSync = async (e: boolean) => {
@@ -76,7 +74,7 @@ const syncAllDevice = async () => {
 
 /** 返回设置页面 */
 const goSetting = () => {
-    const step = deviceStore.ipToken.step === stepsList.THIRD ? stepsList.FIRST : deviceStore.ipToken.step;
+    const step = deviceStore.ipTokenStep === stepsList.THIRD ? stepsList.FIRST : deviceStore.ipTokenStep;
     deviceStore.setStep(step);
     router.push('/setting');
 };

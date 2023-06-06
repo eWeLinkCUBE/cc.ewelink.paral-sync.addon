@@ -6,7 +6,8 @@ import { jumpCorrespondStep ,handleIpAndToken } from '@/utils/tools'
 function ErrorCodeHandle(error: number) {
 
     /** 错误码统一处理 */
-    // jumpCorrespondStep(error);
+    jumpCorrespondStep(error);
+    /** ip或token失效的提示 */
     handleIpAndToken(error);
 
     //如果不存在错误码的翻译，不弹出错误消息

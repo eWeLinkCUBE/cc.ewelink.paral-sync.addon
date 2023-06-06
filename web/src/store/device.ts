@@ -15,12 +15,12 @@ interface IDeviceState {
     nsProList:IGateWayInfoData[],
     /** 网关下所有的子设备 */
     deviceList: INsProDeviceData[],
-    /** ip和token的状态以及提示语 */
-    ipToken:{
-        status:boolean,
-        message:string,
-        step:stepsList
-    }
+    /** ip和token有效状态 */
+    ipToken:boolean,
+     /** ip和token失效的提示语 */
+    ipTokenMsg:string,
+    /** ip和token发生错误的步骤 */
+    ipTokenStep:stepsList
 }
 
 export const useDeviceStore = defineStore('addon_device', {
@@ -30,11 +30,9 @@ export const useDeviceStore = defineStore('addon_device', {
             iHostList:[],
             nsProList:[],
             deviceList:[],
-            ipToken:{
-                status:true,
-                message:'',
-                step:stepsList.FIRST
-            }
+            ipToken:true,
+            ipTokenMsg:'',
+            ipTokenStep:stepsList.FIRST
         };
     },
     actions: {
@@ -79,6 +77,7 @@ export const useDeviceStore = defineStore('addon_device', {
             if(!mac){
                 console.log('nsPro Gateway mac lose');
                 this.deviceList = [];
+                // this.setStep(stepsList.FIRST);
                 // router.push('/setting');
                 return;
             };
@@ -165,9 +164,19 @@ export const useDeviceStore = defineStore('addon_device', {
             this.deviceList.push(device);
         },
 
-        /** 设置提示页面的ip和token有效性以及提示语 */
-        setIpTokenStatus(ipToken:{status:boolean,message:string,step:stepsList}){
+        /** 设置ip和token是否有效的提示 */
+        setIpTokenStatus(ipToken:boolean){
             this.ipToken = ipToken;
+        },
+
+        /** 设置提示页面的ip和token的提示语 */
+        setIpTokenMsg(ipTokenMsg:string){
+            this.ipTokenMsg = ipTokenMsg;
+        },
+
+        /** 设置ip和token失效时候该去的步骤 */
+        setIpTokenStep(ipTokenStep:stepsList){
+            this.ipTokenStep = ipTokenStep;
         }
     },
     getters: {

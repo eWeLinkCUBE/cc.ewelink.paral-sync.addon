@@ -53,7 +53,6 @@ const loading = ref(false);
 
 onMounted(async () => {
     loading.value = true;
-    await deviceStore.getNsProGateWayList();
     await deviceStore.getDeviceList();
     loading.value = false;
 });

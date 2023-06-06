@@ -26,7 +26,7 @@ const en = {
     SYNC:'Sync',
     DONE:'Done',
     NO_DATA: 'No Data',
-    PLEASE_START_IN_IHOST:'Please install "Add-on name" in iHost',
+    PLEASE_START_IN_IHOST:'Please install "ewelink/nspanelpro.addon" in iHost',
     IP_FAILED:'IP is unreachable',
     IP_FIND:'Search device',
     CANCEL:'Cancel',

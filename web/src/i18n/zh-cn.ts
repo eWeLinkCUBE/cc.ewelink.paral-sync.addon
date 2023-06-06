@@ -26,7 +26,7 @@ const cn = {
     SYNC:'同步',
     DONE:'完成',
     NO_DATA: '暂无数据',
-    PLEASE_START_IN_IHOST:'请在 iHost中安装运行“Add-on name”',
+    PLEASE_START_IN_IHOST:'请在 iHost中安装运行“ewelink/nspanelpro.addon”',
     IP_FAILED:'IP无法访问',
     IP_FIND:'IP查找',
     CANCEL:'取消',

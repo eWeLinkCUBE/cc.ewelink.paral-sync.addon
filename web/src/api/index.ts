@@ -46,7 +46,11 @@ axios.interceptors.response.use((response): any => {
         const skipCommonError = url && url.includes("initiate-with-offer");
 
         //每次请求将ip和token置为有效，ErrorCodeHandle方法中出现指定错误时置为无效
-        deviceStore.setIpTokenStatus({status:true,message:'',step:deviceStore.step});
+        if(!url?.includes('auto-sync')){
+            deviceStore.setIpTokenStatus(true);
+            deviceStore.setIpTokenMsg('');
+            deviceStore.setIpTokenStep(deviceStore.step);
+        }
 
         // console.log('url', url);
         // console.log('status', status);
