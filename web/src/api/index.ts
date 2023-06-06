@@ -5,6 +5,8 @@ import NSPanelPro from './NSPanelPro';
 import { useEtcStore } from '@/store/etc';
 import ErrorCodeHandle from '@/utils/ErrorCodeHandle';
 import { emitter } from '@/main';
+import { useDeviceStore } from '@/store/device';
+import { stepsList } from './ts/interface/IGateWay';
 
 /**
  * 存在at时，必须先调用该方法 初始化at
@@ -31,6 +33,7 @@ function getAt() {
 axios.interceptors.response.use((response): any => {
     // console.log('GavinLog ~ axios.interceptors.response.use ~ response', response);
     // console.log('response', response);
+    const deviceStore = useDeviceStore();
 
     if (response) {
         const {
@@ -41,6 +44,10 @@ axios.interceptors.response.use((response): any => {
 
         const { error } = data;
         const skipCommonError = url && url.includes("initiate-with-offer");
+
+        //每次请求将ip和token置为有效，ErrorCodeHandle方法中出现指定错误时置为无效
+        deviceStore.setIpTokenStatus({status:true,message:'',step:deviceStore.step});
+
         // console.log('url', url);
         // console.log('status', status);
         // console.log('error', error);

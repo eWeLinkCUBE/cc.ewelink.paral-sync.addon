@@ -43,9 +43,9 @@ const closeNsProTipModal = () => emits('closeNsProTipModal');
 /** 当前语言环境 */
 const language = computed(() => etcStore.language === 'zh-cn');
 /** 英文轮播图列表 */
-const en_autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting_zh }, { imgSrc: Machine_zh }, { imgSrc: Click_zh }, { imgSrc: Token_zh }];
+const en_autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting_en }, { imgSrc: Machine_en }, { imgSrc: Click_en }, { imgSrc: Token_en }];
 /** 中文轮播图列表 */
-const zh_autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting_en }, { imgSrc: Machine_en }, { imgSrc: Click_en }, { imgSrc: Token_en }];
+const zh_autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting_zh }, { imgSrc: Machine_zh }, { imgSrc: Click_zh }, { imgSrc: Token_zh }];
 </script>
 
 <style scoped lang="scss">

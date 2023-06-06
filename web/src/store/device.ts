@@ -15,12 +15,11 @@ interface IDeviceState {
     nsProList:IGateWayInfoData[],
     /** 网关下所有的子设备 */
     deviceList: INsProDeviceData[],
-    /** nsPro是否登录 */
-    nsProLogin:boolean,
     /** ip和token的状态以及提示语 */
     ipToken:{
         status:boolean,
         message:string,
+        step:stepsList
     }
 }
 
@@ -31,10 +30,10 @@ export const useDeviceStore = defineStore('addon_device', {
             iHostList:[],
             nsProList:[],
             deviceList:[],
-            nsProLogin:false,
             ipToken:{
-                status:false,
-                message:''
+                status:true,
+                message:'',
+                step:stepsList.FIRST
             }
         };
     },
@@ -79,22 +78,18 @@ export const useDeviceStore = defineStore('addon_device', {
 
             if(!mac){
                 console.log('nsPro Gateway mac lose');
-                router.push('/setting');
+                this.deviceList = [];
+                // router.push('/setting');
                 return;
             };
 
             const res = await api.NSPanelPro.getDeviceList(mac);
             this.deviceList = [];
             if (res.error === 0 && res.data) {
-                this.nsProLogin = true;
                 this.deviceList = res.data;
                 this.deviceList.map((device) => {
                     return device.spinLoading=false;
                 });
-            }else{
-                if(res.error === 1400){
-                    this.nsProLogin = false;
-                }
             }
             return res;
         },
@@ -171,7 +166,7 @@ export const useDeviceStore = defineStore('addon_device', {
         },
 
         /** 设置提示页面的ip和token有效性以及提示语 */
-        setIpTokenStatus(ipToken:{status:boolean,message:string}){
+        setIpTokenStatus(ipToken:{status:boolean,message:string,step:stepsList}){
             this.ipToken = ipToken;
         }
     },

@@ -26,21 +26,10 @@
                 <div class="loading" v-if="loading">
                     <a-spin></a-spin>
                 </div>
-                <!-- 没登陆或者空状态 -->
+                <!-- 空状态 -->
                 <div v-else>
-                    <img :src="nsProLogin ? Empty : NoLogin" alt="" :class="nsProLogin ? 'no-data' : 'nsPro-no-login'" />
-                    <!-- 登录了设备列表为空 -->
-                    <p v-if="nsProLogin">
-                        {{ i18n.global.t('NO_DATA') }}
-                    </p>
-                    <!-- 没有登录nsPro -->
-                    <div v-else class="nsPro_no_login">
-                        <p style="margin-top: 16px">{{ i18n.global.t('GET_DEVICE_FAIL') }}</p>
-                        <ul>
-                            <li>{{ i18n.global.t('NS_PRO_RUN_NORMAL') }}</li>
-                            <li>{{ i18n.global.t('NS_PRO_LOGIN') }}</li>
-                        </ul>
-                    </div>
+                    <img :src="Empty" alt="" class="no-data" />
+                    <p>{{ i18n.global.t('NO_DATA') }}</p>
                 </div>
             </div>
         </div>
@@ -61,7 +50,6 @@ import NoLogin from '@/assets/img/no-login.png';
 const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
 const loading = ref(false);
-const nsProLogin = computed(() => deviceStore.nsProLogin);
 
 onMounted(async () => {
     loading.value = true;

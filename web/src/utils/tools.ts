@@ -36,8 +36,6 @@ export function jumpCorrespondStep(errCode:number){
         router.push('/setting');
         console.log('errCode jump second step--------->',errCode,deviceStore.step);
     }
-
-    // handleIpAndToken(errCode);
 }
 
 /**
@@ -50,30 +48,42 @@ export function jumpCorrespondStep(errCode:number){
 export function handleIpAndToken(errCode:number){
     const deviceStore = useDeviceStore();
     let ipToken ={
-        status:false,
-        message:''
+        status:true,
+        message:'',
+        step:deviceStore.step
     }
-    if([702,703,1501,1502].includes(errCode)){
-        ipToken.status = true
+    console.log('errCode111111111111',errCode);
+    if([701,702,703,1500,1501,1502].includes(errCode)){
+        ipToken.status = false;
+        console.log('errCode2222222222',errCode);
         switch(errCode){
+            case 701:
             case 702:
                 ipToken.message = i18n.global.t('GATEWAY_IP_INVALID',{name:'iHost'});
+                ipToken.step = stepsList.FIRST;
+                deviceStore.getIHostGateWatList();
                 break;
             case 703:
                 ipToken.message = i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'iHost'});
+                ipToken.step = stepsList.FIRST;
+                deviceStore.getIHostGateWatList();
                 break;
+            case 1500:
             case 1501:
                 ipToken.message = i18n.global.t('GATEWAY_IP_INVALID',{name:'NsPanelPro'});
+                ipToken.step = stepsList.SECOND;
+                deviceStore.getNsProGateWayList();
                 break;
             case 1502:
                 ipToken.message = i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'NsPanelPro'});
+                ipToken.step = stepsList.SECOND;
+                deviceStore.getNsProGateWayList();
                 break;
             default:
-                ipToken.message = '';
                 break;
         }
+        deviceStore.setIpTokenStatus(ipToken);
     }
-    deviceStore.setIpTokenStatus(ipToken);
 }
 
 /**
