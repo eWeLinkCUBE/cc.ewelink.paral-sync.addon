@@ -1,17 +1,18 @@
 <template>
-    <!-- 正常显示 -->
+    <!-- Normal display -->
     <div class="setting" v-if="startInIHost === 'NORMAL'">
         <span class="title">{{ i18n.global.t('SETTING') }}</span>
+
         <!-- steps 1-->
         <div v-if="steps === stepsList.FIRST">
             <div class="step-info">
                 <div>
                     <p class="step-title">{{ i18n.global.t('STEP01_TOKEN') }}</p>
                     <div class="step-description">{{ i18n.global.t('GET_ACCESS_TOKEN') }}</div>
-                    <div class="step-description" style="color: red" v-if="iHostIpOrTokenInvalid">
-                        <img alt="" src="@/assets/img/notice.png" class="notice"/>
-                        <span v-if="!deviceStore.effectIHostIp">{{ i18n.global.t('IHOST_IP_INVALID', { name: deviceStore.iHostList[0].name || '' }) }}</span>
-                        <span v-if="!deviceStore.effectIHostToken">{{ i18n.global.t('TOKEN_INVALID', { name: deviceStore.iHostList[0].name || '' }) }}</span>
+                    <!-- ip失效、token失效 -->
+                    <div class="step-description" style="color: red; font-size: 14px" v-if="deviceStore.iHostTokenFail || !deviceStore.effectIHostIp">
+                        <img alt="" src="@/assets/img/notice.png" class="notice" />
+                        {{ iHostErrorMsg }}
                     </div>
                 </div>
             </div>
@@ -22,6 +23,7 @@
                 <a @click="nextStep" :class="{ 'disabled-btn': !hasIHostToken }">{{ i18n.global.t('NEXT') }} ></a>
             </div>
         </div>
+
         <!-- steps 2-->
         <div v-if="steps === stepsList.SECOND">
             <div class="step-info">
@@ -32,15 +34,15 @@
                         <img :class="isRefresh ? 'rotate' : ''" src="@/assets/img/refresh.png" @click="handleRefresh" />
                     </div>
                     <div class="step-description">{{ i18n.global.t('STEP2') }}</div>
-                    <div class="step-description" style="color: red" v-if="nsProExistIpInValid">
-                        <img alt="" src="@/assets/img/notice.png" class="notice"/>
-                        <span v-if="deviceStore.hasOneInvalidNsProIP">{{ i18n.global.t('NS_PRO_IP_CANT_ACCESS', { name: nsProIpInvalidNameStr }) }}</span>
-                        <span v-if="deviceStore.hasOneInvalidNsProToken">{{ i18n.global.t('TOKEN_INVALID', { name: nsProTokenInvalidNameStr }) }}</span>
+                    <!-- ip失效、token失效 -->
+                    <div class="step-description" style="color: red; font-size: 14px" v-if="nsProExistIpInValid">
+                        <img alt="" src="@/assets/img/notice.png" class="notice" />
+                       {{ nsProErrorMsg }}
                     </div>
                 </div>
             </div>
             <div class="card-list">
-                <GateWayCard v-for="(item, index) in deviceStore.nsProList" :key="index" :gateWayData="item" :type="'nsPro'" @openNsProTipModal="openNsProTipModal" />
+                <GateWayCard v-for="(item, index) in deviceStore.nsProList" :key="index" :gateWayData="item" :type="'nsPro'" @openNsProTipModal="nsProTipModalVisible = true" />
                 <!-- ip search -->
                 <div class="card" :class="{ 'disabled-card': deviceStore.hasTokenOrTs }" @click="findIpVisible = true">
                     <img src="@/assets/img/search.png" />
@@ -52,19 +54,23 @@
             </div>
         </div>
     </div>
-    <!-- 未在iHost启动 -->
+
+    <!-- Not started on iHost -->
     <div class="not-in-iHost" v-else-if="startInIHost === 'UNUSUAL'">
         <img src="@/assets/img/not-in-iHost.png" />
         <div>{{ i18n.global.t('PLEASE_START_IN_IHOST') }}</div>
     </div>
-    <!-- 加载首页的loading -->
+
+    <!-- the first step loading -->
     <div class="loading" v-else>
         <a-spin class="spin"></a-spin>
     </div>
 
-    <LinkIpModal :findIpVisible="findIpVisible" @closeLinkIpModal="closeLinkIpModal" v-if="findIpVisible"/>
+    <!-- link nsPro ip Modal -->
+    <LinkIpModal :findIpVisible="findIpVisible" @closeLinkIpModal="findIpVisible = false" v-if="findIpVisible" />
 
-    <GetNsProTokenModal :nsProTipModalVisible="nsProTipModalVisible" @closeNsProTipModal="closeNsProTipModal" v-if="nsProTipModalVisible"/>
+    <!-- Get nsPro token tip Modal -->
+    <GetNsProTokenModal :nsProTipModalVisible="nsProTipModalVisible" @closeNsProTipModal="nsProTipModalVisible = false" v-if="nsProTipModalVisible" />
 </template>
 
 <script setup lang="ts">
@@ -83,72 +89,80 @@ const steps = computed(() => deviceStore.step);
 
 /** 查找ip弹窗 */
 const findIpVisible = ref(false);
-/** 关闭link弹窗 */
-const closeLinkIpModal = () =>{
-    findIpVisible.value = false;
-}
+
 /** nsPro 提示框 */
 const nsProTipModalVisible = ref(false);
-/** 打开nsPro提示框 */
-const openNsProTipModal = () => {
-    nsProTipModalVisible.value = true;
-};
-/** 关闭nsPro提示框 */
-const closeNsProTipModal = () =>{
-    nsProTipModalVisible.value = false;
-}
+
 /** 在iHost启动、正常展示 、loading*/
 const startInIHost = ref<'UNUSUAL' | 'NORMAL' | 'LOADING'>('LOADING');
+
 /** 刷新按钮状态 */
 const isRefresh = ref(false);
-/** 是否获取iHost的token */
+
+/** 能点击下一步，ip一定要有效、token也一定要有效 */
 const hasIHostToken = computed(() => deviceStore.effectIHostIp && deviceStore.effectIHostToken);
+
+/** iHost 异常提示语 */
+const iHostErrorMsg = computed(() => {
+    let msg = '';
+    const name = deviceStore.iHostList[0].name || '';
+    const mac = deviceStore.iHostList[0].mac || '';
+    /** ip失效 */
+    if (!deviceStore.effectIHostIp) {
+        msg += i18n.global.t('IHOST_IP_INVALID', { name: `${name}(${mac})` });
+    }
+    /** ip失效 + token失效 */
+    if (deviceStore.iHostTokenFail && !deviceStore.effectIHostIp) {
+        msg += ' 、';
+    }
+    /** token失效 */
+    if (deviceStore.iHostTokenFail) {
+        msg += i18n.global.t('TOKEN_INVALID', { name: `${name}(${mac})` });
+    }
+    return msg;
+});
+
+/** nsPro异常提示语 */
+const nsProErrorMsg = computed(() => {
+    let msg = '';
+    /** 存在一个ip失效的nsPro */
+    if (deviceStore.hasOneInvalidNsProIP) {
+        let ipFailMsg = '';
+        deviceStore.nsProList.forEach((item, idx) => {
+            if (!item.ipValid) {
+                const name = `${item.name}(${item.mac})`;
+                const symbol = idx !== deviceStore.nsProList.length - 1 ? '、' : '';
+                ipFailMsg += (name + '' + symbol);
+            }
+        });
+        msg += i18n.global.t('NS_PRO_IP_CANT_ACCESS', { name: ipFailMsg });
+    }
+
+    /** 中间的分隔符号 */
+    if(deviceStore.hasOneInvalidNsProIP && deviceStore.hasOneInvalidNsProToken){
+        msg += ' ; ';
+    }
+
+    /** 存在一个token失效的nsPro（tokenValid为false、token有值） */
+    if (deviceStore.hasOneInvalidNsProToken) {
+        let tokenFailMsg = ''
+        deviceStore.nsProList.forEach((item, idx) => {
+            if (!item.tokenValid && item.token) {
+                const name = `${item.name}(${item.mac})`;
+                const symbol = idx !== deviceStore.nsProList.length - 1 ? '、' : '';
+                tokenFailMsg += (name + '' + symbol);
+            }
+        });
+        msg += i18n.global.t('TOKEN_INVALID', { name: tokenFailMsg });
+    }
+    return msg;
+});
+
 /** 是否获取到一个nsPro的ip有效token */
 const hasNsProToken = computed(() => deviceStore.nsProList.some((item) => item.tokenValid && item.ipValid));
-/** iHost的ip不能访问或者token失效 */
-const iHostIpOrTokenInvalid = computed(() =>{
-    //曾经获取过token，token才会有值
-    const onceObtainedToken = deviceStore.iHostList.some((item)=>item.token);
-    //ip无效 或者 onceObtainedToken+token无效
-    return !deviceStore.effectIHostIp || (!deviceStore.effectIHostToken && onceObtainedToken);
-});
-/**nsPro中ip不能访问的网关*/
-const nsProIpInvalidNameStr = ref('');
-/** nsPro中token无效的网关 */
-const nsProTokenInvalidNameStr = ref('');
+
 /** nsPro是否存在不能访问或者token失效的网关 */
 const nsProExistIpInValid = computed(() => deviceStore.hasOneInvalidNsProIP || deviceStore.hasOneInvalidNsProToken);
-
-/** ip失效或者token失效的网关名 */
-watch(
-    () => [deviceStore.hasOneInvalidNsProIP, deviceStore.hasOneInvalidNsProToken],
-    () => {
-        nsProIpInvalidNameStr.value = '';
-        nsProTokenInvalidNameStr.value = '';
-        //存在一个ip失效的nsPro
-        if (deviceStore.hasOneInvalidNsProIP) {
-            deviceStore.nsProList.forEach((item) => {
-                if (!item.ipValid) {
-                    nsProIpInvalidNameStr.value = nsProIpInvalidNameStr.value + item.name + '、';
-                }
-            });
-            if (nsProIpInvalidNameStr.value.lastIndexOf('、') !== -1) {
-                nsProIpInvalidNameStr.value = nsProIpInvalidNameStr.value.substring(0, nsProIpInvalidNameStr.value.length - 1);
-            }
-        }
-        //存在一个token失效的nsPro
-        if (deviceStore.hasOneInvalidNsProToken) {
-            deviceStore.nsProList.forEach((item) => {
-                if (!item.tokenValid) {
-                    nsProTokenInvalidNameStr.value = nsProTokenInvalidNameStr.value + item.name + '、';
-                }
-            });
-            if(nsProTokenInvalidNameStr.value.lastIndexOf('、')!==-1){
-                nsProTokenInvalidNameStr.value = nsProTokenInvalidNameStr.value.substring(0,nsProTokenInvalidNameStr.value.length-1);
-            }
-        }
-    }
-);
 
 /** 判断获取iHost列表还是nsPro的列表 */
 onMounted(async () => {
@@ -185,8 +199,8 @@ const nextStep = () => {
 /** 点击完成 */
 const goDeviceListPage = () => {
     if (!hasNsProToken.value) return;
+    deviceStore.setStep(stepsList.THIRD);
     router.push('/deviceList');
-    deviceStore.setStep(stepsList.FIRST);
 };
 </script>
 
@@ -220,8 +234,8 @@ const goDeviceListPage = () => {
                 cursor: pointer;
                 margin-bottom: 2px;
             }
-            .notice{
-                width:18px;
+            .notice {
+                width: 18px;
                 height: 16px;
                 margin-right: 8px;
                 margin-bottom: 2px;

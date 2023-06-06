@@ -17,6 +17,11 @@ interface IDeviceState {
     deviceList: INsProDeviceData[],
     /** nsPro是否登录 */
     nsProLogin:boolean,
+    /** ip和token的状态以及提示语 */
+    ipToken:{
+        status:boolean,
+        message:string,
+    }
 }
 
 export const useDeviceStore = defineStore('addon_device', {
@@ -27,6 +32,10 @@ export const useDeviceStore = defineStore('addon_device', {
             nsProList:[],
             deviceList:[],
             nsProLogin:false,
+            ipToken:{
+                status:false,
+                message:''
+            }
         };
     },
     actions: {
@@ -55,6 +64,7 @@ export const useDeviceStore = defineStore('addon_device', {
             }else{
                 this.nsProList = [];
             }
+            console.log('nsPro res',this.nsProList);
             return res;
         },
 
@@ -158,6 +168,11 @@ export const useDeviceStore = defineStore('addon_device', {
             //loading状态
             device.spinLoading = false;
             this.deviceList.push(device);
+        },
+
+        /** 设置提示页面的ip和token有效性以及提示语 */
+        setIpTokenStatus(ipToken:{status:boolean,message:string}){
+            this.ipToken = ipToken;
         }
     },
     getters: {
@@ -186,6 +201,10 @@ export const useDeviceStore = defineStore('addon_device', {
         /** iHost网关的token有效,iHost只有一个 */
         effectIHostToken(state){
             return state.iHostList.some((item)=>item.tokenValid);
+        },
+        /** iHost的token失效，曾经获取过token*/
+        iHostTokenFail(state){
+            return state.iHostList.some((item)=>!item.tokenValid && item.token);
         },
         /** nsPro网关存在至少一个失效的IP */
         hasOneInvalidNsProIP(state){

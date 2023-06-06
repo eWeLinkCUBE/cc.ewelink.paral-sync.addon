@@ -14,24 +14,17 @@ const deviceStore = useDeviceStore();
 const sseStore = useSseStore();
 onMounted(() => {
     sseStore.startSse();
-    //判断有没有token，跳转对应的页面
-    // judgeToken();
+    keepPageInRefresh();
 });
-const judgeToken = () =>{
-    const hsaOneIHostToken = deviceStore.iHostList.some((item)=>(item.tokenValid&&item.ipValid));
-    if(deviceStore.iHostList.length < 1 || !hsaOneIHostToken){
-        console.log('app.vue jump first step----------》');
-        deviceStore.setStep(stepsList.FIRST);
+const keepPageInRefresh = () =>{
+    // 在全流程正常的情况下刷新页面要求停留在当前页面,此处调用先于接口
+    if([stepsList.FIRST,stepsList.SECOND].includes(deviceStore.step)){
+        console.log('keep page 1 when refresh');
         router.push('/setting');
-        return;
     }
-
-    const hsaOneNsProToken = deviceStore.nsProList.some((item)=>(item.tokenValid&&item.ipValid));
-    if(deviceStore.nsProList.length < 1 || !hsaOneNsProToken){
-        console.log('app.vue jump second step---------》');
-        deviceStore.setStep(stepsList.SECOND);
-        router.push('/setting');
-        return;
+    if(stepsList.THIRD === deviceStore.step){
+        console.log('keep page 2 when refresh')
+        router.push('/deviceList');
     }
 }
 </script>

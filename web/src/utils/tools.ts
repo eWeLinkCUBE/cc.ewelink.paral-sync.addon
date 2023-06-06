@@ -1,6 +1,7 @@
 import { stepsList } from '@/api/ts/interface/IGateWay';
 import { useDeviceStore } from '@/store/device';
 import router from '@/router';
+import i18n from '@/i18n';
 /**
  *
  * 根据路径获取assets文件夹内的文件（主要用于图片）
@@ -35,6 +36,44 @@ export function jumpCorrespondStep(errCode:number){
         router.push('/setting');
         console.log('errCode jump second step--------->',errCode,deviceStore.step);
     }
+
+    // handleIpAndToken(errCode);
+}
+
+/**
+ *
+ * 对iHost和nsPro的ip失效和token失效进行处理
+ * @date 02/06/2023
+ * @param {string} errCode
+ * @returns {*}
+ */
+export function handleIpAndToken(errCode:number){
+    const deviceStore = useDeviceStore();
+    let ipToken ={
+        status:false,
+        message:''
+    }
+    if([702,703,1501,1502].includes(errCode)){
+        ipToken.status = true
+        switch(errCode){
+            case 702:
+                ipToken.message = i18n.global.t('GATEWAY_IP_INVALID',{name:'iHost'});
+                break;
+            case 703:
+                ipToken.message = i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'iHost'});
+                break;
+            case 1501:
+                ipToken.message = i18n.global.t('GATEWAY_IP_INVALID',{name:'NsPanelPro'});
+                break;
+            case 1502:
+                ipToken.message = i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'NsPanelPro'});
+                break;
+            default:
+                ipToken.message = '';
+                break;
+        }
+    }
+    deviceStore.setIpTokenStatus(ipToken);
 }
 
 /**

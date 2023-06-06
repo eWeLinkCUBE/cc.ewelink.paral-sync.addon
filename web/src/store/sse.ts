@@ -36,9 +36,6 @@ export const useSseStore = defineStore('sse', {
                 const etcStore = useEtcStore();
                 console.log('SSE connect success');
                 this.sseIsConnect = true;
-                if (etcStore.isLoading) {
-                    etcStore.setIsLoading(false);
-                }
             });
 
             /** 开始获取token */
@@ -102,23 +99,6 @@ export const useSseStore = defineStore('sse', {
                 console.log('SSE connect error, reboot');
                 await this.startSse();
             });
-        },
-
-        async tryReconnection(type: 'reset' | 'restart', msg?: string) {
-            const etcStore = useEtcStore();
-
-            const sseTimer = setInterval(async () => {
-                console.log('reconnecting...');
-
-                this.startSse();
-                if (this.sseIsConnect) {
-                    clearInterval(sseTimer);
-                    etcStore.setIsLoading(false);
-                    if (type === 'reset') {
-                        message.success(i18n.global.t(msg!));
-                    }
-                }
-            }, 1000);
         },
     },
     persist: true,
