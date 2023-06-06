@@ -79,12 +79,13 @@ export class DestServerSentEvent {
                 resolve(true);
             }
             this.source.onerror = async (event) => {
-                logger.info('init sse error', event)
+                logger.info(`init sse ${this.connectionId} error`, event);
                 // 将相关设备下线
                 // await srcTokenAndIPInvalid("ip", this.initParams.mac);
+                logger.info(`current ${this.connectionId} status ${this.status}`);
                 if (this.status !== ESseStatus.RECONNECTING) {
-                    await this._reconnectSse();
                     this.status = ESseStatus.RECONNECTING;
+                    await this._reconnectSse();
                 }
                 // 开始重连
                 resolve(false);
@@ -143,38 +144,42 @@ export class DestServerSentEvent {
         // 不论成功或失败 每个长连接实例都只会重试50次
         for (; this.retryCount < this.maxRetry;) {
             const retryCount = this.retryCount + 1;
+            logger.info(`sse reconnecting ${this.connectionId} for ${retryCount} status ${this.status}`);
             if (this.status !== ESseStatus.OPEN) {
                 // 每次重连之前都关闭连接
                 this.source.close();
-                console.log(`sse reconnecting for ${retryCount} 次`);
-                console.log(`sse reconnect for ${retryCount} times begins in ${Date.now()}`);
+                logger.info(`sse reconnecting ${this.connectionId} for ${retryCount} times`);
+                logger.info(`sse reconnect ${this.connectionId} for ${retryCount} times begins in ${Date.now()}`);
                 // 尝试重连
                 const { ip, token } = this.initParams;
                 const url = `http://${ip}/open-api/v1/sse/bridge?access_token=${token}`;
-                console.log(`sse reconnection url is ${url}`);
+                logger.info(`sse reconnection ${this.connectionId} url is ${url}`);
                 this.source = new EventSource(url);
                 const res = await this._initUniversalEvent();
+                logger.info(`sse reconnection ${this.connectionId} for ${retryCount} time result =>  ${res}`);
                 if (!res) {
-                    console.log(`sse reconnect for ${retryCount} time fails in ${Date.now()}`);
+                    logger.info(`sse reconnect ${this.connectionId} for ${retryCount} time fails in ${Date.now()}`);
                     this.retryCount++;
                     if (retryCount + 1 > this.maxRetry) {
-                        console.log(`reach the max retry count`);
+                        logger.info(`sse reconnection ${this.connectionId} reach the max retry count`);
                     } else {
-                        console.log(`wait fo the ${retryCount + 1} times reconnection ${Date.now()}`);
+                        logger.info(`sse reconnection ${this.connectionId} wait fo the ${retryCount + 1} times reconnection ${Date.now()}`);
                     }
                     // 最大重试间隔为2小时
                     const actualInterval = this._getRetryInterval(this.retryInterval);
+                    logger.info(`sse reconnection ${this.connectionId} actual interval will be ${actualInterval} ${Date.now()}`);
                     await tools.sleep(actualInterval);
                     continue;
                 }
             }
-            console.log(`sse reconnect for ${retryCount} 次成功`);
+            logger.info(`sse reconnect ${this.connectionId} for ${retryCount} success`);
             // 将重连次数清零
             this.retryCount = 0;
             break;
         }
 
         if (this.status !== ESseStatus.OPEN) {
+            logger.info(`sse final reconnect ${this.connectionId} fail`);
             // 重连失败
             // 1.关闭重连
             // 2.主动关闭sse
