@@ -42,7 +42,7 @@ export default async function openControlDevice(req: Request, res: Response) {
         const deviceState = _.get(req.body, 'directive.payload.state');
 
         if (directiveName !== 'UpdateDeviceStates') {
-            logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
+            logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT (directiveName)`);
             return res.json(FAIL_RESULT);
         }
 
@@ -50,7 +50,7 @@ export default async function openControlDevice(req: Request, res: Response) {
         const srcGatewayInfo = _.find(srcGatewayInfoList, { mac: srcGatewayMac });
         logger.info(`(service.openControlDevice) srcGatewayInfo: ${JSON.stringify(srcGatewayInfo)}`);
         if (!srcGatewayInfo) {
-            logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
+            logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT (srcGatewayInfo)`);
             return res.json(FAIL_RESULT);
         }
 
@@ -64,18 +64,18 @@ export default async function openControlDevice(req: Request, res: Response) {
                 return res.json(SUCCESS_RESULT);
             } else if (cubeApiRes.error === 401) {
                 await srcTokenAndIPInvalid("token", srcGatewayInfo.mac);
-                logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
+                logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT (error: 401)`);
                 return res.json(FAIL_RESULT);
             } else if (cubeApiRes.error === 1000) {
                 await srcTokenAndIPInvalid("ip", srcGatewayInfo.mac);
-                logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
+                logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT (error: 1000)`);
                 return res.json(FAIL_RESULT);
             } else {
                 logger.info(`(service.openControlDevice) client.updateDeviceState() unknown error :${JSON.stringify(cubeApiRes)}`);
                 return res.json(FAIL_RESULT);
             }
         } else {
-            logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT`);
+            logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT (srcGatewayInfo IP or token invalid)`);
             return res.json(FAIL_RESULT);
         }
     } catch (error: any) {
