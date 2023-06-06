@@ -125,15 +125,19 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
     display: flex;
     padding: 16px;
     justify-content: space-between;
+    min-width: 1030px;
     .header-left {
         width: 420px;
         position: relative;
         .warning-tip {
             position: absolute;
-            left: 86px;
+            left: 88px;
             top: 4px;
             color: #ff5c5b;
+            display: flex;
+            align-items: center;
             .warning {
+                max-width:520px;
                 overflow: hidden;
                 white-space: nowrap;
                 text-overflow: ellipsis;

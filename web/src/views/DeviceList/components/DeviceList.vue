@@ -5,11 +5,11 @@
             <div class="id">{{ i18n.global.t('DEVICE_ID') }}</div>
             <div class="option">{{ i18n.global.t('ACTION') }}</div>
         </div>
-        <div class="table-body">
+        <div class="table-body Scroll-bar">
             <div class="device-item" v-for="(item, index) in deviceList" :key="index" v-if="deviceList.length > 0">
                 <span class="name common">{{ item.name }}</span>
                 <span class="id common">{{ item.id }}</span>
-                <div class="option common">
+                <div class="option common" style="padding-left:4px">
                     <div v-if="item.isSupported">
                         <span class="sync" v-if="!item.isSynced && !item.spinLoading" @click="syncDevice(item)">{{ i18n.global.t('SYNC') }}</span>
                         <span class="cancel-sync" v-if="item.isSynced && !item.spinLoading" @click="cancelSyncSingleDevice(item)">{{ i18n.global.t('CANCEL_SYNC') }}</span>
@@ -210,5 +210,28 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
     100% {
         transform: rotate(360deg);
     }
+}
+
+.Scroll-bar::-webkit-scrollbar {
+    /*滚动条整体样式*/
+    width: 8px;
+    /*高宽分别对应横竖滚动条的尺寸*/
+    height: 8px;
+}
+
+
+.Scroll-bar::-webkit-scrollbar-thumb {
+    /*滚动条里面小方块*/
+    border-radius: 5px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+
+.Scroll-bar::-webkit-scrollbar-track {
+    /*滚动条里面轨道*/
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.1);
 }
 </style>

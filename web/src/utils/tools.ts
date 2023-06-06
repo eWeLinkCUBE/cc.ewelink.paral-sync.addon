@@ -62,30 +62,27 @@ export function handleIpAndToken(errCode:number){
             case 702:
                 ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'iHost'});
                 ipTokenStep = stepsList.FIRST;
-                // deviceStore.getIHostGateWatList();
                 break;
             //目标网关token失效
             case 703:
                 ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'iHost'});
                 ipTokenStep = stepsList.FIRST;
-                // deviceStore.getIHostGateWatList();
                 break;
             //无来源网关信息、IP失效
             case 1500:
             case 1501:
                 ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'NsPanelPro'});
                 ipTokenStep = stepsList.SECOND;
-                // deviceStore.getNsProGateWayList();
                 break;
             //来源网关token失效
             case 1502:
                 ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'NsPanelPro'});
                 ipTokenStep = stepsList.SECOND;
-                // deviceStore.getNsProGateWayList();
                 break;
             default:
                 break;
         }
+        console.log('ipTokenMsg',ipTokenMsg);
         deviceStore.setIpTokenMsg(ipTokenMsg);
         deviceStore.setIpTokenStep(ipTokenStep);
     }
