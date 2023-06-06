@@ -28,6 +28,27 @@ export let destSseEvent: DestServerSentEvent | null = null;
 /** 来源网关sse合集 */
 export const srcSsePool: Map<string, ServerSentEvent> = new Map();
 
+/**
+ * 格式化设备数据（去掉不支持能力的数据）
+ *
+ * @param device 设备数据
+ * @returns 格式化后的设备数据
+ */
+function formatDevice(device: GatewayDeviceItem) {
+    // 不支持的能力列表
+    const UNSUPPORT_CAPA = ['ota'];
+
+    // 删除 capabilities
+    const list = device.capabilities;
+    _.remove(list, (item: any) => UNSUPPORT_CAPA.includes(item.capability));
+    device.capabilities = list;
+
+    // 删除 state
+    const state = device.state;
+    device.state = _.omit(state, UNSUPPORT_CAPA);
+
+    return device;
+}
 
 /**
  * @description 更新
@@ -60,13 +81,15 @@ export async function updateSrcGatewayDeviceGroup(srcGatewayMac: string, deviceL
         return toResponse(1502);
     }
 
+    const formattedDeviceList = deviceList.map((item) => formatDevice(item));
+
     const groupItem = _.find(srcGatewayDeviceGroup, { srcGatewayMac });
     if (groupItem) {
-        groupItem.deviceList = deviceList;
+        groupItem.deviceList = formattedDeviceList;
     } else {
         srcGatewayDeviceGroup.push({
             srcGatewayMac,
-            deviceList
+            deviceList: formattedDeviceList
         });
     }
 }

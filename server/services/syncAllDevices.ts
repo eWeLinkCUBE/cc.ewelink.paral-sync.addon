@@ -11,6 +11,7 @@ import {
 } from './syncOneDevice';
 import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, updateSrcGatewayDeviceGroup } from '../utils/tmp';
+import { isSupportDevice } from '../utils/categoryCapabilityMaping';
 
 /** 同步所有设备(1600) */
 export default async function syncAllDevices(req: Request, res: Response) {
@@ -61,18 +62,20 @@ export default async function syncAllDevices(req: Request, res: Response) {
             if (srcRes.error === 0) {
                 const deviceList = srcRes.data.device_list;
                 for (const device of deviceList) {
-                    syncDevices.push({
-                        name: device.name,
-                        third_serial_number: device.serial_number,
-                        manufacturer: device.manufacturer,
-                        model: device.model,
-                        firmware_version: device.firmware_version,
-                        display_category: device.display_category,
-                        capabilities: device.capabilities,
-                        state: device.state,
-                        tags: createDeviceTags(device, gateway.mac),
-                        service_address: createDeviceServiceAddr(device.serial_number)
-                    });
+                    if (isSupportDevice(device)) {
+                        syncDevices.push({
+                            name: device.name,
+                            third_serial_number: device.serial_number,
+                            manufacturer: device.manufacturer,
+                            model: device.model,
+                            firmware_version: device.firmware_version,
+                            display_category: device.display_category,
+                            capabilities: device.capabilities,
+                            state: device.state,
+                            tags: createDeviceTags(device, gateway.mac),
+                            service_address: createDeviceServiceAddr(device.serial_number)
+                        });
+                    }
                 }
             }
         }

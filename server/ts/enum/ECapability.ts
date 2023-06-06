@@ -67,5 +67,10 @@ enum ECapability {
     ELECTRIC_CURRENT = 'electric-current',
     /** 风扇灯模式 */
     MODE = 'mode',
+    /** iHost不支持的能力（只在nsPro支持） */
+    IDENTIFY = 'identify',
+    THERMOSTAT_MODE_DETECT = 'thermostat-mode-detect',
+    TAMPER_ALERT = 'tamper-alert',
+    MULTI_PRESS = 'multi-press',
 }
 export default ECapability;
