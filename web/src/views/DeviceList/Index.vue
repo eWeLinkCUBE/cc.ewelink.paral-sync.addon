@@ -1,7 +1,7 @@
 <template>
     <div>
         <a-spin
-            style="min-height:100vh"
+            style="min-height:100vh;background-color:rgba(34,34,34,0.6);color:#FFFF;"
             :spinning="etcStore.isLoading"
             :indicator="indicator"
             :tip="i18n.global.t('SYNC_ALL_DEVICE_WAIT')"
@@ -54,4 +54,5 @@ const getAutoSyncState = async () => {
 };
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+</style>

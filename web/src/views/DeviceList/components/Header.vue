@@ -2,9 +2,9 @@
     <div class="header">
         <div class="header-left">
             <div class="name">{{ $t('DEVICE_LIST') }}</div>
-            <div v-if="etcStore.isIPUnableToConnect" class="warning-tip">
+            <div v-if="!status" class="warning-tip">
                 <warning-outlined />
-                <span style="color: red">{{ $t('GATEWAY_IP_INVALID') }}</span>
+                <span class="warning">{{ msg }}</span>
             </div>
             <div class="description">{{ $t('SYNCED_FROM_NSPANEL') }}</div>
         </div>
@@ -44,6 +44,9 @@ const deviceStore = useDeviceStore();
 const retryTime = ref(0);
 const MAX_RETRY_TIME = 15;
 
+const status = computed(() => deviceStore.ipToken.status);
+const msg = computed(() => deviceStore.ipToken.message);
+
 /** 自动同步所有设备按钮 */
 const handleAutoSync = async (e: boolean) => {
     const params = {
@@ -60,7 +63,6 @@ const syncAllDevice = async () => {
     if (isDisabled.value) return;
     etcStore.setIsLoading(true);
     const res = await api.NSPanelPro.syncAllDevice();
-    //TODO：不为0提示同步失败，为0的时候重试轮询三十秒去拉取设备列表
     if (res.error === 0 && res.data) {
         await deviceStore.getDeviceList();
         //根据同步所有设备接口返回的deviceId列表数据，去再次查询设备列表中同步成功的设备
@@ -74,7 +76,8 @@ const syncAllDevice = async () => {
 
 /** 返回设置页面 */
 const goSetting = () => {
-    deviceStore.setStep(stepsList.FIRST);
+    const step = deviceStore.ipToken.step === stepsList.THIRD ? stepsList.FIRST : deviceStore.ipToken.step;
+    deviceStore.setStep(step);
     router.push('/setting');
 };
 
@@ -104,13 +107,13 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
     if (count === syncDeviceIdList.length) {
         message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
         return;
-    }else{
+    } else {
         retryTime.value++;
-        if(retryTime.value <= MAX_RETRY_TIME){
+        if (retryTime.value <= MAX_RETRY_TIME) {
             await deviceStore.getDeviceList();
-            await sleep(2000);//15*2=30(s)
+            await sleep(2000); //15*2=30(s)
             await deviceSyncSuccessNum(syncDeviceIdList);
-        }else{
+        } else {
             // 三十秒还没成功,提示成功;
             message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: syncDeviceIdList.length }));
             return;
@@ -132,6 +135,11 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
             left: 86px;
             top: 4px;
             color: #ff5c5b;
+            .warning {
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
         }
         .name {
             font-size: 18px;
