@@ -29,12 +29,15 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
         /** 请求设备列表的网关 MAC 地址 */
         const reqGatewayMac = req.params.mac;
+        /** 是否强制刷新同步来源网关的设备列表，这个参数值为 1 表示强制刷新，否则使用缓存数据 */
+        const forceRefreshSrc = req.query.forceSrc;
         /** 本地存储的同步来源网关信息列表 */
         const localSrcGatewayInfoList = await DB.getDbValue('srcGatewayInfoList');
         /** 本地存储的同步来源网关信息 */
         const localSrcGatewayInfo = _.find(localSrcGatewayInfoList, { mac: reqGatewayMac });
 
         logger.info(`(service.getSourceGatewaySubDevices) reqGatewayMac: ${reqGatewayMac}`);
+        logger.info(`(service.getSourceGatewaySubDevices) forceRefreshSrc: ${forceRefreshSrc}`);
         logger.info(`(service.getSourceGatewaySubDevices) localSrcGatewayInfoList: ${JSON.stringify(localSrcGatewayInfoList)}`);
         logger.info(`(service.getSourceGatewaySubDevices) localSrcGatewayInfo: ${JSON.stringify(localSrcGatewayInfo)}`);
 
@@ -70,7 +73,7 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
         let destGatewayDeviceList: GatewayDeviceItem[] = [];
 
         // 获取同步来源网关的设备列表
-        const srcRes = await getSrcGatewayDeviceGroup(localSrcGatewayInfo.mac);
+        const srcRes = await getSrcGatewayDeviceGroup(localSrcGatewayInfo.mac, forceRefreshSrc === '1');
         logger.info(`(service.getSourceGatewaySubDevices) srcRes: ${JSON.stringify(srcRes)}`);
         if (srcRes.error === 0) {
             srcGatewayDeviceList = srcRes.data.device_list;
