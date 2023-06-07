@@ -1,16 +1,13 @@
 <template>
-    <div class="header">
+    <div v-if="!deviceStore.ipToken" class="warning-tip">
+        <img alt="" src="@/assets/img/notice.png"/>
+        <span class="warning-text">{{ deviceStore.ipTokenMsg }}</span>
+    </div>
+    <div class="header" :style="{'paddingTop':deviceStore.ipToken ?'16px' : ''}">
         <div class="header-left">
-            <div class="left-top">
-                <div class="name">{{ $t('DEVICE_LIST') }}</div>
-                <div v-if="!deviceStore.ipToken" class="warning-tip">
-                    <warning-outlined />
-                    <span class="warning">{{ deviceStore.ipTokenMsg }}</span>
-                </div>
-            </div>
+            <div class="name">{{ $t('DEVICE_LIST') }}</div>
             <div class="description">{{ $t('SYNCED_FROM_NSPANEL') }}</div>
         </div>
-
         <div class="header-right" ref="headerRightRef">
             <div class="auto-sync">
                 {{ $t('AUTO_SYNC_NEW') }}
@@ -41,7 +38,7 @@ import { message } from 'ant-design-vue';
 import i18n from '@/i18n';
 import SyncAllDeviceDisabled from '@/assets/img/sync-device-disabled.png';
 import SyncAllDevice from '@/assets/img/sync-all-device.png';
-import { sleep } from '@/utils/tools';
+import { sleep ,deviceSyncSuccessNum} from '@/utils/tools';
 import { stepsList } from '@/api/ts/interface/IGateWay';
 const headerRightRef = ref();
 const etcStore = useEtcStore();
@@ -98,72 +95,78 @@ const goSetting = () => {
 const isDisabled = computed(() => (deviceStore.deviceList.length < 1 ? true : false));
 
 /** 判断有多少设备提示成功，并且提示用户 */
-const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
-    if (!syncDeviceIdList || syncDeviceIdList.length < 1) {
-        console.log('sync success device number is empty');
-        return;
-    }
-    if (!deviceStore.deviceList || deviceStore.deviceList.length < 1) {
-        console.log('nsPro deviceList number is empty');
-        return;
-    }
-    let count = 0;
-    for (const item of syncDeviceIdList) {
-        for (const element of deviceStore.deviceList) {
-            if (item === element.id && element.isSynced) {
-                count++;
-                break;
-            }
-        }
-    }
-    //当同步设备全部是同步成功状态，结束loading并且提示成功;
-    if (count === syncDeviceIdList.length) {
-        message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
-        return;
-    } else {
-        retryTime.value++;
-        if (retryTime.value <= MAX_RETRY_TIME) {
-            await deviceStore.getDeviceList();
-            await sleep(2000); //15*2=30(s)
-            await deviceSyncSuccessNum(syncDeviceIdList);
-        } else {
-            // 三十秒还没成功,提示成功;
-            message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: syncDeviceIdList.length }));
-            return;
-        }
-    }
-};
+// const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
+//     if (!syncDeviceIdList || syncDeviceIdList.length < 1) {
+//         console.log('sync success device number is empty');
+//         return;
+//     }
+//     if (!deviceStore.deviceList || deviceStore.deviceList.length < 1) {
+//         console.log('nsPro deviceList number is empty');
+//         return;
+//     }
+//     let count = 0;
+//     for (const item of syncDeviceIdList) {
+//         for (const element of deviceStore.deviceList) {
+//             if (item === element.id && element.isSynced) {
+//                 count++;
+//                 break;
+//             }
+//         }
+//     }
+//     //当同步设备全部是同步成功状态，结束loading并且提示成功;
+//     if (count === syncDeviceIdList.length) {
+//         message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
+//         return;
+//     } else {
+//         retryTime.value++;
+//         if (retryTime.value <= MAX_RETRY_TIME) {
+//             await deviceStore.getDeviceList();
+//             await sleep(2000); //15*2=30(s)
+//             await deviceSyncSuccessNum(syncDeviceIdList);
+//         } else {
+//             // 三十秒还没成功,提示成功;
+//             message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: syncDeviceIdList.length }));
+//             return;
+//         }
+//     }
+// };
 </script>
 
 <style scoped lang="scss">
+.warning-tip {
+    background-color: rgba(255, 92, 91, 20%);
+    text-align: center;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    img{
+        width: 18px;
+        height: 18px;
+        margin-right: 6px;
+    }
+    .warning-text{
+        font-size: 15px;
+        white-space: nowrap;
+        color: #ff5c5b;
+    }
+}
 .header {
     display: flex;
     padding: 16px;
+    padding-top: 0;
     justify-content: space-between;
     min-width: 1000px;
     .header-left {
         min-width: 420px;
-        .left-top {
-            display: flex;
-            align-items: center;
-            .warning-tip {
-                color: #ff5c5b;
-                display: flex;
-                align-items: center;
-                .warning {
-                    // width: 400px;
-                    white-space: normal;
-                    word-break: break-all;
-                    line-height: 15px;
-                    margin-left: 5px;
-                }
-            }
+        margin-right: 40px;
+
             .name {
                 font-size: 18px;
                 font-weight: 600;
-                min-width:90px;
+                min-width: 90px;
             }
-        }
 
         .description {
             color: #999999;
@@ -182,6 +185,7 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
             border-radius: 8px 8px 8px 8px;
             border: 1px solid rgba(161, 161, 161, 0.1);
             margin-right: 27px;
+            white-space: nowrap;
         }
         .force-refresh {
             img {
@@ -227,13 +231,6 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
     /* Safari and Chrome */
     100% {
         transform: rotate(360deg);
-    }
-}
-
-@media screen and (min-width: 1000px) {
-    .warning {
-        // width: 730px !important;
-        line-height: 1.5715 !important;
     }
 }
 </style>

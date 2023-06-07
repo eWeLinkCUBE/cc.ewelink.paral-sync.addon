@@ -2,6 +2,9 @@ import { stepsList } from '@/api/ts/interface/IGateWay';
 import { useDeviceStore } from '@/store/device';
 import router from '@/router';
 import i18n from '@/i18n';
+import { message } from 'ant-design-vue';
+let retryTime = 0;
+let MAX_RETRY_TIME = 15;
 /**
  *
  * 根据路径获取assets文件夹内的文件（主要用于图片）
@@ -71,12 +74,12 @@ export function handleIpAndToken(errCode:number){
             //无来源网关信息、IP失效
             case 1500:
             case 1501:
-                ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'NsPanelPro'});
+                ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'NSPanelPro'});
                 ipTokenStep = stepsList.SECOND;
                 break;
             //来源网关token失效
             case 1502:
-                ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'NsPanelPro'});
+                ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'NSPanelPro'});
                 ipTokenStep = stepsList.SECOND;
                 break;
             default:
@@ -118,3 +121,46 @@ export function sleep(time: number) {
         }, time)
     })
 }
+
+/**
+ *
+ * 判断有多少设备提示成功，并且提示用户
+ * @date 07/06/2023
+ * @param {number} time
+ */
+export const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) =>{
+    const deviceStore =useDeviceStore();
+    if (!syncDeviceIdList || syncDeviceIdList.length < 1) {
+        console.log('sync success device number is empty');
+        return;
+    }
+    if (!deviceStore.deviceList || deviceStore.deviceList.length < 1) {
+        console.log('nsPro deviceList number is empty');
+        return;
+    }
+    let count = 0;
+    for (const item of syncDeviceIdList) {
+        for (const element of deviceStore.deviceList) {
+            if (item === element.id && element.isSynced) {
+                count++;
+                break;
+            }
+        }
+    }
+    //当同步设备全部是同步成功状态，结束loading并且提示成功;
+    if (count === syncDeviceIdList.length) {
+        message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
+        return;
+    } else {
+        retryTime++;
+        if (retryTime <= MAX_RETRY_TIME) {
+            await deviceStore.getDeviceList();
+            await sleep(2000); //15*2=30(s)
+            await deviceSyncSuccessNum(syncDeviceIdList);
+        } else {
+            // 三十秒还没成功,提示成功;
+            message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: syncDeviceIdList.length }));
+            return;
+        }
+    }
+};
