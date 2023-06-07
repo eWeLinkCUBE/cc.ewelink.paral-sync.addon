@@ -20,13 +20,10 @@
                     </div>
                 </div>
             </div>
-            <!-- length为0 -->
             <div v-else class="empty">
-                <!-- loading状态 -->
                 <div class="loading" v-if="loading">
                     <a-spin></a-spin>
                 </div>
-                <!-- 空状态 -->
                 <div v-else>
                     <img :src="Empty" alt="" class="no-data" />
                     <p>{{ i18n.global.t('NO_DATA') }}</p>
@@ -45,7 +42,6 @@ import i18n from '@/i18n/index';
 import router from '@/router';
 import api from '@/api';
 import Empty from '@/assets/img/empty.png';
-import NoLogin from '@/assets/img/no-login.png';
 
 const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
