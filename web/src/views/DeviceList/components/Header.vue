@@ -124,8 +124,8 @@ const isDisabled = computed(() => (deviceStore.deviceList.length < 1 ? true : fa
 //             await sleep(2000); //15*2=30(s)
 //             await deviceSyncSuccessNum(syncDeviceIdList);
 //         } else {
-//             // 三十秒还没成功,提示成功;
-//             message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: syncDeviceIdList.length }));
+//             // 三十秒还没成功,提示成功的数量;
+//             message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
 //             return;
 //         }
 //     }
