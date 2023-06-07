@@ -1,10 +1,12 @@
 <template>
     <div class="header">
         <div class="header-left">
-            <div class="name">{{ $t('DEVICE_LIST') }}</div>
-            <div v-if="!deviceStore.ipToken" class="warning-tip">
-                <warning-outlined />
-                <span class="warning">{{ deviceStore.ipTokenMsg }}</span>
+            <div class="left-top">
+                <div class="name">{{ $t('DEVICE_LIST') }}</div>
+                <div v-if="!deviceStore.ipToken" class="warning-tip">
+                    <warning-outlined />
+                    <span class="warning">{{ deviceStore.ipTokenMsg }}</span>
+                </div>
             </div>
             <div class="description">{{ $t('SYNCED_FROM_NSPANEL') }}</div>
         </div>
@@ -15,7 +17,7 @@
                 <a-switch style="margin-left: 10px" @change="handleAutoSync" :checked="etcStore.autoSync" />
             </div>
             <div class="force-refresh" @click="handleRefresh" :class="isRefresh ? 'rotate' : ''">
-                <img src="@/assets/img/force-refresh.png" alt=""/>
+                <img src="@/assets/img/force-refresh.png" alt="" />
             </div>
             <a-popover trigger="hover" :getPopupContainer="() => headerRightRef">
                 <template #content>
@@ -138,28 +140,31 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
     display: flex;
     padding: 16px;
     justify-content: space-between;
-    min-width: 1030px;
+    min-width: 1000px;
     .header-left {
-        width: 420px;
-        position: relative;
-        .warning-tip {
-            position: absolute;
-            left: 88px;
-            top: 4px;
-            color: #ff5c5b;
+        min-width: 420px;
+        .left-top {
             display: flex;
             align-items: center;
-            .warning {
-                max-width:520px;
-                overflow: hidden;
-                white-space: nowrap;
-                text-overflow: ellipsis;
+            .warning-tip {
+                color: #ff5c5b;
+                display: flex;
+                align-items: center;
+                .warning {
+                    // width: 400px;
+                    white-space: normal;
+                    word-break: break-all;
+                    line-height: 15px;
+                    margin-left: 5px;
+                }
+            }
+            .name {
+                font-size: 18px;
+                font-weight: 600;
+                min-width:90px;
             }
         }
-        .name {
-            font-size: 18px;
-            font-weight: 600;
-        }
+
         .description {
             color: #999999;
         }
@@ -176,10 +181,10 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
             align-items: center;
             border-radius: 8px 8px 8px 8px;
             border: 1px solid rgba(161, 161, 161, 0.1);
-            margin-right:27px;
+            margin-right: 27px;
         }
-        .force-refresh{
-            img{
+        .force-refresh {
+            img {
                 height: 27px;
                 width: 27px;
             }
@@ -222,6 +227,13 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
     /* Safari and Chrome */
     100% {
         transform: rotate(360deg);
+    }
+}
+
+@media screen and (min-width: 1000px) {
+    .warning {
+        // width: 730px !important;
+        line-height: 1.5715 !important;
     }
 }
 </style>
