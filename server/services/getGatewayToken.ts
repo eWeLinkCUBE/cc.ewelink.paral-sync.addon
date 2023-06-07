@@ -60,7 +60,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     });
 
                     const destApiClient = new ApiClient({ ip: localDestGatewayInfo.ip });
-                    const cubeApiRes = await destApiClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
+                    const cubeApiRes = await destApiClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout }, CONFIG.nodeApp.name);
                     logger.info(`(service.getGatewayToken) destApiClient.getBridgeAT() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
 
                     const resError = _.get(cubeApiRes, 'error');
@@ -129,7 +129,7 @@ export default async function getGatewayToken(req: Request, res: Response) {
                 });
 
                 const srcApiClient = new ApiClient({ ip: localSrcGatewayInfo.ip });
-                const cubeApiRes = await srcApiClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout });
+                const cubeApiRes = await srcApiClient.getBridgeAT({ timeout: CONFIG.getGatewayTokenTimeout }, CONFIG.nodeApp.name);
                 logger.info(`(service.getGatewayToken) srcApiClient.getBridgeAT() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
 
                 const resError = _.get(cubeApiRes, 'error');
