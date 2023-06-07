@@ -104,6 +104,7 @@ const hasIHostToken = computed(() => deviceStore.effectIHostIp && deviceStore.ef
 
 /** iHost 异常提示语 */
 const iHostErrorMsg = computed(() => {
+    if(deviceStore.iHostList.length<1) return '';
     let msg = '';
     const name = deviceStore.iHostList[0].name || '';
     const mac = deviceStore.iHostList[0].mac || '';

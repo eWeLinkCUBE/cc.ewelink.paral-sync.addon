@@ -60,7 +60,7 @@ const syncDevice = async (item: INsProDeviceData) => {
     /** 方案一：查询设备列表接口 */
     // await deviceStore.getDeviceList();
     if (res.error === 0) {
-        /** 方案二：根据error为0的时候，改变本地缓存数据,未同步状态  */
+        /** 方案二：改变本地缓存数据,未同步状态  */
         deviceStore.modifyDeviceSyncStatusById(item.id, true);
         message.success(i18n.global.t('SYNC_SUCCESS'));
     }
@@ -74,7 +74,7 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
     /** 方案一：查询设备列表接口 */
     // await deviceStore.getDeviceList();
     if (resp.error === 0) {
-        /** 方案二：根据error为0的时候，改变本地缓存数据,未同步状态 */
+        /** 方案二：改变本地缓存数据,同步状态 */
         deviceStore.modifyDeviceSyncStatusById(item.id, false);
         message.success(i18n.global.t('CANCEL_SYNC_SUCCESS'));
     }
