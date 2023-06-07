@@ -7,6 +7,7 @@ import { toResponse } from '../utils/error';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import { getDestGatewayDeviceGroup } from '../utils/tmp';
 import sseUtils from '../utils/sseUtils';
+import SSE from '../ts/class/sse';
 
 /**
  * 从同步目标网关中返回符合条件的设备数据，如果没找到则返回 null
@@ -79,7 +80,15 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
             };
             sseUtils.removeOneDeviceFromDestCache(endpoint);
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_SUCCESS`);
-            return res.json(toResponse(0));
+            res.json(toResponse(0));
+            // 取消同步成功，把结果通过 SSE 告诉前端
+            SSE.send({
+                name: 'unsync_one_device_result',
+                data: {
+                    unsyncDeviceId: willUnsyncDeviceId
+                }
+            });
+            return;
         } else if (cubeApiRes.error === 401) {
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_CUBEAPI_DELETE_DEVICE_TOKEN_INVALID`);
             return res.json(toResponse(606));

@@ -12,6 +12,7 @@ import {
 import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, updateSrcGatewayDeviceGroup } from '../utils/tmp';
 import { isSupportDevice } from '../utils/categoryCapabilityMaping';
+import SSE from '../ts/class/sse';
 
 /** 同步所有设备(1600) */
 export default async function syncAllDevices(req: Request, res: Response) {
@@ -98,7 +99,15 @@ export default async function syncAllDevices(req: Request, res: Response) {
             return res.json(toResponse(604));
         } else {
             logger.info(`(service.syncAllDevice) response: ERR_SUCCESS`);
-            return res.json(toResponse(0, 'Success', { syncDeviceIdList: syncDevices.map((item) => item.third_serial_number) }));
+            res.json(toResponse(0, 'Success', { syncDeviceIdList: syncDevices.map((item) => item.third_serial_number) }));
+            // 同步所有设备成功，把结果通过 SSE 告诉前端
+            SSE.send({
+                name: 'sync_all_device_result',
+                data: {
+                    syncDeviceIdList: syncDevices.map((item) => item.third_serial_number)
+                }
+            });
+            return;
         }
 
     } catch (error: any) {

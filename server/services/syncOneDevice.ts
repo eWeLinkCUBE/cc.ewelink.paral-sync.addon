@@ -9,6 +9,7 @@ import CONFIG from '../config';
 import { srcDeviceInDestGateway } from './getSourceGatewaySubDevices';
 import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, updateSrcGatewayDeviceGroup } from '../utils/tmp';
+import SSE from '../ts/class/sse';
 
 /**
  * 创建设备的 tags
@@ -142,7 +143,15 @@ export default async function syncOneDevice(req: Request, res: Response) {
                 return res.json(toResponse(604));
             } else {
                 logger.info(`(service.syncOneDevice) RESPONSE: ERR_SUCCESS`);
-                return res.json(toResponse(0));
+                res.json(toResponse(0));
+                // 同步成功，把结果通过 SSE 告诉前端
+                SSE.send({
+                    name: 'sync_one_device_result',
+                    data: {
+                        syncDeviceId: srcDeviceData.serial_number
+                    }
+                });
+                return;
             }
         }
     } catch (error: any) {
