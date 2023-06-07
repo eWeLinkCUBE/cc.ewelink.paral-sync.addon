@@ -1,15 +1,14 @@
-import _ from "lodash";
-import logger from "../../log";
-import EventSource from "eventsource";
-import { IAddDevice, IDeviceDeleted, IDeviceInfoUpdate, IDeviceOnOrOffline, IDeviceStateUpdate } from "../interface/ISse";
-import sseUtils from "../../utils/sseUtils";
-import tools from "../../utils/tools";
-import db, { IGatewayInfoItem } from "../../utils/db";
-import { srcTokenAndIPInvalid } from "../../utils/dealError";
-import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool } from "../../utils/tmp";
-import { GatewayDeviceItem } from "../interface/CubeApi";
+import _ from 'lodash';
+import logger from '../../log';
+import EventSource from 'eventsource';
+import { IAddDevice, IDeviceDeleted, IDeviceInfoUpdate, IDeviceOnOrOffline, IDeviceStateUpdate } from '../interface/ISse';
+import sseUtils from '../../utils/sseUtils';
+import tools from '../../utils/tools';
+import db, { IGatewayInfoItem } from '../../utils/db';
+import { srcTokenAndIPInvalid } from '../../utils/dealError';
+import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool } from '../../utils/tmp';
+import { GatewayDeviceItem } from '../interface/CubeApi';
 import CubeApi from '../../lib/cube-api';
-
 
 export enum ESseStatus {
     /** 连接中 */
@@ -19,9 +18,8 @@ export enum ESseStatus {
     /** 已关闭 */
     CLOSED = 'CLOSED',
     /** 重连中 */
-    RECONNECTING = 'RECONNECTING'
+    RECONNECTING = 'RECONNECTING',
 }
-
 
 /**
  * @description 目标网关SSE类
@@ -43,7 +41,6 @@ export class ServerSentEvent {
     private maxRetry: number;
     /** sse连接重连间隔，单位为秒 */
     private retryInterval: number;
-
 
     constructor(params: IGatewayInfoItem) {
         this.initParams = params;
@@ -100,8 +97,8 @@ export class ServerSentEvent {
                         serial_number: destDev.serial_number,
                         third_serial_number: tagDevId,
                         params: {
-                            online: true
-                        }
+                            online: true,
+                        },
                     });
                     logger.debug(`(srcSse._setDeviceOnline) updateDeviceOnline cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
                 } else {
@@ -117,7 +114,7 @@ export class ServerSentEvent {
      * @memberof ServerSentEvent
      */
     private _initUniversalEvent() {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             this.source.onopen = async (event) => {
                 logger.info(`src sse init ${this.connectionId} sse success`, event);
                 const { ipValid, tokenValid } = this.initParams;
@@ -132,24 +129,24 @@ export class ServerSentEvent {
                 this.status = ESseStatus.OPEN;
                 this._initGatewayEvent();
                 resolve(true);
-            }
+            };
             this.source.onerror = async (event) => {
-                logger.info('src sse init sse error', event)
+                logger.info('src sse init sse error', event);
                 // 替换数据
                 await this._updateSseParams();
                 // 检查ip是否仍为无效，是则将相关设备下线
                 if (!this.initParams.ipValid) {
-                    logger.info(`src sse init sse error ip still false ${JSON.stringify(this.initParams, null, 2)}`)
-                    await srcTokenAndIPInvalid("ip", this.initParams.mac);
+                    logger.info(`src sse init sse error ip still false ${JSON.stringify(this.initParams, null, 2)}`);
+                    await srcTokenAndIPInvalid('ip', this.initParams.mac);
                 }
                 if (this.status !== ESseStatus.RECONNECTING) {
-                    await this._reconnectSse();
                     this.status = ESseStatus.RECONNECTING;
+                    await this._reconnectSse();
                 }
                 // 开始重连
                 resolve(false);
-            }
-        })
+            };
+        });
     }
 
     /**
@@ -163,28 +160,28 @@ export class ServerSentEvent {
             logger.info(`src sse ${this.connectionId} added new device ${event.data}`);
             // 同步设备
             sseUtils.syncOneDevice(payload, this.initParams.mac);
-        })
+        });
 
         /** 设备状态更新 */
         this.source.addEventListener('device#v1#updateDeviceState', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceStateUpdate;
             logger.info(`src sse ${this.connectionId} update device state ${event.data}`);
             sseUtils.updateOneDevice({ type: 'state', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
-        })
+        });
 
         /** 设备信息更新 */
         this.source.addEventListener('device#v1#updateDeviceInfo', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceInfoUpdate;
             logger.info(`src sse ${this.connectionId} update device info ${event.data}`);
             sseUtils.updateOneDevice({ type: 'info', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
-        })
+        });
 
         /** 设备上下线 */
         this.source.addEventListener('device#v1#updateDeviceOnline', (event) => {
             const { payload, endpoint } = JSON.parse(event.data) as IDeviceOnOrOffline;
             logger.info(`src sse ${this.connectionId} update device online ${event.data}`);
             sseUtils.updateOneDevice({ type: 'online', mac: this.connectionId, payload, endpoint }, this.initParams.mac);
-        })
+        });
 
         /** 设备被删除 */
         this.source.addEventListener('device#v1#deleteDevice', (event) => {
@@ -192,7 +189,7 @@ export class ServerSentEvent {
             const { endpoint } = JSON.parse(event.data) as IDeviceDeleted;
             // 取消同步设备
             sseUtils.deleteOneDevice(endpoint, this.initParams.mac);
-        })
+        });
     }
     /**
      * @description 重连sse
@@ -200,8 +197,9 @@ export class ServerSentEvent {
      */
     private async _reconnectSse() {
         // 不论成功或失败 每个长连接实例都只会重试50次
-        for (; this.retryCount < this.maxRetry;) {
+        for (; this.retryCount < this.maxRetry; ) {
             const retryCount = this.retryCount + 1;
+            logger.info('this.status---------------', this.status);
             if (this.status !== ESseStatus.OPEN) {
                 // 每次重连之前都关闭连接
                 this.source.close();
@@ -235,7 +233,7 @@ export class ServerSentEvent {
 
         if (this.status !== ESseStatus.OPEN) {
             // 重连失败
-            // 1.关闭重连 
+            // 1.关闭重连
             // 2.主动关闭sse
             this.status = ESseStatus.CLOSED;
             this.source.close();
@@ -245,7 +243,7 @@ export class ServerSentEvent {
      * @description 生成重试间隔
      * @private
      * @param {number} retryInterval
-     * @returns {number} 
+     * @returns {number}
      * @memberof ServerSentEvent
      */
     private _getRetryInterval(retryInterval: number): number {
@@ -283,4 +281,4 @@ async function buildServerSendEvent(gateway: IGatewayInfoItem) {
 
 export default {
     buildServerSendEvent,
-}
+};
