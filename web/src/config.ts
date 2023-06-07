@@ -5,7 +5,7 @@ const isTestEnv = () => import.meta.env.DEV;
 const env = isTestEnv() ? EEnv.TEST : EEnv.PROD;
 
 /** 调试用ip */
-const NSPanelProIp = isTestEnv() ? '192.168.31.212' : 'localhost';
+const NSPanelProIp = isTestEnv() ? 'localhost' : 'localhost';
 /** 版本(从.env文件获取) */
 const version = import.meta.env.VITE_VERSION;
 
@@ -23,4 +23,4 @@ const sseUrl = isTestEnv() ? `//${NSPanelProIp}:8322/api/v1/sse` : '/api/v1/sse'
 
 console.log(`当前版本为 ${version}`);
 
-export { apiUrl, appSecret, appId, env ,sseUrl};
+export { apiUrl, appSecret, appId, env, sseUrl };

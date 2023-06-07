@@ -22,6 +22,11 @@ async function setNewMDnsGateway(gatewayInfo: IGatewayInfo) {
     mDnsGatewayClass.mDnsGatewayMap.set(gatewayInfo.deviceId, gatewayInfo);
     let nsProGatewayInfo = await getGatewayInfo(gatewayInfo.ip, EGatewayType.NS_PANEL_PRO, gatewayInfo.deviceId);
 
+    if (typeof nsProGatewayInfo === 'number') {
+        logger.info('ip not valid when get gateway info-------');
+        return;
+    }
+
     //防止nsPro设备刚启动时，mDns扫描到了，服务还没起来的情况
     if (!nsProGatewayInfo) {
         logger.info('get gateway info fail 1 time');
