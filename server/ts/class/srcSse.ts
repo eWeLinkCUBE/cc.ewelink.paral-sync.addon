@@ -6,7 +6,9 @@ import sseUtils from "../../utils/sseUtils";
 import tools from "../../utils/tools";
 import db, { IGatewayInfoItem } from "../../utils/db";
 import { srcTokenAndIPInvalid } from "../../utils/dealError";
-import { srcSsePool } from "../../utils/tmp";
+import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, srcSsePool } from "../../utils/tmp";
+import { GatewayDeviceItem } from "../interface/CubeApi";
+import CubeApi from '../../lib/cube-api';
 
 
 export enum ESseStatus {
@@ -55,6 +57,62 @@ export class ServerSentEvent {
     }
 
     /**
+     * 使同步到 iHost 的设备上线
+     */
+    private async _setDeviceOnline() {
+        const ApiClient = CubeApi.ihostApi;
+        const destGatewayInfo = await db.getDbValue('destGatewayInfo');
+        if (!destGatewayInfo) {
+            logger.warn(`(srcSse._setDeviceOnline) no destGatewayInfo`);
+            return;
+        }
+        if (!destGatewayInfo.ipValid || !destGatewayInfo.tokenValid) {
+            logger.warn(`(srcSse._setDeviceOnline) dest gateway token or IP invalid`);
+            return;
+        }
+        const destClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
+
+        const srcGatewayMac = this.initParams.mac;
+        const dRes = await getDestGatewayDeviceGroup();
+        if (dRes.error !== 0) {
+            logger.warn(`(srcSse._setDeviceOnline) getDestGatewayDeviceGroup failed: dRes: ${JSON.stringify(dRes)}`);
+            return;
+        }
+        const sRes = await getSrcGatewayDeviceGroup(srcGatewayMac);
+        if (sRes.error !== 0) {
+            logger.warn(`(srcSse._setDeviceOnline) getSrcGatewayDeviceGroup failed: sRes: ${JSON.stringify(sRes)}`);
+            return;
+        }
+        const destGatewayDeviceList = dRes.data.device_list as GatewayDeviceItem[];
+        const srcGatewayDeviceList = sRes.data.device_list as GatewayDeviceItem[];
+        let cubeApiRes = null;
+        logger.debug(`(srcSse._setDeviceOnline) destGatewayDeviceList: ${JSON.stringify(destGatewayDeviceList)}`);
+        logger.debug(`(srcSse._setDeviceOnline) srcGatewayDeviceList: ${JSON.stringify(srcGatewayDeviceList)}`);
+        for (const destDev of destGatewayDeviceList) {
+            const tagMac = _.get(destDev, 'tags.__nsproAddonData.srcGatewayMac');
+            const tagDevId = _.get(destDev, 'tags.__nsproAddonData.deviceId');
+            logger.debug(`(srcSse._setDeviceOnline) tagMac: ${tagMac}`);
+            logger.debug(`(srcSse._setDeviceOnline) tagDevId: ${tagDevId}`);
+            if (tagMac === srcGatewayMac) {
+                const found = _.find(srcGatewayDeviceList, { serial_number: tagDevId });
+                if (found) {
+                    cubeApiRes = await destClient.updateDeviceOnline({
+                        serial_number: destDev.serial_number,
+                        third_serial_number: tagDevId,
+                        params: {
+                            online: true
+                        }
+                    });
+                    logger.debug(`(srcSse._setDeviceOnline) updateDeviceOnline cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+                } else {
+                    cubeApiRes = await destClient.deleteDevice(destDev.serial_number);
+                    logger.debug(`(srcSse._setDeviceOnline) deleteDevice cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+                }
+            }
+        }
+    }
+
+    /**
      * @description 初始化通用事件
      * @memberof ServerSentEvent
      */
@@ -69,6 +127,7 @@ export class ServerSentEvent {
                     this.initParams.ipValid = true;
                     this.initParams.tokenValid = true;
                     await this._updateSseParams();
+                    await this._setDeviceOnline();
                 }
                 this.status = ESseStatus.OPEN;
                 this._initGatewayEvent();
@@ -176,7 +235,7 @@ export class ServerSentEvent {
 
         if (this.status !== ESseStatus.OPEN) {
             // 重连失败
-            // 1.关闭重连 
+            // 1.关闭重连
             // 2.主动关闭sse
             this.status = ESseStatus.CLOSED;
             this.source.close();
@@ -186,7 +245,7 @@ export class ServerSentEvent {
      * @description 生成重试间隔
      * @private
      * @param {number} retryInterval
-     * @returns {number} 
+     * @returns {number}
      * @memberof ServerSentEvent
      */
     private _getRetryInterval(retryInterval: number): number {
