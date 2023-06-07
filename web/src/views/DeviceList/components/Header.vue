@@ -14,6 +14,9 @@
                 {{ $t('AUTO_SYNC_NEW') }}
                 <a-switch style="margin-left: 10px" @change="handleAutoSync" :checked="etcStore.autoSync" />
             </div>
+            <div class="force-refresh" @click="handleRefresh" :class="isRefresh ? 'rotate' : ''">
+                <img src="@/assets/img/force-refresh.png" alt=""/>
+            </div>
             <a-popover trigger="hover" :getPopupContainer="() => headerRightRef">
                 <template #content>
                     <span>{{ $t('ALL_DEVICES') }}</span>
@@ -43,7 +46,17 @@ const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
 const retryTime = ref(0);
 const MAX_RETRY_TIME = 15;
+const isRefresh = ref(false);
 
+/** 刷新操作 */
+const handleRefresh = () => {
+    if (isRefresh.value) return;
+    isRefresh.value = true;
+    deviceStore.getDeviceList('1');
+    setTimeout(() => {
+        isRefresh.value = false;
+    }, 1000);
+};
 
 /** 自动同步所有设备按钮 */
 const handleAutoSync = async (e: boolean) => {
@@ -163,12 +176,20 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
             align-items: center;
             border-radius: 8px 8px 8px 8px;
             border: 1px solid rgba(161, 161, 161, 0.1);
+            margin-right:27px;
+        }
+        .force-refresh{
+            img{
+                height: 27px;
+                width: 27px;
+            }
+            cursor: pointer;
         }
         .all-sync {
             height: 27px;
             width: 27px;
             cursor: pointer;
-            margin-left: 40px;
+            margin-left: 28px;
         }
         .disabled-syncAllDevice {
             user-select: none;
@@ -185,6 +206,22 @@ const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
         &:deep(.ant-popover-inner-content) {
             padding: 8px 12px;
         }
+    }
+}
+.rotate {
+    animation: rotate 1s linear infinite;
+    -webkit-animation: rotate 1s linear infinite; /* Safari and Chrome */
+}
+
+@keyframes rotate {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+@-webkit-keyframes rotate {
+    /* Safari and Chrome */
+    100% {
+        transform: rotate(360deg);
     }
 }
 </style>
