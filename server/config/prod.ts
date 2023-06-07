@@ -4,7 +4,7 @@ export const prodConf = {
         port: 8322,
         dataPath: '',
         dbPath: '',
-        name: 'ewelink-nspanel-pro',
+        name: 'Paral-Sync',
         version: '0.0.1',
     },
     auth: {
