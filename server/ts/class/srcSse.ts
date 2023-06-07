@@ -235,7 +235,7 @@ export class ServerSentEvent {
 
         if (this.status !== ESseStatus.OPEN) {
             // 重连失败
-            // 1.关闭重连
+            // 1.关闭重连 
             // 2.主动关闭sse
             this.status = ESseStatus.CLOSED;
             this.source.close();
@@ -245,7 +245,7 @@ export class ServerSentEvent {
      * @description 生成重试间隔
      * @private
      * @param {number} retryInterval
-     * @returns {number}
+     * @returns {number} 
      * @memberof ServerSentEvent
      */
     private _getRetryInterval(retryInterval: number): number {

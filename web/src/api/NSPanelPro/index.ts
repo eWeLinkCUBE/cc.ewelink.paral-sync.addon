@@ -34,8 +34,8 @@ async function getNsProGateWayList() {
 /**
  * 获取nsPro网关下的子设备
  */
-async function getDeviceList(mac: string) {
-    return await request<INsProDeviceData[]>(`/devices/${mac}`, {}, EReqMethod.GET);
+async function getDeviceList(mac: string,isForceRefresh:string) {
+    return await request<INsProDeviceData[]>(`/devices/${mac}`, {forceSrc:isForceRefresh}, EReqMethod.GET);
 }
 
 /**

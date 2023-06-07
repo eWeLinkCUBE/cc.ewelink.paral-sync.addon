@@ -31,19 +31,7 @@ const indicator = h(LoadingOutlined, {
     spin: true,
 });
 onMounted(async () => {
-    // 语言跟随浏览器
-    // const browserLanguage = navigator.language;
-    let browserLanguage = window.location.search;
-    if (!browserLanguage) {
-        browserLanguage = navigator.language;
-    }
-    if (browserLanguage.includes('zh')) {
-        etcStore.languageChange('zh-cn');
-    } else {
-        etcStore.languageChange('en-us');
-    }
     getAutoSyncState();
-    console.log(etcStore.language, '当前语言');
 });
 /** 设置自动同步按钮状态 */
 const getAutoSyncState = async () => {

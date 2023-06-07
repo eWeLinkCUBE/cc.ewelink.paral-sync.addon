@@ -23,8 +23,9 @@ import i18n from '@/i18n';
  * @returns {*}
  */
 export function jumpCorrespondStep(errCode:number){
-    //设置页面用到的所有接口根据错误码跳转设置页对应的步骤，设置页面只红字提示
-    if (location.hash.indexOf('/deviceList') !== -1) return;
+    //设置页面用到的所有接口根据错误码跳转设置页对应的步骤,设置页面红字提示;
+    const isDevicePage = location.hash.indexOf('/deviceList') !== -1;
+    if (isDevicePage) return;
     const deviceStore = useDeviceStore();
     const step1List = [ 602,603,604,606,607,608,701,702,703 ];
     const step2List = [ 501,502,503,600,601,1500,1501,1502,1503];
@@ -55,37 +56,34 @@ export function handleIpAndToken(errCode:number){
     let ipTokenStep = deviceStore.step;
     if([701,702,703,1500,1501,1502].includes(errCode)){
         deviceStore.setIpTokenStatus(false);
-        console.log('errCode2222222222',errCode);
         switch(errCode){
             //无目标网关信息、IP失效
             case 701:
             case 702:
                 ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'iHost'});
                 ipTokenStep = stepsList.FIRST;
-                // deviceStore.getIHostGateWatList();
                 break;
             //目标网关token失效
             case 703:
                 ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'iHost'});
                 ipTokenStep = stepsList.FIRST;
-                // deviceStore.getIHostGateWatList();
                 break;
             //无来源网关信息、IP失效
             case 1500:
             case 1501:
                 ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'NsPanelPro'});
                 ipTokenStep = stepsList.SECOND;
-                // deviceStore.getNsProGateWayList();
                 break;
             //来源网关token失效
             case 1502:
                 ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'NsPanelPro'});
                 ipTokenStep = stepsList.SECOND;
-                // deviceStore.getNsProGateWayList();
                 break;
             default:
                 break;
         }
+        console.log('errCode-------------->',errCode);
+        console.log('ipTokenMsg',ipTokenMsg);
         deviceStore.setIpTokenMsg(ipTokenMsg);
         deviceStore.setIpTokenStep(ipTokenStep);
     }

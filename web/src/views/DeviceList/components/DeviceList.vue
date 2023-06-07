@@ -5,11 +5,11 @@
             <div class="id">{{ i18n.global.t('DEVICE_ID') }}</div>
             <div class="option">{{ i18n.global.t('ACTION') }}</div>
         </div>
-        <div class="table-body">
+        <div class="table-body Scroll-bar">
             <div class="device-item" v-for="(item, index) in deviceList" :key="index" v-if="deviceList.length > 0">
                 <span class="name common">{{ item.name }}</span>
                 <span class="id common">{{ item.id }}</span>
-                <div class="option common">
+                <div class="option common" style="padding-left:4px">
                     <div v-if="item.isSupported">
                         <span class="sync" v-if="!item.isSynced && !item.spinLoading" @click="syncDevice(item)">{{ i18n.global.t('SYNC') }}</span>
                         <span class="cancel-sync" v-if="item.isSynced && !item.spinLoading" @click="cancelSyncSingleDevice(item)">{{ i18n.global.t('CANCEL_SYNC') }}</span>
@@ -20,13 +20,10 @@
                     </div>
                 </div>
             </div>
-            <!-- length为0 -->
             <div v-else class="empty">
-                <!-- loading状态 -->
                 <div class="loading" v-if="loading">
                     <a-spin></a-spin>
                 </div>
-                <!-- 空状态 -->
                 <div v-else>
                     <img :src="Empty" alt="" class="no-data" />
                     <p>{{ i18n.global.t('NO_DATA') }}</p>
@@ -45,7 +42,6 @@ import i18n from '@/i18n/index';
 import router from '@/router';
 import api from '@/api';
 import Empty from '@/assets/img/empty.png';
-import NoLogin from '@/assets/img/no-login.png';
 
 const deviceList = computed(() => deviceStore.deviceList);
 const deviceStore = useDeviceStore();
@@ -210,5 +206,28 @@ const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
     100% {
         transform: rotate(360deg);
     }
+}
+
+.Scroll-bar::-webkit-scrollbar {
+    /*滚动条整体样式*/
+    width: 8px;
+    /*高宽分别对应横竖滚动条的尺寸*/
+    height: 8px;
+}
+
+
+.Scroll-bar::-webkit-scrollbar-thumb {
+    /*滚动条里面小方块*/
+    border-radius: 5px;
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+
+.Scroll-bar::-webkit-scrollbar-track {
+    /*滚动条里面轨道*/
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    border-radius: 0;
+    background: rgba(0, 0, 0, 0.1);
 }
 </style>
