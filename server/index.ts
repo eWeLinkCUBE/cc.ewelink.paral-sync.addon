@@ -44,10 +44,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(info);
 
 // 鉴权校验
-// app.use(oauth);
+app.use(oauth);
 
 // 检查同步目标网关有效性
-// app.use(checkDestGateway);
+app.use(checkDestGateway);
 
 // 路由处理
 app.use('/api/v1', router);
