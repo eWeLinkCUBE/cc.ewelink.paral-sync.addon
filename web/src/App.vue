@@ -35,17 +35,17 @@ const judgeLangue = () =>{
     } else {
         etcStore.languageChange('en-us');
     }
-    console.log(etcStore.language, '当前语言');
+    // console.log(etcStore.language, '当前语言');
 }
 
 /** 在全流程正常的情况下刷新页面要求停留在当前页面,此处调用先于接口 */
 const keepPageInRefresh = () => {
     if ([stepsList.FIRST, stepsList.SECOND].includes(deviceStore.step)) {
-        console.log('keep page 1 when refresh');
+        // console.log('keep page 1 when refresh');
         router.push('/setting');
     }
     if (stepsList.THIRD === deviceStore.step) {
-        console.log('keep page 2 when refresh');
+        // console.log('keep page 2 when refresh');
         router.push('/deviceList');
     }
 };
@@ -56,7 +56,7 @@ const judgeIsFirstEnter = async () => {
     if (!deviceStore.iHostList || deviceStore.iHostList.length < 1) {
         deviceStore.setStep(stepsList.FIRST);
         router.push('/setting');
-        console.log('app.vue jump iHost');
+        // console.log('app.vue jump iHost');
         return;
     } else {
         //缓存有数据，重新拉取一遍列表，判断IP和token
@@ -65,7 +65,7 @@ const judgeIsFirstEnter = async () => {
         if (!hasIHostToken) {
             deviceStore.setStep(stepsList.FIRST);
             router.push('/setting');
-            console.log('app.vue interface jump iHost');
+            // console.log('app.vue interface jump iHost');
             return;
         }
     }
@@ -76,7 +76,7 @@ const judgeIsFirstEnter = async () => {
         if (!deviceStore.nsProList || deviceStore.nsProList.length < 1) {
             deviceStore.setStep(stepsList.SECOND);
             router.push('/setting');
-            console.log('app.vue jump nsPro');
+            // console.log('app.vue jump nsPro');
         } else {
             //缓存有数据，重新拉取一遍列表，判断IP和token
             await deviceStore.getNsProGateWayList();
@@ -84,7 +84,7 @@ const judgeIsFirstEnter = async () => {
             if (!hasNsProToken) {
                 deviceStore.setStep(stepsList.SECOND);
                 router.push('/setting');
-                console.log('app.vue interface jump nsPro');
+                // console.log('app.vue interface jump nsPro');
             }
         }
     }

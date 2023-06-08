@@ -175,7 +175,6 @@ async function _httpGetPOSTPutDeleteRequest<T>(url: string, params: object, meth
     } catch (error) {
         console.log('error => ', error);
         const etcStore = useEtcStore();
-        console.log('JSON.stringify(error)', JSON.stringify(error));
 
         // console.log(" typeof error => ", typeof error);
         if (JSON.stringify(error).includes('timeout')) {
@@ -186,8 +185,7 @@ async function _httpGetPOSTPutDeleteRequest<T>(url: string, params: object, meth
 
         // 报错中包含网络错误，即后端接口失效
         if (JSON.stringify(error).includes('Network Error') || JSON.stringify(error).includes('code 502')) {
-            console.log('Network Error');
-            console.log('JSON.stringify(error)', JSON.stringify(error));
+            console.log('Network Error', error);
             // etcStore.setIsLoading(true)
             // window.location.reload();
         } else {

@@ -49,7 +49,7 @@ export const useDeviceStore = defineStore('addon_device', {
             } else {
                 this.iHostList = [];
             }
-            console.log('iHostList res', res);
+            // console.log('iHostList res', res);
             return res;
         },
 
@@ -61,7 +61,7 @@ export const useDeviceStore = defineStore('addon_device', {
             } else {
                 this.nsProList = [];
             }
-            console.log('nsPro res', this.nsProList);
+            // console.log('nsPro res', this.nsProList);
             return res;
         },
 
@@ -75,7 +75,7 @@ export const useDeviceStore = defineStore('addon_device', {
             });
 
             if (!mac) {
-                console.log('nsPro Gateway mac lose');
+                // console.log('nsPro Gateway mac lose');
                 this.deviceList = [];
                 // this.setStep(stepsList.FIRST);
                 // router.push('/setting');
@@ -188,9 +188,9 @@ export const useDeviceStore = defineStore('addon_device', {
                 }
                 if (item.ts && item.ipValid) {
                     const timeGap = moment(moment()).diff(moment(Number(item.ts)), 'seconds');
-                    console.log('timeGap------->', timeGap);
+                    // console.log('timeGap------->', timeGap);
                     if (timeGap < 300) {
-                        console.log('hasTokenOrTs  true');
+                        // console.log('hasTokenOrTs  true');
                         return true;
                     }
                 }
