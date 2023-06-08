@@ -36,6 +36,9 @@ function getSign(params: any, appSecret: string) {
  * @returns {*}
  */
 export default async function oauth(req: Request, res: Response, next: NextFunction) {
+    if (req.url.indexOf('sse') > -1 && req.method === 'GET') {
+        return next();
+    }
     const { headers, method, query, body } = req;
     const headerSign = headers['sign'] as string;
     const params = method === 'GET' ? query : body;
@@ -79,20 +82,6 @@ export default async function oauth(req: Request, res: Response, next: NextFunct
     if (appid !== appId) {
         logger.error('oauth error: appid is invalid');
         return res.json(toResponse(401, 'appid is invalid'));
-    }
-
-    // 检测at是否存在
-    const headerAt = headers['authorization'];
-    if (!headerAt) {
-        logger.error('oauth error: authorization in headers is required');
-        return res.json(toResponse(401, 'authorization in headers is required'));
-    }
-
-    // 检测at格式是否正确
-    const [atTitle, at] = headerAt.split(' ');
-    if (atTitle !== 'Bearer' || !at) {
-        logger.error('oauth error: authorization in headers is not in right format');
-        return res.json(toResponse(401, "authorization in headers must begin with 'Bearer'"));
     }
 
     return next();
