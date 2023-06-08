@@ -43,8 +43,6 @@ import { stepsList } from '@/api/ts/interface/IGateWay';
 const headerRightRef = ref();
 const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
-const retryTime = ref(0);
-const MAX_RETRY_TIME = 15;
 const isRefresh = ref(false);
 
 /** 刷新操作 */
@@ -75,6 +73,8 @@ const syncAllDevice = async () => {
     const res = await api.NSPanelPro.syncAllDevice();
     if (res.error === 0 && res.data) {
         await deviceStore.getDeviceList();
+        //每次将重试次数重新置为0;
+        deviceStore.reverseRetryTime();
         //根据同步所有设备接口返回的deviceId列表数据，去再次查询设备列表中同步成功的设备
         const syncDeviceIdList = res.data?.syncDeviceIdList;
         await deviceSyncSuccessNum(syncDeviceIdList);
@@ -93,43 +93,6 @@ const goSetting = () => {
 
 /** 没有设备禁用同步所有设备按钮 */
 const isDisabled = computed(() => (deviceStore.deviceList.length < 1 ? true : false));
-
-/** 判断有多少设备提示成功，并且提示用户 */
-// const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
-//     if (!syncDeviceIdList || syncDeviceIdList.length < 1) {
-//         console.log('sync success device number is empty');
-//         return;
-//     }
-//     if (!deviceStore.deviceList || deviceStore.deviceList.length < 1) {
-//         console.log('nsPro deviceList number is empty');
-//         return;
-//     }
-//     let count = 0;
-//     for (const item of syncDeviceIdList) {
-//         for (const element of deviceStore.deviceList) {
-//             if (item === element.id && element.isSynced) {
-//                 count++;
-//                 break;
-//             }
-//         }
-//     }
-//     //当同步设备全部是同步成功状态，结束loading并且提示成功;
-//     if (count === syncDeviceIdList.length) {
-//         message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
-//         return;
-//     } else {
-//         retryTime.value++;
-//         if (retryTime.value <= MAX_RETRY_TIME) {
-//             await deviceStore.getDeviceList();
-//             await sleep(2000); //15*2=30(s)
-//             await deviceSyncSuccessNum(syncDeviceIdList);
-//         } else {
-//             // 三十秒还没成功,提示成功;
-//             message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: syncDeviceIdList.length }));
-//             return;
-//         }
-//     }
-// };
 </script>
 
 <style scoped lang="scss">

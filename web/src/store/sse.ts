@@ -4,12 +4,7 @@ import { useEtcStore } from './etc';
 import { message } from 'ant-design-vue';
 import i18n from '@/i18n';
 import { useDeviceStore } from '@/store/device';
-import type {
-    IGateWayInfoData,
-    INsProDeviceData,
-    IDeleteDeviceData,
-    IAddDeviceData
-} from '@/api/ts/interface/IGateWay';
+import type { IGateWayInfoData, INsProDeviceData, IDeleteDeviceData, IAddDeviceData } from '@/api/ts/interface/IGateWay';
 import { deviceSyncSuccessNum } from '../utils/tools';
 let source: null | EventSource = null;
 
@@ -57,7 +52,7 @@ export const useSseStore = defineStore('sse', {
 
             /**获取token失败 */
             source.addEventListener('obtain_token_fail_report', async (event: any) => {
-                // console.log('obtain_token_fail_report---------->',event.data);
+                // console.log('obtain_token_fail_report---------->', event.data);
                 const data = JSON.parse(event.data) as IGateWayInfoData;
                 const deviceStore = useDeviceStore();
                 deviceStore.replaceGateWayItemBySse(data);
@@ -96,7 +91,7 @@ export const useSseStore = defineStore('sse', {
             });
 
             /** 同步单个设备 */
-            source.addEventListener('sync_one_device_result',(event: any) => {
+            source.addEventListener('sync_one_device_result', (event: any) => {
                 // console.log('sync_one_device_result------------->', event.data);
                 const deviceId = JSON.parse(event.data).syncDeviceId;
                 const deviceStore = useDeviceStore();
@@ -104,7 +99,7 @@ export const useSseStore = defineStore('sse', {
             });
 
             /** 取消同步单个设备 */
-            source.addEventListener('unsync_one_device_result',(event: any) => {
+            source.addEventListener('unsync_one_device_result', (event: any) => {
                 // console.log('unsync_one_device_result------------->', event.data);
                 const deviceId = JSON.parse(event.data).unsyncDeviceId;
                 const deviceStore = useDeviceStore();
@@ -112,20 +107,24 @@ export const useSseStore = defineStore('sse', {
             });
 
             /** 一键同步所有设备 */
-            source.addEventListener('sync_all_device_result',async (event: any) => {
+            source.addEventListener('sync_all_device_result', async (event: any) => {
                 // console.log('sync_all_device_result------------->', event.data);
                 const deviceIdList = JSON.parse(event.data).syncDeviceIdList as string[];
-                // console.log('deviceIdList------------>',deviceIdList);
+                const deviceStore = useDeviceStore();
                 const etcStore = useEtcStore();
+                //每次将重试次数置为0;
+                deviceStore.reverseRetryTime();
                 etcStore.setIsLoading(true);
                 await deviceSyncSuccessNum(deviceIdList);
                 etcStore.setIsLoading(false);
             });
 
             /** SSE失败 */
-            source.addEventListener('error', async (event: any) => {
+            source.addEventListener('error', (event: any) => {
                 // console.log('SSE connect error, reboot');
-                await this.startSse();
+                setTimeout(() => {
+                    this.startSse();
+                }, 5000);
             });
         },
     },
