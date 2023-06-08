@@ -14,6 +14,24 @@ import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, updateSrcGatewayDe
 import { isSupportDevice } from '../utils/categoryCapabilityMaping';
 import SSE from '../ts/class/sse';
 
+/**
+ * 判断当前设备是否已经同步过
+ *
+ * @param srcDevice 同步来源网关设备数据
+ * @param srcGatewayMac 同步来源网关 MAC
+ * @param destDeviceList 同步目标网关设备列表
+ */
+function isNewDevice(srcDevice: GatewayDeviceItem, srcGatewayMac: string, destDeviceList: GatewayDeviceItem[]) {
+    for (const destDevice of destDeviceList) {
+        const tagDevId = _.get(destDevice, 'tags.__nsproAddonData.deviceId');
+        const tagMac = _.get(destDevice, 'tags.__nsproAddonData.srcGatewayMac');
+        if (tagDevId === srcDevice.serial_number && tagMac === srcGatewayMac) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /** 同步所有设备(1600) */
 export default async function syncAllDevices(req: Request, res: Response) {
     try {
@@ -46,7 +64,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
         let destGatewayDeviceList: GatewayDeviceItem[] = [];
 
         // 拉取同步目标网关的设备
-        const destRes = await getDestGatewayDeviceGroup();
+        const destRes = await getDestGatewayDeviceGroup(true);
         logger.info(`(service.syncAllDevice) destRes: ${JSON.stringify(destRes)}`);
         if (destRes.error === 0) {
             destGatewayDeviceList = destRes.data.device_list;
@@ -63,7 +81,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
             if (srcRes.error === 0) {
                 const deviceList = srcRes.data.device_list;
                 for (const device of deviceList) {
-                    if (isSupportDevice(device)) {
+                    if (isSupportDevice(device) && isNewDevice(device, gateway.mac, destGatewayDeviceList)) {
                         syncDevices.push({
                             name: device.name,
                             third_serial_number: device.serial_number,
