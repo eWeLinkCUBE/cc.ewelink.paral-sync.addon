@@ -108,8 +108,17 @@ export default async function syncOneDevice(req: Request, res: Response) {
         }
 
         if (srcDeviceInDestGateway(srcDeviceData.serial_number, destGatewayDeviceList)) {
+            logger.info(`(service.syncOneDevice)  current device ${srcDeviceData} already exist in dest gateway`)
+            logger.debug(`(service.syncOneDevice)  current device ${srcDeviceData}, destGatewayDeviceList => ${JSON.stringify(destGatewayDeviceList)}`)
+            res.json(toResponse(0));
             // 当前设备已经被同步过了
-            return res.json(toResponse(0));
+            SSE.send({
+                name: 'sync_one_device_result',
+                data: {
+                    syncDeviceId: srcDeviceData.serial_number
+                }
+            });
+            return;
         } else {
             // 调用添加第三方设备的接口
             const syncDevices = [
