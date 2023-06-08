@@ -12,7 +12,7 @@ export const devConf = {
         appSecret: 'gHDu79PCw*yR%wtfmy5YUzo!yknm74xz',
     },
     iHost: {
-        ip: '192.168.31.214',
+        ip: '192.168.31.171',
     },
     log: {
         path: 'log/logFile/total_dev.log',

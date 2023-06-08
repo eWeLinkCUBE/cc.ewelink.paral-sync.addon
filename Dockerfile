@@ -8,7 +8,7 @@ COPY    . .
 
 RUN npm install pm2 -g
 
-# RUN apt-get update && apt-get install -y iputils-ping && apt-get install -y iproute2 && apt-get install net-tools
+RUN apt-get update && apt-get install -y iputils-ping && apt-get install -y iproute2 && apt-get install net-tools
 
 EXPOSE 8322
 

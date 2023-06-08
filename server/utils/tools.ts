@@ -1,5 +1,7 @@
 import _ from 'lodash';
 import { GatewayDeviceItem } from "../ts/interface/CubeApi";
+import ping from 'ping';
+import logger from '../log';
 
 /**
  *
@@ -13,6 +15,19 @@ function sleep(time: number) {
             resolve(1);
         }, time)
     })
+}
+
+
+
+/**
+ * @description 判断该ip是否还存活
+ * @param {string} ip
+ * @returns {*}  {Promise<boolean>}
+ */
+async function isIpAlive(ip: string): Promise<boolean> {
+    const res = await ping.promise.probe(ip);
+    logger.debug(`ping ${ip} result ${JSON.stringify(res)}`);
+    return res.alive;
 }
 
 /**
@@ -45,4 +60,5 @@ export function getSwitchChannelNum(device: GatewayDeviceItem) {
 
 export default {
     sleep,
+    isIpAlive
 }
