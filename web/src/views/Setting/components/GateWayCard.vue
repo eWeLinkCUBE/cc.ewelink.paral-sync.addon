@@ -68,11 +68,10 @@ const btnLoadingStatus = computed<boolean>(() => {
         //有ts,再判断距离当前时间是否小于五分钟
         const nowTime = moment();
         const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
-        console.log('状态处的second------>', seconds);
         if (seconds >= 300) {
             return false;
         } else {
-            setCutDownTimer(seconds, requestTime);
+            setCutDownTimer(seconds);
             return true;
         }
     }
@@ -102,12 +101,7 @@ const showWhichContent = computed(() => {
 });
 
 /** 开始倒计时 */
-const setCutDownTimer = (seconds: number, requestTime: number) => {
-    // const nowTime = moment();
-
-    // const seconds = moment(moment()).diff(moment(requestTime), 'seconds');
-
-    // if (seconds >= 300) return;
+const setCutDownTimer = (seconds: number) => {
     countdownTime.value = 300 - seconds;
 
     if (timer.value) {
@@ -122,10 +116,8 @@ const setCutDownTimer = (seconds: number, requestTime: number) => {
         } else {
             window.clearInterval(timer.value);
             countdownTime.value = 0;
-            console.log('倒计时到0刷新网关数据');
             refreshGateWayList();
         }
-        console.log('------------------>', countdownTime.value);
     }, 1000);
 };
 

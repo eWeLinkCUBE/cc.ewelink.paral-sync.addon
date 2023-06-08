@@ -116,7 +116,10 @@ export const useSseStore = defineStore('sse', {
                 console.log('sync_all_device_result------------->', event.data);
                 const deviceIdList = JSON.parse(event.data).syncDeviceIdList as string[];
                 console.log('deviceIdList------------>',deviceIdList);
+                const deviceStore = useDeviceStore();
                 const etcStore = useEtcStore();
+                //每次将重试次数置为0;
+                deviceStore.reverseRetryTime();
                 etcStore.setIsLoading(true);
                 await deviceSyncSuccessNum(deviceIdList);
                 etcStore.setIsLoading(false);
