@@ -143,11 +143,11 @@ export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = 
     } else if (cubeApiRes.error === 401) {
         logger.info(`[getSrcGatewayDeviceGroup] RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
         await srcTokenAndIPInvalid('token', srcGateway.mac);
-        return toResponse(600);
+        return toResponse(1502);
     } else if (cubeApiRes.error === 1000) {
-        logger.info(`[getSrcGatewayDeviceGroup] RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
+        logger.info(`[getSrcGatewayDeviceGroup] RESPONSE: ERR_CUBEAPI_GET_DEVICE_IP_INVALID`);
         await srcTokenAndIPInvalid('ip', srcGateway.mac);
-        return toResponse(601);
+        return toResponse(1501);
     } else {
         logger.warn(`[getSrcGatewayDeviceGroup]  unknown error: ${JSON.stringify(cubeApiRes)}`);
         return toResponse(500);
@@ -217,11 +217,11 @@ export async function getDestGatewayDeviceGroup(noCache = false): Promise<IRespo
         return cubeApiRes;
     } else if (cubeApiRes.error === 401) {
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
-        return toResponse(600);
+        return toResponse(703);
     } else if (cubeApiRes.error === 1000) {
         await destTokenInvalid();
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
-        return toResponse(601);
+        return toResponse(702);
     } else {
         logger.warn(`(service.syncOneDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);
         return toResponse(500);
