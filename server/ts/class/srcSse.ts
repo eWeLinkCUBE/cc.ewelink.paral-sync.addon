@@ -77,7 +77,7 @@ export class ServerSentEvent {
                 }
 
                 this.pingTimer = setInterval(async () => {
-                    const isIpAlive = await tools.isIpAlive(this.initParams.ip);
+                    const isIpAlive = await tools.isIpAlive(this.initParams.ip.split(":")[0]);
                     logger.debug(`begin to ping ${JSON.stringify(this.initParams)} and the result be ${isIpAlive}`);
                     if (!isIpAlive) {
                         this.status = ESseStatus.RECONNECTING;
