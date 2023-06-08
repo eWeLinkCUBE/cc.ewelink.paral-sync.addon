@@ -83,7 +83,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
 
         // 获取同步来源网关的设备列表
         const srcRes = await getSrcGatewayDeviceGroup(srcGatewayMac);
-        logger.info(`(service.syncOneDevice) srcRes: ${JSON.stringify(srcRes)}`);
+        logger.debug(`(service.syncOneDevice) srcRes: ${JSON.stringify(srcRes)}`);
         if (srcRes.error === 0) {
             srcGatewayDeviceList = srcRes.data.device_list;
         } else {
@@ -92,7 +92,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
 
         // 获取同步目标网关的设备列表
         const destRes = await getDestGatewayDeviceGroup();
-        logger.info(`(service.syncOneDevice) destRes: ${JSON.stringify(destRes)}`);
+        logger.debug(`(service.syncOneDevice) destRes: ${JSON.stringify(destRes)}`);
         if (destRes.error === 0) {
             destGatewayDeviceList = destRes.data.device_list;
         } else {
@@ -101,7 +101,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
 
         /** 将要被同步的设备数据 */
         const srcDeviceData = _.find(srcGatewayDeviceList, { serial_number: willSyncDeviceId });
-        logger.info(`(service.syncOneDevice) srcDeviceData: ${JSON.stringify(srcDeviceData)}`);
+        logger.debug(`(service.syncOneDevice) srcDeviceData: ${JSON.stringify(srcDeviceData)}`);
         if (!srcDeviceData) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_SYNC_DEVICE_NOT_IN_SRC_GATEWAY`);
             return res.json(toResponse(1503));
@@ -137,7 +137,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
             ];
             logger.info(`(service.syncOneDevice) syncDevices: ${JSON.stringify(syncDevices)}`);
             cubeApiRes = await destGatewayClient.syncDevices({ devices: syncDevices });
-            logger.info(`(service.syncOneDevice) destGatewayClient.syncDevices() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+            logger.debug(`(service.syncOneDevice) destGatewayClient.syncDevices() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
             const resError = _.get(res, 'error');
             const resType = _.get(res, 'payload.type');
             if (resError === 1000) {

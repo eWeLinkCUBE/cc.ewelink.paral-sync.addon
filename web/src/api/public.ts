@@ -129,12 +129,10 @@ async function _httpGetPOSTPutDeleteRequest<T>(url: string, params: object, meth
         return result ? (result.data as IResponse<T>) : ({} as IResponse<T>);
     } catch (error) {
         console.log('error => ', error);
-        console.log('JSON.stringify(error)', JSON.stringify(error));
 
         // 报错中包含网络错误，即后端接口失效
         if (JSON.stringify(error).includes('Network Error') || JSON.stringify(error).includes('code 502')) {
             console.log('Network Error');
-            console.log('JSON.stringify(error)', JSON.stringify(error));
         }
 
         return {} as IResponse<T>;

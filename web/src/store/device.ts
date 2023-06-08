@@ -76,7 +76,7 @@ export const useDeviceStore = defineStore('addon_device', {
             });
 
             if (!mac) {
-                console.log('nsPro Gateway mac lose');
+                // console.log('nsPro Gateway mac lose');
                 this.deviceList = [];
                 // this.setStep(stepsList.FIRST);
                 // router.push('/setting');
@@ -200,7 +200,7 @@ export const useDeviceStore = defineStore('addon_device', {
                 if (item.ts && item.ipValid) {
                     const timeGap = moment(moment()).diff(moment(Number(item.ts)), 'seconds');
                     if (timeGap < 300) {
-                        console.log('hasTokenOrTs  true');
+                        // console.log('hasTokenOrTs  true');
                         return true;
                     }
                 }

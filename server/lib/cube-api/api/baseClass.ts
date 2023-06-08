@@ -71,7 +71,7 @@ export default abstract class baseClass {
 		// console.log('----->', new Date().getTime() - this.time);
 		const queryParams = appName ? { app_name: appName } : {};
 		const resp = await this.httpRequest({ path: EPath.BRIDGE_TOKEN, method: EMethod.GET, isNeedAT: false, params: queryParams })
-		logger.info(`AAAAAAAAAAAAAAAAAAAAAAAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT: ${JSON.stringify(resp)}`);
+		// logger.info(`AAAAAAAAAAAAAAAAAAAAAAAAAAAAATTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT: ${JSON.stringify(resp)}`);
 		if (resp.error === 0) {
 			this.interval && clearInterval(this.interval)
 			//	set at

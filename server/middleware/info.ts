@@ -7,11 +7,6 @@ export default (req: Request, res: Response, next: NextFunction) => {
     const { params, body, method, url } = req;
     logger.info(`incoming request info: ${method} ${url}`);
 
-    //不打印用户信息
-    if (method === 'POST' && url.includes('account')) {
-        return next();
-    }
-
     if (!_.isEmpty(params)) {
         logger.info(`incoming request params: ${JSON.stringify(params, null, 2)}`);
     }

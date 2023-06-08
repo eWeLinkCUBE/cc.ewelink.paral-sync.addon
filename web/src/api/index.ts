@@ -66,7 +66,7 @@ axios.interceptors.response.use((response): any => {
 
         //业务接口错误码统一消息提示
         if (url && status === 200 && error && error != 0 && !skipCommonError) {
-            console.log('emit errCode handler --------->',error);
+            // console.log('emit errCode handler --------->',error);
             ErrorCodeHandle(error);
         }
     }

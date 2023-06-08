@@ -134,7 +134,7 @@ export async function initDb(filename: string, isDbFileExist: boolean) {
                     const decryptStr = encryption.decryptAES(val, config.auth.appSecret);
                     return JSON.parse(decryptStr);
                 } catch (err) {
-                    console.log('O_O?: DB DECODE ERROR', err);
+                    logger.info('[decode info error]', err);
                     return null;
                 }
             },

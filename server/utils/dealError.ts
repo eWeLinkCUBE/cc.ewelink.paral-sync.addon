@@ -93,19 +93,19 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
         const sse = srcSsePool.get(srcMac);
 
         if (!destGatewayInfo) {
-            logger.error(`[dealWith Token Invalid] error : ERR_NO_DEST_GATEWAY_INFO`);
+            logger.warn(`[dealWith Token Invalid] error : ERR_NO_DEST_GATEWAY_INFO`);
             return;
         }
 
         if (!sse) {
-            logger.error(`[dealWith Token Invalid] error : src ${srcMac} sse doesn't exist!`);
+            logger.warn(`[dealWith Token Invalid] error : src ${srcMac} sse doesn't exist!`);
             return;
         }
 
         // 查询目标网关中是否存在该mac地址对应网关
         if (srcMac === destGatewayInfo.mac) {
             if (destGatewayInfo[key] === false) {
-                logger.error(`[dealWith Token Invalid] error : src ${srcMac}'s ${key} already false`);
+                logger.info(`[dealWith Token Invalid] error : src ${srcMac}'s ${key} already false`);
                 return;
             };
             // 因为 NSPro 凭证失效后，SSE 连接不断开，等 NSPro 后续修复这个问题
@@ -138,7 +138,7 @@ export async function srcTokenAndIPInvalid(type: "token" | "ip", srcMac: string)
 
         await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
     } catch (err) {
-        logger.info("dealWithTokenInvalid err: ", err);
+        logger.error("dealWithTokenInvalid err: ", err);
     }
 }
 
@@ -164,6 +164,6 @@ export async function destTokenInvalid(): Promise<void> {
         destGatewayInfo.token = "";
         await db.setDbValue('destGatewayInfo', destGatewayInfo);
     } catch (err) {
-        logger.info("destTokenInvalid err: ", err);
+        logger.error("destTokenInvalid err: ", err);
     }
 }

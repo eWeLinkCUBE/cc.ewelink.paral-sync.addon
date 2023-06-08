@@ -30,13 +30,13 @@ export const useSseStore = defineStore('sse', {
             source = new EventSource(`${sseUrl}?id=${timestamp}`);
             source.addEventListener('open', () => {
                 const etcStore = useEtcStore();
-                console.log('SSE connect success');
+                // console.log('SSE connect success');
                 this.sseIsConnect = true;
             });
 
             /** 开始获取token */
             source.addEventListener('begin_obtain_token_report', async (event: any) => {
-                console.log('begin_obtain_token_report------------->', event.data);
+                // console.log('begin_obtain_token_report------------->', event.data);
                 const data = JSON.parse(event.data) as IGateWayInfoData;
                 const deviceStore = useDeviceStore();
                 deviceStore.replaceGateWayItemBySse(data);
@@ -44,7 +44,7 @@ export const useSseStore = defineStore('sse', {
 
             /**成功获取token */
             source.addEventListener('obtain_token_success_report', async (event: any) => {
-                console.log('obtain_token_success------------->', event.data);
+                // console.log('obtain_token_success------------->', event.data);
                 const data = JSON.parse(event.data) as IGateWayInfoData;
                 const deviceStore = useDeviceStore();
                 deviceStore.replaceGateWayItemBySse(data);
@@ -52,7 +52,7 @@ export const useSseStore = defineStore('sse', {
 
             /**获取token失败 */
             source.addEventListener('obtain_token_fail_report', async (event: any) => {
-                console.log('obtain_token_fail_report---------->', event.data);
+                // console.log('obtain_token_fail_report---------->', event.data);
                 const data = JSON.parse(event.data) as IGateWayInfoData;
                 const deviceStore = useDeviceStore();
                 deviceStore.replaceGateWayItemBySse(data);
@@ -60,7 +60,7 @@ export const useSseStore = defineStore('sse', {
 
             /** 网关信息推送 */
             source.addEventListener('gateway_info_report', async (event: any) => {
-                console.log('gateway_info_report------------->', event.data);
+                // console.log('gateway_info_report------------->', event.data);
                 const data = JSON.parse(event.data) as IGateWayInfoData;
                 const deviceStore = useDeviceStore();
                 deviceStore.modifyGateWayInfoBySse(data);
@@ -68,7 +68,7 @@ export const useSseStore = defineStore('sse', {
 
             /**子设备信息变更 上下线和名字变化 */
             source.addEventListener('device_info_change_report', async (event: any) => {
-                console.log('device_info_change_report------------->', event.data);
+                // console.log('device_info_change_report------------->', event.data);
                 const data = JSON.parse(event.data) as INsProDeviceData;
                 const deviceStore = useDeviceStore();
                 deviceStore.replaceDeviceItemBySse(data);
@@ -76,7 +76,7 @@ export const useSseStore = defineStore('sse', {
 
             /** 子设备删除 */
             source.addEventListener('device_deleted_report', async (event: any) => {
-                console.log('device_deleted_report------------->', event.data);
+                // console.log('device_deleted_report------------->', event.data);
                 const data = JSON.parse(event.data) as IDeleteDeviceData;
                 const deviceStore = useDeviceStore();
                 deviceStore.deleteNsProDeviceById(data.deviceId);
@@ -84,7 +84,7 @@ export const useSseStore = defineStore('sse', {
 
             /** 子设备新增 */
             source.addEventListener('device_added_report', async (event: any) => {
-                console.log('device_added_report------------->', event.data);
+                // console.log('device_added_report------------->', event.data);
                 const data = JSON.parse(event.data) as IAddDeviceData;
                 const deviceStore = useDeviceStore();
                 deviceStore.addNsPaneProDevice(data);
@@ -92,7 +92,7 @@ export const useSseStore = defineStore('sse', {
 
             /** 同步单个设备 */
             source.addEventListener('sync_one_device_result', (event: any) => {
-                console.log('sync_one_device_result------------->', event.data);
+                // console.log('sync_one_device_result------------->', event.data);
                 const deviceId = JSON.parse(event.data).syncDeviceId;
                 const deviceStore = useDeviceStore();
                 deviceStore.modifyDeviceSyncStatusById(deviceId, true);
@@ -100,7 +100,7 @@ export const useSseStore = defineStore('sse', {
 
             /** 取消同步单个设备 */
             source.addEventListener('unsync_one_device_result', (event: any) => {
-                console.log('unsync_one_device_result------------->', event.data);
+                // console.log('unsync_one_device_result------------->', event.data);
                 const deviceId = JSON.parse(event.data).unsyncDeviceId;
                 const deviceStore = useDeviceStore();
                 deviceStore.modifyDeviceSyncStatusById(deviceId, false);
@@ -108,7 +108,7 @@ export const useSseStore = defineStore('sse', {
 
             /** 一键同步所有设备 */
             source.addEventListener('sync_all_device_result', async (event: any) => {
-                console.log('sync_all_device_result------------->', event.data);
+                // console.log('sync_all_device_result------------->', event.data);
                 const deviceIdList = JSON.parse(event.data).syncDeviceIdList as string[];
                 const deviceStore = useDeviceStore();
                 const etcStore = useEtcStore();
@@ -121,7 +121,7 @@ export const useSseStore = defineStore('sse', {
 
             /** SSE失败 */
             source.addEventListener('error', (event: any) => {
-                console.log('SSE connect error, reboot');
+                // console.log('SSE connect error, reboot');
                 setTimeout(() => {
                     this.startSse();
                 }, 5000);

@@ -21,6 +21,6 @@ const appId = isTestEnv() ? TEST_APPID : PROD_APPID;
 const appSecret = isTestEnv() ? TEST_SECRET : PROD_SECRET;
 const sseUrl = isTestEnv() ? `//${NSPanelProIp}:8322/api/v1/sse` : '/api/v1/sse';
 
-console.log(`当前版本为 ${version}`);
+console.log(`current version: ${version}`);
 
 export { apiUrl, appSecret, appId, env, sseUrl };

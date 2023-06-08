@@ -38,8 +38,8 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
         logger.info(`(service.getSourceGatewaySubDevices) reqGatewayMac: ${reqGatewayMac}`);
         logger.info(`(service.getSourceGatewaySubDevices) forceRefreshSrc: ${forceRefreshSrc}`);
-        logger.info(`(service.getSourceGatewaySubDevices) localSrcGatewayInfoList: ${JSON.stringify(localSrcGatewayInfoList)}`);
-        logger.info(`(service.getSourceGatewaySubDevices) localSrcGatewayInfo: ${JSON.stringify(localSrcGatewayInfo)}`);
+        logger.debug(`(service.getSourceGatewaySubDevices) localSrcGatewayInfoList: ${JSON.stringify(localSrcGatewayInfoList)}`);
+        logger.debug(`(service.getSourceGatewaySubDevices) localSrcGatewayInfo: ${JSON.stringify(localSrcGatewayInfo)}`);
 
         if (!localSrcGatewayInfo) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
@@ -58,7 +58,7 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
         /** 本地存储的同步目标网关信息 */
         const localDestGatewayInfo = await DB.getDbValue('destGatewayInfo');
-        logger.info(`(service.getSourceGatewaySubDevices) localDestGatewayInfo: ${JSON.stringify(localDestGatewayInfo)}`);
+        logger.debug(`(service.getSourceGatewaySubDevices) localDestGatewayInfo: ${JSON.stringify(localDestGatewayInfo)}`);
         if (!localDestGatewayInfo?.ipValid) {
             logger.info(`(service.getSourceGatewaySubDevices) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
             return res.json(toResponse(702));
@@ -74,7 +74,7 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
         // 获取同步来源网关的设备列表
         const srcRes = await getSrcGatewayDeviceGroup(localSrcGatewayInfo.mac, forceRefreshSrc === '1');
-        logger.info(`(service.getSourceGatewaySubDevices) srcRes: ${JSON.stringify(srcRes)}`);
+        logger.debug(`(service.getSourceGatewaySubDevices) srcRes: ${JSON.stringify(srcRes)}`);
         if (srcRes.error === 0) {
             srcGatewayDeviceList = srcRes.data.device_list;
         } else {
@@ -83,7 +83,7 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
 
         // 获取同步目标网关的设备列表
         const destRes = await getDestGatewayDeviceGroup();
-        logger.info(`(service.getSourceGatewaySubDevices) destRes: ${JSON.stringify(destRes)}`);
+        logger.debug(`(service.getSourceGatewaySubDevices) destRes: ${JSON.stringify(destRes)}`);
         if (destRes.error === 0) {
             destGatewayDeviceList = destRes.data.device_list;
         } else {
@@ -98,7 +98,7 @@ export default async function getSourceGatewaySubDevices(req: Request, res: Resp
                 destGatewayDeviceListMatched.push(device);
             }
         }
-        logger.info(`(service.getSourceGatewaySubDevices) destGatewayDeviceListMatched: ${JSON.stringify(destGatewayDeviceListMatched)}`);
+        logger.debug(`(service.getSourceGatewaySubDevices) destGatewayDeviceListMatched: ${JSON.stringify(destGatewayDeviceListMatched)}`);
 
         // 将同步来源网关的设备数据与同步目标网关的设备数据相比较
         // 并返回比较结果给前端

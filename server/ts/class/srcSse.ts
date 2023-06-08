@@ -178,27 +178,25 @@ export class ServerSentEvent {
         // 不论成功或失败 每个长连接实例都只会重试50次
         for (; this.retryCount < this.maxRetry;) {
             const retryCount = this.retryCount + 1;
-            logger.info('this.status---------------', this.status);
             if (this.status !== ESseStatus.OPEN) {
                 // 每次重连之前都关闭连接
                 this.source.close();
                 // 清除ping的定时器
                 if (this.pingTimer) clearInterval(this.pingTimer);
-                console.log(`src sse reconnecting for ${retryCount} 次`);
-                console.log(`src sse reconnect for ${retryCount} times begins in ${Date.now()}`);
+                logger.info(`src sse reconnecting for ${retryCount} 次`);
+                logger.info(`src sse reconnect for ${retryCount} times begins in ${Date.now()}`);
                 // 尝试重连
                 const { ip, token } = this.initParams;
                 const url = `http://${ip}/open-api/v1/sse/bridge?access_token=${token}`;
-                console.log(`src sse reconnection url is ${url}`);
                 this.source = new EventSource(url);
                 const res = await this._initUniversalEvent();
                 if (!res) {
-                    console.log(`src sse reconnect for ${retryCount} time fails in ${Date.now()}`);
+                    logger.info(`src sse reconnect for ${retryCount} time fails in ${Date.now()}`);
                     this.retryCount++;
                     if (retryCount + 1 > this.maxRetry) {
-                        console.log(`reach the max retry count`);
+                        logger.info(`reach the max retry count`);
                     } else {
-                        console.log(`wait fo the ${retryCount + 1} times reconnection ${Date.now()}`);
+                        logger.info(`wait fo the ${retryCount + 1} times reconnection ${Date.now()}`);
                     }
                     // 最大重试间隔为2小时
                     const actualInterval = this._getRetryInterval(this.retryInterval);
@@ -206,7 +204,7 @@ export class ServerSentEvent {
                     continue;
                 }
             }
-            console.log(`src sse reconnect for ${retryCount} 次成功`);
+            logger.info(`src sse reconnect for ${retryCount} success`);
             // 将重连次数清零
             this.retryCount = 0;
             break;
@@ -248,7 +246,7 @@ export class ServerSentEvent {
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
         logger.info(`[src sse update sse params] get ${mac} gatewayInfoList ${JSON.stringify(srcGatewayInfoList)}`);
         const curIndex = _.findIndex(srcGatewayInfoList, { mac });
-        logger.info(`[src sse update sse params] update ${mac} for curIndex ${curIndex}`);
+        // logger.info(`[src sse update sse params] update ${mac} for curIndex ${curIndex}`);
         this.initParams = srcGatewayInfoList[curIndex] ? srcGatewayInfoList[curIndex] : this.initParams;
         logger.info(`[src sse update sse params] final update result ${JSON.stringify(this.initParams, null, 2)}`);
     }
