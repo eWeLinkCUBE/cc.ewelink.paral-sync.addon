@@ -49,7 +49,7 @@ export default abstract class baseClass {
 		return new Promise(async (resolve) => {
 			//	start interval
 			//	nspanelpro first request maybe get response
-			const resp = await this.getBridgeATHandler()
+			const resp = await this.getBridgeATHandler(appName)
 			resp && resolve(resp)
 
 			this.interval = setInterval(async () => {
