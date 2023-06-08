@@ -20,9 +20,9 @@ export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
 
         const gatewayRes = await gatewayClient.getBridgeInfo();
 
-        logger.info('gatewayRes----------------', gatewayRes);
-
+        
         if (gatewayRes.error !== 0 || !gatewayRes.data) {
+            logger.info('gatewayRes error----------------', JSON.stringify(gatewayRes));
             return 1101;
         }
 

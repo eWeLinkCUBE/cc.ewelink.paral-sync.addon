@@ -14,13 +14,12 @@ import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 async function unsyncDevice(srcGatewayMac: string) {
     try {
         const destGatewayInfo = await DB.getDbValue('destGatewayInfo');
-        logger.info(`(unsyncDevice) destGatewayInfo: ${JSON.stringify(destGatewayInfo)}`);
         if (destGatewayInfo?.ipValid && destGatewayInfo.tokenValid) {
             const ApiClient = CubeApi.ihostApi;
             const client = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
             let cubeApiRes = await client.getDeviceList();
-            logger.info(`(unsyncDevice) client.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
             if (cubeApiRes.error !== 0) {
+                logger.info(`(unsyncDevice) client.getDeviceList() error: ${JSON.stringify(cubeApiRes)}`);
                 return;
             }
             const destGatewayDeviceList = cubeApiRes.data.device_list as GatewayDeviceItem[];
@@ -28,7 +27,6 @@ async function unsyncDevice(srcGatewayMac: string) {
                 const mac = _.get(device, 'tags.__nsproAddonData.srcGatewayMac');
                 if (mac === srcGatewayMac) {
                     cubeApiRes = await client.deleteDevice(device.serial_number);
-                    logger.info(`(unsyncDevice) client.deleteDevice() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
                 }
             }
         }
@@ -44,9 +42,6 @@ export default async function deleteGateway(req: Request, res: Response) {
         const reqGatewayMac = req.params.mac;
         const srcGatewayList = await DB.getDbValue('srcGatewayInfoList');
         const i = _.findIndex(srcGatewayList, { mac: reqGatewayMac });
-        logger.info(`(service.deleteGateway) reqGatewayMac: ${reqGatewayMac}`);
-        logger.info(`(service.deleteGateway) srcGatewayList: ${JSON.stringify(srcGatewayList)}`);
-        logger.info(`(service.deleteGateway) i: ${i}`);
         if (i === -1) {
             logger.info(`(service.deleteGateway) RESPONSE: ERR_DELETE_GATEWAY_NOT_FOUND`);
             return res.json(toResponse(2000));

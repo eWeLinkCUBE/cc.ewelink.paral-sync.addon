@@ -30,7 +30,6 @@ if (!fs.existsSync(dataPath)) {
 
 const isDbFileExist = fs.existsSync(dbPath);
 
-logger.info('fs.existsSync(versionPath)------------------', fs.existsSync(versionPath), versionPath);
 // 获取当前版本号
 config.nodeApp.version = fs.existsSync(versionPath) ? fs.readFileSync(versionPath).toString() : '0.0.1';
 

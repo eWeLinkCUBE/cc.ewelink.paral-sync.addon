@@ -121,12 +121,12 @@ async function syncOneDevice(device: IAddDevicePayload, mac: string) {
 
     if (resError === 1000) {
         await srcTokenAndIPInvalid('ip', mac);
-        logger.info(`[sse sync new device]  sync device timeout`);
+        logger.warn(`[sse sync new device]  sync device timeout`);
     } else if (resType === 'AUTH_FAILURE') {
         await srcTokenAndIPInvalid('token', mac);
-        logger.info(`[sse sync new device]  sync device token invalid`);
+        logger.warn(`[sse sync new device]  sync device token invalid`);
     } else if (resType === 'INVALID_PARAMETERS') {
-        logger.info(`[sse sync new device]  sync device params invalid`);
+        logger.warn(`[sse sync new device]  sync device params invalid`);
     } else {
         sse.send({
             name: 'device_added_report',
@@ -188,7 +188,7 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
     let cubeApiRes = await destGatewayApiClient.getDeviceList();
     if (cubeApiRes.error === 0) {
         const syncedDevice = cubeApiRes.data.device_list.find((device: IThirdpartyDevice) => device.third_serial_number === serial_number);
-        logger.info(`[sse delete device] cubeApiRes.data.device_list`, cubeApiRes.data.device_list);
+        logger.debug(`[sse delete device] cubeApiRes.data.device_list`, cubeApiRes.data.device_list);
         // send delete sse
         sse.send({
             name: 'device_deleted_report',
@@ -213,14 +213,14 @@ async function deleteOneDevice(payload: IEndpoint, srcMac: string): Promise<void
     logger.info(`[sse delete device] getDeviceList res error => `, JSON.stringify(cubeApiRes));
     if (cubeApiRes.error === 401) {
         await srcTokenAndIPInvalid('token', srcMac);
-        logger.info(`[sse delete device] target token invalid`);
+        logger.warn(`[sse delete device] target token invalid`);
         return;
     } else if (cubeApiRes.error === 1000) {
         await srcTokenAndIPInvalid('ip', srcMac);
-        logger.info(`[sse delete device] target ip address invalid`);
+        logger.warn(`[sse delete device] target ip address invalid`);
         return;
     } else {
-        logger.warn(`[sse delete device] unknown error: ${JSON.stringify(cubeApiRes)}`);
+        logger.error(`[sse delete device] unknown error: ${JSON.stringify(cubeApiRes)}`);
         return;
     }
 }
@@ -252,7 +252,7 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
     // 更新缓存数据
     const srcGatewayRes = await getSrcGatewayDeviceGroup(srcMac);
     if (srcGatewayRes.error !== 0) {
-        logger.info(`[sse update device online] get src gateway device group error ${JSON.stringify(srcGatewayRes)}`);
+        logger.error(`[sse update device online] get src gateway device group error ${JSON.stringify(srcGatewayRes)}`);
         return;
     }
 
@@ -320,12 +320,12 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
             const resType = _.get(cubeApiRes, 'payload.type');
             if (resError === 1000) {
                 await srcTokenAndIPInvalid('ip', srcMac);
-                logger.info(`[sse update device online]  update device timeout`);
+                logger.warn(`[sse update device online]  update device timeout`);
             } else if (resType === 'AUTH_FAILURE') {
                 await srcTokenAndIPInvalid('token', srcMac);
-                logger.info(`[sse update device online]  update device token invalid`);
+                logger.warn(`[sse update device online]  update device token invalid`);
             } else if (resType === 'INVALID_PARAMETERS') {
-                logger.info(`[sse update device online]  update device online params invalid ${JSON.stringify(payload)}`);
+                logger.warn(`[sse update device online]  update device online params invalid ${JSON.stringify(payload)}`);
             } else {
                 logger.info(`[sse update device online]  update device success`);
             }
@@ -368,12 +368,12 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
 
             if (resError === 1000) {
                 await srcTokenAndIPInvalid('ip', srcMac);
-                logger.info(`[sse update device state]  update device timeout`);
+                logger.warn(`[sse update device state]  update device timeout`);
             } else if (resType === 'AUTH_FAILURE') {
                 await srcTokenAndIPInvalid('token', srcMac);
-                logger.info(`[sse update device state]  update device token invalid`);
+                logger.warn(`[sse update device state]  update device token invalid`);
             } else if (resType === 'INVALID_PARAMETERS') {
-                logger.info(`[sse update device state]  update device params invalid ${JSON.stringify(payload)}`);
+                logger.warn(`[sse update device state]  update device params invalid ${JSON.stringify(payload)}`);
             } else {
                 logger.info(`[sse update device state] update device ${serial_number} ${syncedDevice.serial_number} success`);
                 return;
@@ -381,16 +381,16 @@ async function updateOneDevice(params: IUpdateOneDevice, srcMac: string): Promis
         }
     }
 
-    logger.info(`[sse delete device] updateDeviceState res error => `, JSON.stringify(cubeApiRes));
+    logger.debug(`[sse delete device] updateDeviceState res error => `, JSON.stringify(cubeApiRes));
     if (cubeApiRes.error === 401) {
         await destTokenInvalid();
-        logger.info(`[sse update device info or get device info] target token invalid`);
+        logger.warn(`[sse update device error or get device error] target token invalid`);
         return;
     } else if (cubeApiRes.error === 1000) {
-        logger.info(`[sse update device info or get device info] target ip address invalid`);
+        logger.warn(`[sse update device error or get device info] target ip address invalid`);
         return;
     } else {
-        logger.info(`[sse update device info or get device info] unknown error: ${JSON.stringify(cubeApiRes)}`);
+        logger.error(`[sse update device info or get device info] unknown error: ${JSON.stringify(cubeApiRes)}`);
         return;
     }
 }
@@ -513,11 +513,10 @@ async function checkForSse() {
     const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     /** 有效网关列表 */
     const validGatewayList = whichGatewayValid(srcGatewayInfoList);
-    logger.info('[checkForSse] validGatewayList => ', JSON.stringify(validGatewayList));
+    logger.debug('[checkForSse] validGatewayList => ', JSON.stringify(validGatewayList));
 
     for (const gateway of validGatewayList) {
         const sse = srcSsePool.get(gateway.mac);
-        logger.info(`[checkForSse] gateway ${gateway.mac} sse => `, JSON.stringify(sse));
         // 没有sse的直接建立
         if (!sse) {
             await srcSse.buildServerSendEvent(gateway);

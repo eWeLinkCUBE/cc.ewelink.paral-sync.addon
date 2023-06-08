@@ -178,7 +178,6 @@ export class ServerSentEvent {
         // 不论成功或失败 每个长连接实例都只会重试50次
         for (; this.retryCount < this.maxRetry;) {
             const retryCount = this.retryCount + 1;
-            logger.info('this.status---------------', this.status);
             if (this.status !== ESseStatus.OPEN) {
                 // 每次重连之前都关闭连接
                 this.source.close();
@@ -247,7 +246,7 @@ export class ServerSentEvent {
         const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
         logger.info(`[src sse update sse params] get ${mac} gatewayInfoList ${JSON.stringify(srcGatewayInfoList)}`);
         const curIndex = _.findIndex(srcGatewayInfoList, { mac });
-        logger.info(`[src sse update sse params] update ${mac} for curIndex ${curIndex}`);
+        // logger.info(`[src sse update sse params] update ${mac} for curIndex ${curIndex}`);
         this.initParams = srcGatewayInfoList[curIndex] ? srcGatewayInfoList[curIndex] : this.initParams;
         logger.info(`[src sse update sse params] final update result ${JSON.stringify(this.initParams, null, 2)}`);
     }

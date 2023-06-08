@@ -48,7 +48,7 @@ export default async function openControlDevice(req: Request, res: Response) {
 
         const srcGatewayInfoList = await DB.getDbValue('srcGatewayInfoList');
         const srcGatewayInfo = _.find(srcGatewayInfoList, { mac: srcGatewayMac });
-        logger.info(`(service.openControlDevice) srcGatewayInfo: ${JSON.stringify(srcGatewayInfo)}`);
+        logger.debug(`(service.openControlDevice) srcGatewayInfo: ${JSON.stringify(srcGatewayInfo)}`);
         if (!srcGatewayInfo) {
             logger.info(`(service.openControlDevice) RESPONSE: FAIL_RESULT (srcGatewayInfo)`);
             return res.json(FAIL_RESULT);
@@ -58,7 +58,7 @@ export default async function openControlDevice(req: Request, res: Response) {
             const ApiClient = CubeApi.ihostApi;
             const client = new ApiClient({ ip: srcGatewayInfo.ip, at: srcGatewayInfo.token });
             const cubeApiRes = await client.updateDeviceState(deviceId, { state: deviceState });
-            logger.info(`(service.openControlDevice) client.updateDeviceState() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+            logger.debug(`(service.openControlDevice) client.updateDeviceState() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
             if (cubeApiRes.error === 0) {
                 logger.info(`(service.openControlDevice) RESPONSE: SUCCESS_RESULT`);
                 return res.json(SUCCESS_RESULT);

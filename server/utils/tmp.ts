@@ -141,7 +141,7 @@ export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = 
         logger.warn(`[getSrcGatewayDeviceGroup] NSPro should LOGIN!!!`);
         return toResponse(1400);
     } else if (cubeApiRes.error === 401) {
-        logger.info(`[getSrcGatewayDeviceGroup] RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
+        logger.warn(`[getSrcGatewayDeviceGroup] RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
         await srcTokenAndIPInvalid('token', srcGateway.mac);
         return toResponse(1502);
     } else if (cubeApiRes.error === 1000) {
@@ -198,7 +198,7 @@ export async function getDestGatewayDeviceGroup(noCache = false): Promise<IRespo
     const destGatewayInfo = await db.getDbValue('destGatewayInfo');
 
     if (!destGatewayInfo) {
-        logger.info(`[getSrcGatewayDeviceGroup] get dest gateway from destGatewayInfo fails. Here is the list ${destGatewayInfo}`)
+        logger.warn(`[getSrcGatewayDeviceGroup] get dest gateway from destGatewayInfo fails. Here is the list ${destGatewayInfo}`)
         return {
             error: 606,
             msg: "dest gateway not exist",
@@ -211,16 +211,16 @@ export async function getDestGatewayDeviceGroup(noCache = false): Promise<IRespo
     const ApiClient = CubeApi.ihostApi;
     const destGatewayClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
     const cubeApiRes = await destGatewayClient.getDeviceList();
-    logger.info(`(service.syncOneDevice) destGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+    logger.debug(`(service.syncOneDevice) destGatewayClient.getDeviceList() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
     if (cubeApiRes.error === 0) {
         destGatewayDeviceGroup = cubeApiRes.data.device_list;
         return cubeApiRes;
     } else if (cubeApiRes.error === 401) {
-        logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
+        logger.warn(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TOKEN_INVALID`);
         return toResponse(703);
     } else if (cubeApiRes.error === 1000) {
         await destTokenInvalid();
-        logger.info(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
+        logger.warn(`(service.syncOneDevice) RESPONSE: ERR_CUBEAPI_GET_DEVICE_TIMEOUT`);
         return toResponse(702);
     } else {
         logger.warn(`(service.syncOneDevice) destGatewayClient.getDeviceList() unknown error: ${JSON.stringify(cubeApiRes)}`);

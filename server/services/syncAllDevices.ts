@@ -20,7 +20,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
 
         /** 同步目标网关的信息 */
         const destGatewayInfo = await DB.getDbValue('destGatewayInfo');
-        logger.info(`(service.syncAllDevices) destGatewayInfo: ${JSON.stringify(destGatewayInfo)}`);
+        logger.debug(`(service.syncAllDevices) destGatewayInfo: ${JSON.stringify(destGatewayInfo)}`);
         if (!destGatewayInfo?.ipValid) {
             logger.info(`(service.syncAllDevice) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
             return res.json(toResponse(702));
@@ -47,7 +47,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
 
         // 拉取同步目标网关的设备
         const destRes = await getDestGatewayDeviceGroup();
-        logger.info(`(service.syncAllDevice) destRes: ${JSON.stringify(destRes)}`);
+        logger.debug(`(service.syncAllDevice) destRes: ${JSON.stringify(destRes)}`);
         if (destRes.error === 0) {
             destGatewayDeviceList = destRes.data.device_list;
         } else {
@@ -58,7 +58,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
         const syncDevices = [];
         for (const gateway of srcGatewayInfoListEffect) {
             const srcRes = await getSrcGatewayDeviceGroup(gateway.mac);
-            logger.info(`(service.syncAllDevice) src mac: ${gateway.mac} srcRes: ${JSON.stringify(srcRes)}`);
+            logger.debug(`(service.syncAllDevice) src mac: ${gateway.mac} srcRes: ${JSON.stringify(srcRes)}`);
             // 接口报错不中止流程
             if (srcRes.error === 0) {
                 const deviceList = srcRes.data.device_list;
@@ -84,7 +84,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
 
         // 调用添加第三方设备接口
         cubeApiRes = await destGatewayClient.syncDevices({ devices: syncDevices });
-        logger.info(`(service.syncAllDevice) destGatewayClient.syncDevices() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+        logger.debug(`(service.syncAllDevice) destGatewayClient.syncDevices() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
         const resError = _.get(res, 'error');
         const resType = _.get(res, 'payload.type');
         if (resError === 1000) {

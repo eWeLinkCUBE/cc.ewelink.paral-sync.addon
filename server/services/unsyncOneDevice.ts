@@ -56,7 +56,7 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
 
         // 拉取同步目标网关的设备列表
         const destRes = await getDestGatewayDeviceGroup(true);
-        logger.info(`(service.unsyncOneDevice) destRes: ${JSON.stringify(destRes)}`);
+        logger.debug(`(service.unsyncOneDevice) destRes: ${JSON.stringify(destRes)}`);
         if (destRes.error === 0) {
             destGatewayDeviceList = destRes.data.device_list;
         } else {
@@ -72,7 +72,7 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
 
         // 调用删除设备接口
         const cubeApiRes = await destGatewayClient.deleteDevice(deviceData.serial_number);
-        logger.info(`(service.unsyncOneDevice) destGatewayClient.deleteDevice() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+        logger.debug(`(service.unsyncOneDevice) destGatewayClient.deleteDevice() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
         if (cubeApiRes.error === 0) {
             const endpoint = {
                 serial_number: deviceData.serial_number,
