@@ -3,7 +3,6 @@ import { useDeviceStore } from '@/store/device';
 import router from '@/router';
 import i18n from '@/i18n';
 import { message } from 'ant-design-vue';
-let retryTime = 0;
 let MAX_RETRY_TIME = 15;
 /**
  *
@@ -36,13 +35,11 @@ export function jumpCorrespondStep(errCode:number){
         deviceStore.setStep(stepsList.FIRST);
         router.push('/setting');
         deviceStore.getIHostGateWatList();
-        console.log('errCode jump first step--------->',errCode,deviceStore.step);
     }
     if(step2List.includes(errCode)){
         deviceStore.setStep(stepsList.SECOND);
         router.push('/setting');
         deviceStore.getNsProGateWayList();
-        console.log('errCode jump second step--------->',errCode,deviceStore.step);
     }
 }
 
@@ -85,8 +82,6 @@ export function handleIpAndToken(errCode:number){
             default:
                 break;
         }
-        console.log('errCode-------------->',errCode);
-        console.log('ipTokenMsg',ipTokenMsg);
         deviceStore.setIpTokenMsg(ipTokenMsg);
         deviceStore.setIpTokenStep(ipTokenStep);
     }
@@ -152,8 +147,8 @@ export const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) =>{
         message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
         return;
     } else {
-        retryTime++;
-        if (retryTime <= MAX_RETRY_TIME) {
+        deviceStore.setRetryTime();
+        if (deviceStore.retryTime <= MAX_RETRY_TIME) {
             await deviceStore.getDeviceList();
             await sleep(2000); //15*2=30(s)
             await deviceSyncSuccessNum(syncDeviceIdList);

@@ -21,6 +21,8 @@ interface IDeviceState {
     ipTokenMsg: string;
     /** ip和token发生错误的步骤 */
     ipTokenStep: stepsList;
+    /** 累加查询次数 */
+    retryTime:number,
 }
 
 export const useDeviceStore = defineStore('addon_device', {
@@ -33,6 +35,7 @@ export const useDeviceStore = defineStore('addon_device', {
             ipToken: true,
             ipTokenMsg: '',
             ipTokenStep: stepsList.FIRST,
+            retryTime:0
         };
     },
     actions: {
@@ -49,7 +52,6 @@ export const useDeviceStore = defineStore('addon_device', {
             } else {
                 this.iHostList = [];
             }
-            console.log('iHostList res', res);
             return res;
         },
 
@@ -61,7 +63,6 @@ export const useDeviceStore = defineStore('addon_device', {
             } else {
                 this.nsProList = [];
             }
-            console.log('nsPro res', this.nsProList);
             return res;
         },
 
@@ -178,6 +179,16 @@ export const useDeviceStore = defineStore('addon_device', {
         setIpTokenStep(ipTokenStep: stepsList) {
             this.ipTokenStep = ipTokenStep;
         },
+
+        /** 设置累加次数 */
+        setRetryTime(){
+            this.retryTime++;
+        },
+
+        /** 重置查询次数 */
+        reverseRetryTime(){
+            this.retryTime = 0;
+        }
     },
     getters: {
         /** 已经有一个网关获取到token或者在倒计时 */
@@ -188,7 +199,6 @@ export const useDeviceStore = defineStore('addon_device', {
                 }
                 if (item.ts && item.ipValid) {
                     const timeGap = moment(moment()).diff(moment(Number(item.ts)), 'seconds');
-                    console.log('timeGap------->', timeGap);
                     if (timeGap < 300) {
                         console.log('hasTokenOrTs  true');
                         return true;
