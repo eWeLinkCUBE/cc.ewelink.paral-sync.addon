@@ -545,11 +545,71 @@ async function checkForSse() {
     }
 }
 
+
+/**
+ * @description 将对应来源网关的设备在线状态同步到目标网关
+ * @param {IGatewayInfoItem} srcGateway
+ * @returns {*} 
+ */
+async function setDeviceOnline(srcGateway: IGatewayInfoItem) {
+    const ApiClient = CubeApi.ihostApi;
+    const destGatewayInfo = await db.getDbValue('destGatewayInfo');
+    if (!destGatewayInfo) {
+        logger.warn(`(setDeviceOnline) no destGatewayInfo`);
+        return;
+    }
+    if (!destGatewayInfo.ipValid || !destGatewayInfo.tokenValid) {
+        logger.warn(`(setDeviceOnline) dest gateway token or IP invalid`);
+        return;
+    }
+    const destClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
+
+    const srcGatewayMac = srcGateway.mac;
+    const dRes = await getDestGatewayDeviceGroup();
+    if (dRes.error !== 0) {
+        logger.warn(`(setDeviceOnline) getDestGatewayDeviceGroup failed: dRes: ${JSON.stringify(dRes)}`);
+        return;
+    }
+    const sRes = await getSrcGatewayDeviceGroup(srcGatewayMac);
+    if (sRes.error !== 0) {
+        logger.warn(`(setDeviceOnline) getSrcGatewayDeviceGroup failed: sRes: ${JSON.stringify(sRes)}`);
+        return;
+    }
+    const destGatewayDeviceList = dRes.data.device_list as GatewayDeviceItem[];
+    const srcGatewayDeviceList = sRes.data.device_list as GatewayDeviceItem[];
+    let cubeApiRes = null;
+    logger.debug(`(setDeviceOnline) destGatewayDeviceList: ${JSON.stringify(destGatewayDeviceList)}`);
+    logger.debug(`(setDeviceOnline) srcGatewayDeviceList: ${JSON.stringify(srcGatewayDeviceList)}`);
+    for (const destDev of destGatewayDeviceList) {
+        const tagMac = _.get(destDev, 'tags.__nsproAddonData.srcGatewayMac');
+        const tagDevId = _.get(destDev, 'tags.__nsproAddonData.deviceId');
+        logger.debug(`(setDeviceOnline) tagMac: ${tagMac}`);
+        logger.debug(`(setDeviceOnline) tagDevId: ${tagDevId}`);
+        if (tagMac === srcGatewayMac) {
+            const found = _.find(srcGatewayDeviceList, { serial_number: tagDevId });
+            if (found) {
+                cubeApiRes = await destClient.updateDeviceOnline({
+                    serial_number: destDev.serial_number,
+                    third_serial_number: tagDevId,
+                    params: {
+                        online: true,
+                    },
+                });
+                logger.debug(`(setDeviceOnline) updateDeviceOnline cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+            } else {
+                cubeApiRes = await destClient.deleteDevice(destDev.serial_number);
+                logger.debug(`(setDeviceOnline) deleteDevice cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
+            }
+        }
+    }
+}
+
 export default {
     syncOneDevice,
     deleteOneDevice,
     updateOneDevice,
     checkForSse,
+    setDeviceOnline,
     syncOneDeviceToSrcForOnline,
     removeOneDeviceFromDestCache,
 };

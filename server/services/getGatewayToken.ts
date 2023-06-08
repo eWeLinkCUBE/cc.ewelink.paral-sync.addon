@@ -8,6 +8,7 @@ import CONFIG from '../config';
 import SSE from '../ts/class/sse';
 import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
 import sseUtils from '../utils/sseUtils';
+import { getSrcGatewayDeviceGroup } from '../utils/tmp';
 
 /** 获取iHost/NSPanelPro凭证(1200) */
 export default async function getGatewayToken(req: Request, res: Response) {
@@ -149,6 +150,11 @@ export default async function getGatewayToken(req: Request, res: Response) {
                     });
                     // 拉起sse
                     await sseUtils.checkForSse();
+                    // 更新设备缓存
+                    await getSrcGatewayDeviceGroup(reqGatewayMac, true);
+                    // 更新目标网关的在线离线状态
+                    await sseUtils.setDeviceOnline(localSrcGatewayInfo);
+
                     return;
                 } else {
                     // 通过 SSE 通知前端，网关凭证获取失败
