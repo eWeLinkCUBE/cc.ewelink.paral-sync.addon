@@ -201,6 +201,7 @@ const nextStep = () => {
 const goDeviceListPage = () => {
     if (!hasNsProToken.value) return;
     deviceStore.setStep(stepsList.THIRD);
+    deviceStore.getDeviceList('1');
     router.push('/deviceList');
 };
 </script>

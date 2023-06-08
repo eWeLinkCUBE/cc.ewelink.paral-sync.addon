@@ -66,7 +66,7 @@ export const useDeviceStore = defineStore('addon_device', {
             return res;
         },
 
-        /** 获取nsPro网关下所有的子设备  0:普通刷新 、1:强制刷新*/
+        /** 获取nsPro网关下所有的子设备  0:普通刷新 、1:强制刷新缓存*/
         async getDeviceList(isForceRefresh = '0') {
             let mac = '';
             this.nsProList.forEach((item) => {
