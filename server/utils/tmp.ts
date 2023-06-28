@@ -41,6 +41,15 @@ function formatDevice(device: GatewayDeviceItem) {
     // 删除 capabilities
     const list = device.capabilities;
     _.remove(list, (item: any) => UNSUPPORT_CAPA.includes(item.capability));
+
+    // 移除 NSPro 中温度能力的 scale 字段
+    // TODO: iHost 更新 configuration 后，删除这段代码
+    for (let i = 0; i < list.length; i++) {
+        if (list[i].capability === 'temperature') {
+            _.unset(list[i], 'configuration.scale');
+        }
+    }
+
     device.capabilities = list;
 
     // 删除 state

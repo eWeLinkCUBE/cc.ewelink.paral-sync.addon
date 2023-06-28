@@ -116,8 +116,8 @@ export default async function syncAllDevices(req: Request, res: Response) {
         // 调用添加第三方设备接口
         cubeApiRes = await destGatewayClient.syncDevices({ devices: syncDevices });
         logger.debug(`(service.syncAllDevice) destGatewayClient.syncDevices() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
-        const resError = _.get(res, 'error');
-        const resType = _.get(res, 'payload.type');
+        const resError = _.get(cubeApiRes, 'error');
+        const resType = _.get(cubeApiRes, 'payload.type');
         if (resError === 1000) {
             logger.info(`(service.syncAllDevice) response: ERR_CUBEAPI_SYNC_DEVICE_TIMEOUT`);
             return res.json(toResponse(603));
