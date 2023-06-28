@@ -36,7 +36,7 @@ export const srcSsePool: Map<string, ServerSentEvent> = new Map();
  */
 function formatDevice(device: GatewayDeviceItem) {
     // 不支持的能力列表
-    const UNSUPPORT_CAPA = ['ota'];
+    const UNSUPPORT_CAPA = ['ota', 'identify', 'thermostat-mode-detect'];
 
     // 删除 capabilities
     const list = device.capabilities;
