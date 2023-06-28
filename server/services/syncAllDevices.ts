@@ -100,6 +100,19 @@ export default async function syncAllDevices(req: Request, res: Response) {
         }
         logger.info(`(service.syncAllDevice) syncDevices: ${JSON.stringify(syncDevices)}`);
 
+        // 如果没有需要同步的设备，则直接返回成功
+        if (syncDevices.length === 0) {
+            res.json(toResponse(0, 'Success', { syncDeviceIdList: [] }));
+            // 同步所有设备成功，把结果通过 SSE 告诉前端
+            SSE.send({
+                name: 'sync_all_device_result',
+                data: {
+                    syncDeviceIdList: []
+                }
+            });
+            return;
+        }
+
         // 调用添加第三方设备接口
         cubeApiRes = await destGatewayClient.syncDevices({ devices: syncDevices });
         logger.debug(`(service.syncAllDevice) destGatewayClient.syncDevices() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
