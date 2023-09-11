@@ -4,6 +4,7 @@ node_modules
 
 # tmp log
 server/log/logFile/*.log
+log/logFile/*.log
 .DS_Store
 
 # log files
