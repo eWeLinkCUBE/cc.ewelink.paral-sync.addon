@@ -1,5 +1,5 @@
 export interface IHeader {
-	name: 'DiscoveryRequest' | 'DeviceStatesChangeReport' | 'DeviceOnlineChangeReport',
+	name: 'DiscoveryRequest' | 'DeviceStatesChangeReport' | 'DeviceOnlineChangeReport' | 'DeviceInformationUpdatedReport',
 	message_id: string,
 	version: string
 }

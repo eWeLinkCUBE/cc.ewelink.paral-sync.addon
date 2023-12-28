@@ -6,20 +6,20 @@ import { useEtcStore } from '@/store/etc';
 import ErrorCodeHandle from '@/utils/ErrorCodeHandle';
 import { emitter } from '@/main';
 import { useDeviceStore } from '@/store/device';
-import { stepsList } from './ts/interface/IGateWay';
 
 /**
- * 存在at时，必须先调用该方法 初始化at
- * @param at
+ * @description 存在at时，必须先调用该方法 初始化at When at exists, this method must be called first to initialize at
+ * @param {string} at
  */
 function init(at: string) {
     const etc = useEtcStore();
     etc.setAt(at);
 }
 
+
 /**
- * 获取 at
- * @returns
+ * @description 获取 at get at
+ * @returns {*} 
  */
 function getAt() {
     const etc = useEtcStore();
@@ -29,6 +29,8 @@ function getAt() {
 /**
  * 添加响应拦截器,用于抛出事件给前端异常处理
  * 专门用来处理通用错误返回码
+ * Add a response interceptor to throw events to the front-end exception handling
+ * Specifically used to handle common error return codes
  */
 axios.interceptors.response.use((response): any => {
     // console.log('GavinLog ~ axios.interceptors.response.use ~ response', response);
@@ -45,41 +47,36 @@ axios.interceptors.response.use((response): any => {
         const { error } = data;
         const skipCommonError = url && url.includes("initiate-with-offer");
 
-        //每次请求将ip和token置为有效，ErrorCodeHandle方法中出现指定错误时置为无效
-        if(!url?.includes('auto-sync')){
+        // 每次请求将ip和token置为有效，ErrorCodeHandle方法中出现指定错误时置为无效
+        // The IP and token are set to be valid for each request, and are set to be invalid when a specified error occurs in the error code handle method.
+        if (!url?.includes('auto-sync')) {
             deviceStore.setIpTokenStatus(true);
             deviceStore.setIpTokenMsg('');
             deviceStore.setIpTokenStep(deviceStore.step);
         }
 
-        // console.log('url', url);
-        // console.log('status', status);
-        // console.log('error', error);
 
         if (url && status === 200 && error && error != 0 && error.toString().length === 3) {
             if (skipCommonError && error === 500) return response;
-            // console.log(`通用错误事件触发 COMMON_ERROR_EVENT ${url}`);
-            // console.log('data', data);
-            // emitter.emit(`COMMON_ERROR_EVENT`, data);
-            // return;
         }
 
-        //业务接口错误码统一消息提示
+        // 业务接口错误码统一消息提示
+        // Business interface error code unified message prompt
         if (url && status === 200 && error && error != 0 && !skipCommonError) {
             // console.log('emit errCode handler --------->',error);
             ErrorCodeHandle(error);
         }
     }
-    // 对响应数据做点什么
+
     return response;
 });
 
 
 let IS_SET_EVENT: boolean = false;
+
 /**
- * 监听事件
- * @param path 接口路径
- * @param callback
+ * @description 监听事件 Listen for events
+ * @param {EventListener} callback
  */
 function setEventCallback(callback: EventListener) {
     if (!IS_SET_EVENT) {
@@ -87,14 +84,15 @@ function setEventCallback(callback: EventListener) {
         IS_SET_EVENT = true;
         emitter.on(`COMMON_ERROR_EVENT`, callback);
     } else {
-        console.log(`通用错误监听已存在，禁止重复创建`);
+        console.log(`The universal error listener already exists and duplicate creation is prohibited.`);
     }
 }
 
 /**
- * 移除事件监听
- * 注意:callback必须与setEventCallback形参中的callback为同一对象
- * @param callback
+ * @description
+ * Remove event listener
+ * Note: callback must be the same object as the callback in the set event callback formal parameter
+ * @param {EventListener} callback
  */
 function cleanEventCallback(callback: EventListener) {
     emitter.removeListener(`COMMON_ERROR_EVENT`, callback);

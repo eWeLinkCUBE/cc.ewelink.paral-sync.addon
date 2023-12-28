@@ -1,0 +1,2 @@
+export const IHOST_DEFAULT_FW_VERSION = '1.9.0';
+export const NS_PANEL_PRO_DEFAULT_FW_VERSION = '1.10.0';

@@ -5,6 +5,7 @@ import EReqMethod from '../ts/enum/EReqMethod';
 
 /**
  * 获取网关token
+ * Get gateway token
  */
 async function getToken(mac: string, isSyncTarget: number) {
     return await request<IGateWayInfoData>(`/token/${mac}`, { isSyncTarget }, EReqMethod.GET);
@@ -12,6 +13,7 @@ async function getToken(mac: string, isSyncTarget: number) {
 
 /**
  * 通过ip获取网关信息
+ * Get gateway information through ip
 */
 async function linkNsProGateWay(ip: string) {
     return await request<IGateWayInfoData>(`/gateway/${ip}`, {}, EReqMethod.GET);
@@ -19,6 +21,7 @@ async function linkNsProGateWay(ip: string) {
 
 /**
  * 获取本机网关信息
+ * Get local gateway information
  */
 async function getOurselfGateWayInfo() {
     return await request<IGateWayInfoData>(`/gateway`, {}, EReqMethod.GET);
@@ -26,6 +29,7 @@ async function getOurselfGateWayInfo() {
 
 /**
  * 获取所有的nsPro网关信息
+ * Get all ns pro gateway information
  */
 async function getNsProGateWayList() {
     return await request<IGateWayInfoData[]>(`/gateways`, {}, EReqMethod.GET);
@@ -33,6 +37,7 @@ async function getNsProGateWayList() {
 
 /**
  * 获取nsPro网关下的子设备
+ * Get the sub-device under ns pro gateway
  */
 async function getDeviceList(mac: string,isForceRefresh:string) {
     return await request<INsProDeviceData[]>(`/devices/${mac}`, {forceSrc:isForceRefresh}, EReqMethod.GET);
@@ -40,6 +45,7 @@ async function getDeviceList(mac: string,isForceRefresh:string) {
 
 /**
  * 同步单个设备
+ * Sync a single device
  */
 async function syncSingleDevice(deviceId: string, from: string) {
     return await request<any>(`/device/${deviceId}/sync`, { from }, EReqMethod.POST);
@@ -47,6 +53,7 @@ async function syncSingleDevice(deviceId: string, from: string) {
 
 /**
  * 取消同步单个设备
+ * Unsync a single device
  */
 async function cancelSyncSingleDevice(deviceId: string, from: string) {
     return await request(`/device/${deviceId}/un-sync`, { from }, EReqMethod.DELETE);
@@ -54,6 +61,7 @@ async function cancelSyncSingleDevice(deviceId: string, from: string) {
 
 /**
  * 自动同步新设备
+ * Automatically sync new devices
  */
 async function autoSync(params: { autoSync: boolean }) {
     return await request(`/auto-sync`, params, EReqMethod.POST);
@@ -61,6 +69,7 @@ async function autoSync(params: { autoSync: boolean }) {
 
 /**
  * 获取自动同步新设备状态
+ * Get automatic synchronization of new device status
  */
 async function getAutoSyncState() {
     return await request<{ autoSync: boolean }>(`/auto-sync`, {}, EReqMethod.GET);
@@ -68,6 +77,7 @@ async function getAutoSyncState() {
 
 /**
  * 同步所有设备
+ * Sync all devices
  */
 async function syncAllDevice() {
     return await request<{syncDeviceIdList:string[]}>(`/devices/sync`, {}, EReqMethod.POST);

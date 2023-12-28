@@ -1,13 +1,9 @@
 import axios, { type AxiosRequestConfig } from 'axios';
-import api from './index';
 import EReqMethod from './ts/enum/EReqMethod';
 import type IResponse from './ts/class/CResponse';
 import { apiUrl, appSecret, appId, env } from '@/config';
-import { useEtcStore } from '@/store/etc';
 import cryptoJS from 'crypto-js';
 import _ from 'lodash';
-import i18n from '@/i18n';
-import { message } from 'ant-design-vue';
 import EEnv from '@/ts/enum/EEnv';
 
 function getAuthSign(params: any) {
@@ -33,11 +29,11 @@ function getAuthSign(params: any) {
     return sign;
 }
 
-//初始化axios设置
+//初始化axios设置 Init axios setting
 axios.defaults.baseURL = env === EEnv.PROD ? '/api/v1' : apiUrl;
 axios.defaults.timeout = 15000;
 
-//生成随机数
+//生成随机数 Get random figure
 const chars = [
     '0',
     '1',
@@ -130,7 +126,7 @@ async function _httpGetPOSTPutDeleteRequest<T>(url: string, params: object, meth
     } catch (error) {
         console.log('error => ', error);
 
-        // 报错中包含网络错误，即后端接口失效
+        // 报错中包含网络错误，即后端接口失效 Error contains network error means backend api error
         if (JSON.stringify(error).includes('Network Error') || JSON.stringify(error).includes('code 502')) {
             console.log('Network Error');
         }

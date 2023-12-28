@@ -39,7 +39,6 @@ import type { INsProDeviceData } from '@/api/ts/interface/IGateWay';
 import { useDeviceStore } from '@/store/device';
 import { message } from 'ant-design-vue';
 import i18n from '@/i18n/index';
-import router from '@/router';
 import api from '@/api';
 import Empty from '@/assets/img/empty.png';
 
@@ -53,28 +52,46 @@ onMounted(async () => {
     loading.value = false;
 });
 
-/**同步单个设备 */
+/**
+* 同步单个设备
+* Sync a single device
+*/
 const syncDevice = async (item: INsProDeviceData) => {
     deviceStore.setLoading(item, true);
     const res = await api.NSPanelPro.syncSingleDevice(item.id, item.from);
-    /** 方案一：查询设备列表接口 */
+    /** 
+    * 方案一：查询设备列表接口
+    * Option 1: Query device list interface
+    */
     // await deviceStore.getDeviceList();
     if (res.error === 0) {
-        /** 方案二：改变本地缓存数据,未同步状态  */
+        /** 
+        * 方案二：改变本地缓存数据,未同步状态
+        * Option 2: Change local cache data, unsynchronized status
+        */
         deviceStore.modifyDeviceSyncStatusById(item.id, true);
         message.success(i18n.global.t('SYNC_SUCCESS'));
     }
     deviceStore.setLoading(item, false);
 };
 
-/** 取消同步单个设备 */
+/** 
+* 取消同步单个设备
+* Unsync a single device
+*/
 const cancelSyncSingleDevice = async (item: INsProDeviceData) => {
     deviceStore.setLoading(item, true);
     const resp = await api.NSPanelPro.cancelSyncSingleDevice(item.id, item.from);
-    /** 方案一：查询设备列表接口 */
+    /** 
+    * 方案一：查询设备列表接口
+    * Option 1: Query device list interface
+    */
     // await deviceStore.getDeviceList();
     if (resp.error === 0) {
-        /** 方案二：改变本地缓存数据,同步状态 */
+        /** 
+        * 方案二：改变本地缓存数据,同步状态
+        * Option 2: Change local cache data and synchronization status
+        */
         deviceStore.modifyDeviceSyncStatusById(item.id, false);
         message.success(i18n.global.t('CANCEL_SYNC_SUCCESS'));
     }

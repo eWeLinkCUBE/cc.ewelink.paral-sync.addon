@@ -7,7 +7,10 @@ import mDns from '../utils/initMDns';
 import config from '../config';
 import encryption from '../utils/encryption';
 
-/** 获取局域网内的iHost及NsPanelPro设备(1300) */
+/** 
+* 获取局域网内的iHost及NsPanelPro设备(1300) 
+* Get the iHost and ns panel pro devices in the LAN (1300)
+*/
 export default async function getSourceGatewayInLan(req: Request, res: Response) {
     try {
         queryMDns();
@@ -31,7 +34,10 @@ export default async function getSourceGatewayInLan(req: Request, res: Response)
     }
 }
 
-/** mDns发起询问 */
+/**
+ * mDns发起询问
+ * mDns initiated inquiry
+ */
 function queryMDns() {
     mDns.query({
         questions: [

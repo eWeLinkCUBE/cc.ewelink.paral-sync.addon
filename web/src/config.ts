@@ -1,18 +1,30 @@
 import EEnv from '../src/ts/enum/EEnv';
 
 const isTestEnv = () => import.meta.env.DEV;
-/** 环境 */
+/** 
+* 环境
+* environment
+*/
 const env = isTestEnv() ? EEnv.TEST : EEnv.PROD;
 
-/** 调试用ip */
-const NSPanelProIp = isTestEnv() ? 'localhost' : 'localhost';
-/** 版本(从.env文件获取) */
+/** 
+* 调试用ip
+* Debugging IP
+*/
+const NSPanelProIp = import.meta.env.VITE_APP_IHOST_IP ?? 'localhost';
+/** 
+* 版本(从.env文件获取) 
+* Version (obtained from .env file)
+*/
 const version = import.meta.env.VITE_VERSION;
 
-/** 请求 baseURL */
+/** 
+* 请求 baseURL
+* Request baseURL
+*/
 const apiUrl = `http://${NSPanelProIp}:8322/api/v1`;
 
-// 请求用ak/sk
+// 请求用ak/sk Request ak/sk
 const TEST_APPID = 'DP1ydXVV50xwj9Pi';
 const TEST_SECRET = 'gHDu79PCw*yR%wtfmy5YUzo!yknm74xz';
 const PROD_APPID = 'DP1ydXVV50xwj9Pi';

@@ -6,7 +6,10 @@ import getGatewayInfo from './public/getGatewayInfo';
 import EGatewayType from '../ts/enum/EGatewayType';
 import config from '../config';
 
-/** 获取本机网关信息(1000) */
+/** 
+* 获取本机网关信息(1000)
+* Get local gateway information (1000)
+*/
 export default async function getTargetGatewayInfo(req: Request, res: Response) {
     try {
         const gatewayInfo = await getGatewayInfo(config.iHost.ip, EGatewayType.IHOST);
@@ -15,7 +18,7 @@ export default async function getTargetGatewayInfo(req: Request, res: Response) 
             return res.json(toResponse(gatewayInfo));
         }
 
-        logger.info('getTargetGatewayInfo api response--------------------', gatewayInfo);
+        // logger.info('getTargetGatewayInfo api response--------------------', gatewayInfo);
 
         return res.json(toResponse(0, 'success', gatewayInfo));
     } catch (error: any) {

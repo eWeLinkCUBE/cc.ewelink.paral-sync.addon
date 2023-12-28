@@ -4,10 +4,9 @@ import ping from 'ping';
 import logger from '../log';
 
 /**
- *
- * 睡眠函数
- * @date 18/05/2023
+ * @description 等待指定时间 ms Wait for specified time ms
  * @param {number} time
+ * @returns {*} 
  */
 function sleep(time: number) {
     return new Promise(resolve => {
@@ -20,7 +19,7 @@ function sleep(time: number) {
 
 
 /**
- * @description 判断该ip是否还存活
+ * @description 判断该ip是否还存活 Determine whether the IP is still alive
  * @param {string} ip
  * @returns {*}  {Promise<boolean>}
  */
@@ -31,9 +30,10 @@ async function isIpAlive(ip: string): Promise<boolean> {
 }
 
 /**
- * 获取多通道设备的通道数
- *
- * @param device 设备数据
+ * @description 获取多通道设备的通道数 Get the number of channels of a multi-channel device
+ * @export
+ * @param {GatewayDeviceItem} device
+ * @returns {*} 
  */
 export function getSwitchChannelNum(device: GatewayDeviceItem) {
     let channelNum = 0;

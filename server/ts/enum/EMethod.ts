@@ -1,4 +1,4 @@
-/** http请求方法 */
+/** http请求方法 http method */
 enum EMethod {
     POST = "POST",
     GET = "GET",

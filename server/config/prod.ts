@@ -18,8 +18,14 @@ export const prodConf = {
         path: 'log/logFile/total_prod.log',
         pattern: '-yyyy-MM-dd.log',
     },
-    /** 启动的ip */
+    /** 
+    * 启动的ip
+    * startup ip
+    */
     localIp: 'http://ihost:8322',
-    /** 获取网关凭证的等待时长 (ms) */
+    /** 
+    * 获取网关凭证的等待时长 (ms) 
+    * Waiting time to obtain gateway credentials (ms)
+    */
     getGatewayTokenTimeout: 300000,
 };

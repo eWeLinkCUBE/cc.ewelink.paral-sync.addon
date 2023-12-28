@@ -27,16 +27,31 @@ const deviceStore = useDeviceStore();
 const props = defineProps<{
     findIpVisible: boolean;
 }>();
-/** 关闭弹窗回调 */
+/**
+ * 关闭弹窗回调
+ * Close pop-up window callback
+ */
 const emits = defineEmits(['closeLinkIpModal']);
 const closeLinkIpModal = () => emits('closeLinkIpModal');
-/** 查找ip的loading */
+/**
+ * 查找ip的loading
+ * Find the loading of ip
+ */
 const findIpLoading = ref(false);
-/** ip值 */
+/**
+ * ip值
+ * IP value
+ */
 const ipVal = ref('');
-/** ip link 失败 */
+/**
+ * ip link 失败
+ * ip link failed
+ */
 const ipFail = ref(false);
-/**通过ip获取nsPanePro网关信息 */
+/**
+ * 通过ip获取nsPanePro网关信息
+ * Get ns pane pro gateway information through ip
+ */
 const linkNsProGateWay = async () => {
     if (!ipVal.value || !ipVal.value.trim()) {
         message.warning(i18n.global.t('PLEASE_INPUT_IP'));
@@ -49,7 +64,7 @@ const linkNsProGateWay = async () => {
     findIpLoading.value = true;
     const res = await api.linkNsProGateWay(ipVal.value);
     if (res.error === 0 && res.data) {
-        //link成功后,后台会存下来
+        // link成功后,后台会存下来 After the Link is successful, it will be saved in the background.
         deviceStore.getNsProGateWayList();
         closeLinkIpModal();
         message.success('success');

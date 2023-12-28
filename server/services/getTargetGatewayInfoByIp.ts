@@ -4,19 +4,22 @@ import logger from '../log';
 import getGatewayInfo from './public/getGatewayInfo';
 import EGatewayType from '../ts/enum/EGatewayType';
 
-/** 通过ip获取相关网关信息(1100) */
+/** 
+* 通过ip获取相关网关信息(1100)
+* Obtain relevant gateway information through ip (1100)
+*/
 export default async function getTargetGatewayInfoByIp(req: Request, res: Response) {
     try {
         const ip = req.params.ip;
 
-        //接口获取网关信息
+        //接口获取网关信息 Interface to obtain gateway information
         const gatewayInfo = await getGatewayInfo(ip, EGatewayType.NS_PANEL_PRO);
 
         if (typeof gatewayInfo === 'number') {
             return res.json(toResponse(gatewayInfo));
         }
 
-        logger.info('getTargetGatewayInfo api response--------------------', gatewayInfo);
+        // logger.info('getTargetGatewayInfo api response--------------------', gatewayInfo);
 
         return res.json(toResponse(0, 'success', gatewayInfo));
     } catch (error: any) {

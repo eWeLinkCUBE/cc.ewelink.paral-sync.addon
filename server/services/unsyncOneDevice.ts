@@ -11,10 +11,11 @@ import SSE from '../ts/class/sse';
 
 /**
  * 从同步目标网关中返回符合条件的设备数据，如果没找到则返回 null
+ * Returns qualified device data from the synchronization target gateway, or null if not found
  *
- * @param deviceId 同步设备的 ID
- * @param srcGatewayMac 同步来源网关 MAC 地址
- * @param destGatewayDeviceList 同步目标网关的设备列表
+ * @param deviceId 同步设备的 ID Sync device ID
+ * @param srcGatewayMac 同步来源网关 MAC 地址 Sync source gateway MAC address
+ * @param destGatewayDeviceList 同步目标网关的设备列表 Synchronize the device list of the target gateway
  */
 function findDeviceInDestGateway(deviceId: string, srcGatewayMac: string, destGatewayDeviceList: GatewayDeviceItem[]) {
     for (const device of destGatewayDeviceList) {
@@ -27,18 +28,30 @@ function findDeviceInDestGateway(deviceId: string, srcGatewayMac: string, destGa
     return null;
 }
 
-/** 取消同步单个设备（1800） */
+/** 
+* 取消同步单个设备（1800）
+* Unsync a single device (1800)
+*/
 export default async function unsyncOneDevice(req: Request, res: Response) {
     try {
-        /** 将要被取消同步的设备 ID */
+        /** 
+        * 将要被取消同步的设备 ID
+        * Device ID to be unsynced
+        */
         const willUnsyncDeviceId = req.params.deviceId;
-        /** 被取消同步设备的来源网关 */
+        /** 
+        * 被取消同步设备的来源网关
+        * The source gateway of the desynchronized device
+        */
         const reqSrcGatewayMac = req.body.from;
 
         logger.info(`(service.unsyncOneDevice) willUnsyncDeviceId: ${willUnsyncDeviceId}`);
         logger.info(`(service.unsyncOneDevice) reqSrcGatewayMac: ${reqSrcGatewayMac}`);
 
-        /** 同步目标网关的信息 */
+        /** 
+        * 同步目标网关的信息
+        * Synchronize target gateway information
+        */
         const destGatewayInfo = await DB.getDbValue('destGatewayInfo');
         logger.info(`(service.unsyncOneDevice) destGatewayInfo: ${JSON.stringify(destGatewayInfo)}`);
         if (!destGatewayInfo?.ipValid) {
@@ -54,7 +67,6 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
         const destGatewayClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
         let destGatewayDeviceList: GatewayDeviceItem[] = [];
 
-        // 拉取同步目标网关的设备列表
         const destRes = await getDestGatewayDeviceGroup(true);
         logger.debug(`(service.unsyncOneDevice) destRes: ${JSON.stringify(destRes)}`);
         if (destRes.error === 0) {
@@ -70,7 +82,6 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
             return res.json(toResponse(1800));
         }
 
-        // 调用删除设备接口
         const cubeApiRes = await destGatewayClient.deleteDevice(deviceData.serial_number);
         logger.debug(`(service.unsyncOneDevice) destGatewayClient.deleteDevice() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
         if (cubeApiRes.error === 0) {
@@ -81,7 +92,7 @@ export default async function unsyncOneDevice(req: Request, res: Response) {
             sseUtils.removeOneDeviceFromDestCache(endpoint);
             logger.info(`(service.unsyncOneDevice) RESPONSE: ERR_SUCCESS`);
             res.json(toResponse(0));
-            // 取消同步成功，把结果通过 SSE 告诉前端
+            // 取消同步成功，把结果通过 SSE 告诉前 If the synchronization is successfully cancelled, the result will be reported to the front end through SSE.
             SSE.send({
                 name: 'unsync_one_device_result',
                 data: {

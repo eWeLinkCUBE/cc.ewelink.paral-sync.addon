@@ -3,7 +3,7 @@ import CryptoJS from 'crypto-js';
 /**
  *
  * AES解密字符串
- * @date 11/02/2023
+ * Aes decrypt string
  * @param {string} decryptStr
  * @param {string} key
  * @returns {*}  {string}
@@ -21,7 +21,7 @@ function decryptAES(decryptStr: string, key: string): string {
 /**
  *
  * AES加密字符串
- * @date 11/02/2023
+ * Aes encrypted string
  * @param {string} encryptStr
  * @param {string} key
  * @returns {*}  {string}

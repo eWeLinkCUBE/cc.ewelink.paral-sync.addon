@@ -20,7 +20,7 @@
         line-height: 40px;
     }
 
-    //显示框的内容
+    // 显示框的内容 select content
     .ant-select-lg {
         font-size: 14px;
     }
@@ -29,30 +29,30 @@
         font-size: 14px;
     }
 
-    //显示的框右边的箭头
+    // 显示的框右边的箭头 select arrow style
     .ant-select-arrow {
         font-size: 14px;
         top: 47%;
         right: 22px;
     }
 
-    //下拉选择框
+    // 下拉选择框 select style
     .ant-select-item {
         font-size: 14px;
         line-height: 32px;
     }
 
-    //显示的内容框
+    // 显示的内容框
     .ant-select-single:not(.ant-select-customize-input) .ant-select-selector {
         padding: 0 12px;
         border-radius: 2px;
     }
 
     //下拉框的最大高度
-    .rc-virtual-list-holder {
+    // .rc-virtual-list-holder {
         // max-height: 200px !important;
         // height: 200px!important;
-    }
+    // }
 }
 
 .TimezoneSelect {
@@ -63,7 +63,7 @@
         // height: 400px!important;
     // }
 
-    //下拉选择框
+    //下拉选择框 select style
     .ant-select-item {
         font-size: 14px;
         line-height: 40px;

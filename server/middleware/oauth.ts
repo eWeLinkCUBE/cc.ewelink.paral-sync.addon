@@ -27,8 +27,7 @@ function getSign(params: any, appSecret: string) {
 
 /**
  *
- * 鉴权
- * @date 17/11/2022
+ * 鉴权 Authentication
  * @export
  * @param {Request} req
  * @param {Response} res
@@ -45,19 +44,19 @@ export default async function oauth(req: Request, res: Response, next: NextFunct
     const { appid } = params;
     const { appId, appSecret } = config.auth;
 
-    //开放给后端控制设备的接口，不用鉴权
+    // 开放给后端控制设备的接口，不用鉴权 An interface open to back-end control devices without authentication.
     const { directive = null } = body;
     if (directive) {
         return next();
     }
 
-    // 检验sign是否存在
+    // 检验sign是否存在 Check if sign exists
     if (!headerSign) {
         logger.error('oauth error: sign in headers is required');
         return res.json(toResponse(401, 'sign in headers is required'));
     }
 
-    // 校验sign的格式
+    // 校验sign的格式 校验sign的格式 Verify sign format Verify sign format
     const [signTitle, sign] = headerSign.split(' ');
 
     if (signTitle !== 'Sign' || !sign) {
@@ -65,20 +64,20 @@ export default async function oauth(req: Request, res: Response, next: NextFunct
         return res.json(toResponse(401, "sign in headers must begin with 'Sign'"));
     }
 
-    // 计算并比较sign
+    // 计算并比较sign Calculate and compare signs
     const curSign = getSign(params, appSecret);
     if (curSign !== sign) {
         logger.error('oauth error: sign in headers is invalid!');
         return res.json(toResponse(401, 'sign in headers is invalid'));
     }
 
-    // 检测appid
+    // 检测appid Detect appid
     if (!appid) {
         logger.error('oauth error: appid is missing');
         return res.json(toResponse(401, 'sign in headers is invalid'));
     }
 
-    // 比较appid
+    // 比较appid compare appid
     if (appid !== appId) {
         logger.error('oauth error: appid is invalid');
         return res.json(toResponse(401, 'appid is invalid'));
