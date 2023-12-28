@@ -30,7 +30,6 @@
 <script setup lang="ts">
 import api from '@/api';
 import { ref } from 'vue';
-import { WarningOutlined } from '@ant-design/icons-vue';
 import router from '@/router';
 import { useEtcStore } from '@/store/etc';
 import { useDeviceStore } from '@/store/device';
@@ -38,14 +37,17 @@ import { message } from 'ant-design-vue';
 import i18n from '@/i18n';
 import SyncAllDeviceDisabled from '@/assets/img/sync-device-disabled.png';
 import SyncAllDevice from '@/assets/img/sync-all-device.png';
-import { sleep ,deviceSyncSuccessNum} from '@/utils/tools';
+import { deviceSyncSuccessNum} from '@/utils/tools';
 import { stepsList } from '@/api/ts/interface/IGateWay';
 const headerRightRef = ref();
 const etcStore = useEtcStore();
 const deviceStore = useDeviceStore();
 const isRefresh = ref(false);
 
-/** 刷新操作 */
+/** 
+* 刷新操作
+* refresh operation
+*/
 const handleRefresh = () => {
     if (isRefresh.value) return;
     isRefresh.value = true;
@@ -55,7 +57,10 @@ const handleRefresh = () => {
     }, 1000);
 };
 
-/** 自动同步所有设备按钮 */
+/** 
+* 自动同步所有设备按钮
+* Automatically sync all devices button
+*/
 const handleAutoSync = async (e: boolean) => {
     const params = {
         autoSync: e,
@@ -66,16 +71,20 @@ const handleAutoSync = async (e: boolean) => {
     }
 };
 
-/** 同步所有设备 */
+/** 
+* 同步所有设备
+* Sync all devices
+*/
 const syncAllDevice = async () => {
     if (isDisabled.value) return;
     etcStore.setIsLoading(true);
     const res = await api.NSPanelPro.syncAllDevice();
     if (res.error === 0 && res.data) {
         await deviceStore.getDeviceList();
-        //每次将重试次数重新置为0;
+        // 每次将重试次数重新置为0 Reset the number of retries to 0 each time
         deviceStore.reverseRetryTime();
-        //根据同步所有设备接口返回的deviceId列表数据，去再次查询设备列表中同步成功的设备
+        // 根据同步所有设备接口返回的deviceId列表数据，去再次查询设备列表中同步成功的设备 
+        // According to the device ID list data returned by synchronizing all device interfaces, query the device list again for successfully synchronized devices.
         const syncDeviceIdList = res.data?.syncDeviceIdList;
         await deviceSyncSuccessNum(syncDeviceIdList);
     } else {
@@ -84,14 +93,20 @@ const syncAllDevice = async () => {
     etcStore.setIsLoading(false);
 };
 
-/** 返回设置页面 */
+/** 
+* 返回设置页面
+* Return to settings page
+*/
 const goSetting = () => {
     const step = deviceStore.ipTokenStep === stepsList.THIRD ? stepsList.FIRST : deviceStore.ipTokenStep;
     deviceStore.setStep(step);
     router.push('/setting');
 };
 
-/** 没有设备禁用同步所有设备按钮 */
+/** 
+* 没有设备禁用同步所有设备按钮
+* No devices disable sync all devices button
+*/
 const isDisabled = computed(() => (deviceStore.deviceList.length < 1 ? true : false));
 </script>
 

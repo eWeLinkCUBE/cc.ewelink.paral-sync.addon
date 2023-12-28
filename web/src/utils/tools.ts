@@ -7,36 +7,39 @@ let MAX_RETRY_TIME = 15;
 /**
  *
  * 根据路径获取assets文件夹内的文件（主要用于图片）
+ * Get the files in the assets folder according to the path (mainly used for pictures)
  * @date 29/05/2023
  * @export
  * @param {string} url
  * @returns {*}
  */
- export function getAssetsFile(url: string) {
+export function getAssetsFile(url: string) {
     return new URL(`../assets/${url}`, import.meta.url).href
 };
 
 /**
  *
  * 错误码处理
+ * Error code handling
  * @date 29/05/2023
  * @export
  * @param {number} errCode
  * @returns {*}
  */
-export function jumpCorrespondStep(errCode:number){
-    //设置页面用到的所有接口根据错误码跳转设置页对应的步骤,设置页面红字提示;
+export function jumpCorrespondStep(errCode: number) {
+    // 设置页面用到的所有接口根据错误码跳转设置页对应的步骤,设置页面红字提示;
+    // All interfaces used in the setting page will jump to the corresponding steps on the setting page according to the error code, and the setting page will have red text prompts;
     const isDevicePage = location.hash.indexOf('/deviceList') !== -1;
     if (isDevicePage) return;
     const deviceStore = useDeviceStore();
-    const step1List = [ 602,603,604,606,607,608,701,702,703 ];
-    const step2List = [ 501,502,503,600,601,1500,1501,1502,1503];
-    if(step1List.includes(errCode)){
+    const step1List = [602, 603, 604, 606, 607, 608, 701, 702, 703];
+    const step2List = [501, 502, 503, 600, 601, 1500, 1501, 1502, 1503];
+    if (step1List.includes(errCode)) {
         deviceStore.setStep(stepsList.FIRST);
         router.push('/setting');
         deviceStore.getIHostGateWatList();
     }
-    if(step2List.includes(errCode)){
+    if (step2List.includes(errCode)) {
         deviceStore.setStep(stepsList.SECOND);
         router.push('/setting');
         deviceStore.getNsProGateWayList();
@@ -46,37 +49,39 @@ export function jumpCorrespondStep(errCode:number){
 /**
  *
  * 对iHost和nsPro的ip失效和token失效进行处理
+ * Handle IP invalidation and token invalidation of iHost and ns pro
  * @date 02/06/2023
  * @param {string} errCode
  * @returns {*}
  */
-export function handleIpAndToken(errCode:number){
+export function handleIpAndToken(errCode: number) {
     const deviceStore = useDeviceStore();
-    let ipTokenMsg =''
+    let ipTokenMsg = ''
     let ipTokenStep = deviceStore.step;
-    if([701,702,703,1500,1501,1502].includes(errCode)){
+    if ([701, 702, 703, 1500, 1501, 1502, 605].includes(errCode)) {
         deviceStore.setIpTokenStatus(false);
-        switch(errCode){
-            //无目标网关信息、IP失效
+        switch (errCode) {
+            // 无目标网关信息、IP失效 No target gateway information, IP invalid
+            case 605:
             case 701:
             case 702:
-                ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'iHost'});
+                ipTokenMsg = i18n.global.t('GATEWAY_IP_INVALID', { name: 'iHost' });
                 ipTokenStep = stepsList.FIRST;
                 break;
-            //目标网关token失效
+            // 目标网关token失效 The target gateway token is invalid.
             case 703:
-                ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'iHost'});
+                ipTokenMsg = i18n.global.t('GATEWAY_TOKEN_INVALID', { name: 'iHost' });
                 ipTokenStep = stepsList.FIRST;
                 break;
-            //无来源网关信息、IP失效
+            // 无来源网关信息、IP失效 No source gateway information, IP invalid
             case 1500:
             case 1501:
-                ipTokenMsg= i18n.global.t('GATEWAY_IP_INVALID',{name:'NSPanelPro'});
+                ipTokenMsg = i18n.global.t('GATEWAY_IP_INVALID', { name: 'NSPanelPro' });
                 ipTokenStep = stepsList.SECOND;
                 break;
-            //来源网关token失效
+            // 来源网关token失效 Source gateway token invalid
             case 1502:
-                ipTokenMsg= i18n.global.t('GATEWAY_TOKEN_INVALID',{name:'NSPanelPro'});
+                ipTokenMsg = i18n.global.t('GATEWAY_TOKEN_INVALID', { name: 'NSPanelPro' });
                 ipTokenStep = stepsList.SECOND;
                 break;
             default:
@@ -90,12 +95,13 @@ export function handleIpAndToken(errCode:number){
 /**
  *
  * ip校验（link IP）
+ * IP verification (link IP)
  * @date 30/05/2023
  * @export
  * @param {string} ip
  * @returns {*}
  */
-export function checkIpValid(ipAddress:string){
+export function checkIpValid(ipAddress: string) {
     const reg = new RegExp(/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/);
     if (!reg.test(ipAddress)) {
         return false;
@@ -106,6 +112,7 @@ export function checkIpValid(ipAddress:string){
 /**
  *
  * 睡眠函数
+ * sleep function (ms)
  * @date 01/06/2023
  * @param {number} time
  */
@@ -120,11 +127,12 @@ export function sleep(time: number) {
 /**
  *
  * 判断有多少设备提示成功，并且提示用户
+ * Determine how many devices prompt successfully and prompt the user
  * @date 07/06/2023
  * @param {number} time
  */
-export const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) =>{
-    const deviceStore =useDeviceStore();
+export const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) => {
+    const deviceStore = useDeviceStore();
     if (!syncDeviceIdList || syncDeviceIdList.length < 1) {
         console.log('sync success device number is empty');
         return;
@@ -142,7 +150,8 @@ export const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) =>{
             }
         }
     }
-    //当同步设备全部是同步成功状态，结束loading并且提示成功;
+    // 当同步设备全部是同步成功状态，结束loading并且提示成功 
+    // When all synchronization devices are in the synchronization success state, loading ends and prompts success.
     if (count === syncDeviceIdList.length) {
         message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
         return;
@@ -153,7 +162,7 @@ export const deviceSyncSuccessNum = async (syncDeviceIdList: string[]) =>{
             await sleep(2000); //15*2=30(s)
             await deviceSyncSuccessNum(syncDeviceIdList);
         } else {
-            // 三十秒还没成功,提示成功的数量;
+            // 三十秒还没成功,提示成功的数量 If there is no success in thirty seconds, the number of successes will be prompted.
             message.success(i18n.global.t('DEVICE_SYNC_SUCCESS', { number: count }));
             return;
         }

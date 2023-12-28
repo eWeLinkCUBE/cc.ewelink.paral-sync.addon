@@ -8,8 +8,8 @@ import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 
 /**
  * 删除已同步过的设备
- *
- * @param srcGatewayMac 同步来源网关 MAC 地址
+ * Delete synced devices
+ * @param srcGatewayMac 同步来源网关 MAC 地址 Sync source gateway MAC address
  */
 async function unsyncDevice(srcGatewayMac: string) {
     try {
@@ -35,10 +35,16 @@ async function unsyncDevice(srcGatewayMac: string) {
     }
 }
 
-/** 删除指定网关信息（2000） */
+/** 
+* Delete specified gateway information (2000)
+* 删除指定网关信息（2000）
+*/
 export default async function deleteGateway(req: Request, res: Response) {
     try {
-        /** 被删除网关的 MAC 地址（该网关一定是同步来源网关） */
+        /** 
+        * 被删除网关的 MAC 地址（该网关一定是同步来源网关）
+        * MAC address of the deleted gateway (the gateway must be the synchronization source gateway) 
+        */
         const reqGatewayMac = req.params.mac;
         const srcGatewayList = await DB.getDbValue('srcGatewayInfoList');
         const i = _.findIndex(srcGatewayList, { mac: reqGatewayMac });

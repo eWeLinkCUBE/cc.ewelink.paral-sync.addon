@@ -13,22 +13,39 @@ interface IEtcState {
 export const useEtcStore = defineStore('addon_etc', {
     state: (): IEtcState => {
         return {
-            /** 国际化语言 */
+            /** 
+            * 国际化语言
+            * language
+            */
             language: 'zh-cn',
-
-            /** 登录凭证 */
+            /** 
+            * 登录凭证
+            * Login credentials
+            */
             at: '',
-            /** 控制context Loading变量 */
+            /** 
+            * 控制context Loading变量
+            * Control context Loading variables
+            */
             isLoading: false,
-            /** 自动同步新增设备状态 */
+            /** 
+            * 自动同步新增设备状态
+            * Automatically synchronize the status of new devices
+            */
             autoSync:true,
-            /** IP无法连接提示控制变量 */
+            /** 
+            * IP无法连接提示控制变量
+            * IP cannot connect prompt control variable
+            */
             isIPUnableToConnect:false
         };
     },
     getters: {},
     actions: {
-        /** 修改国际化语言 */
+        /** 
+        * 修改国际化语言
+        * Modify language
+        */
         languageChange(language: 'zh-cn' | 'en-us') {
             this.language = language;
             i18n.global.locale = language;

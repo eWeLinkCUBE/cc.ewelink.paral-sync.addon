@@ -12,11 +12,11 @@ import './assets/main.css'
 import AntdImport from '@/utils/AntdImport';
 import SetupAntdIcon from "@/utils/AntdIcons";
 const app = createApp(App)
-/** antd消息提示最多一条 */
+// antd消息提示最多一条 Antd message prompts at most one
 message.config({
     maxCount: 1,
 });
-// 注册监听事件
+// 注册监听事件 Register to listen for events
 export const emitter = new Events.EventEmitter();
 app.use(pinia)
 app.use(router)

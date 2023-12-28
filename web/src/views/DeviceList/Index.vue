@@ -15,15 +15,12 @@
 
 <script setup lang="ts">
 import { useEtcStore } from '@/store/etc';
-import { message } from 'ant-design-vue';
 import Header from './components/Header.vue';
 import DeviceList from './components/DeviceList.vue';
 import { LoadingOutlined } from '@ant-design/icons-vue';
 import i18n from '@/i18n';
 import api from '@/api';
-import { useDeviceStore } from '@/store/device';
 const etcStore = useEtcStore();
-const deviceStore = useDeviceStore();
 const indicator = h(LoadingOutlined, {
     style: {
         fontSize: '24px',
@@ -33,7 +30,10 @@ const indicator = h(LoadingOutlined, {
 onMounted(async () => {
     getAutoSyncState();
 });
-/** 设置自动同步按钮状态 */
+/** 
+* 设置自动同步按钮状态
+* Set auto-sync button status
+*/
 const getAutoSyncState = async () => {
     const res = await api.NSPanelPro.getAutoSyncState();
     if (res.error === 0 && res.data) {

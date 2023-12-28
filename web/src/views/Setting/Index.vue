@@ -9,7 +9,7 @@
                 <div>
                     <p class="step-title">{{ i18n.global.t('STEP01_TOKEN') }}</p>
                     <div class="step-description">{{ i18n.global.t('GET_ACCESS_TOKEN') }}</div>
-                    <!-- ip失效、token失效 -->
+                    <!-- ip失效、token失效 IP invalid, token invalid -->
                     <div class="step-description" style="color: red; font-size: 14px" v-if="deviceStore.iHostTokenFail || !deviceStore.effectIHostIp">
                         <img alt="" src="@/assets/img/notice.png" class="notice" />
                         {{ iHostErrorMsg }}
@@ -34,10 +34,10 @@
                         <img :class="isRefresh ? 'rotate' : ''" src="@/assets/img/refresh.png" @click="handleRefresh" />
                     </div>
                     <div class="step-description">{{ i18n.global.t('STEP2') }}</div>
-                    <!-- ip失效、token失效 -->
+                    <!-- ip失效、token失效 IP invalid, token invalid -->
                     <div class="step-description" style="color: red; font-size: 14px" v-if="nsProExistIpInValid">
                         <img alt="" src="@/assets/img/notice.png" class="notice" />
-                       {{ nsProErrorMsg }}
+                        {{ nsProErrorMsg }}
                     </div>
                 </div>
             </div>
@@ -87,71 +87,101 @@ const router = useRouter();
 const deviceStore = useDeviceStore();
 const steps = computed(() => deviceStore.step);
 
-/** 查找ip弹窗 */
+/**
+ * 查找ip弹窗
+ * Find IP pop-up window
+ */
 const findIpVisible = ref(false);
 
-/** nsPro 提示框 */
+/**
+ * nsPro 提示框
+ * nsPro prompt box
+ */
 const nsProTipModalVisible = ref(false);
 
-/** 在iHost启动、正常展示 、loading*/
+/**
+ * 在iHost启动、正常展示 、loading
+ * Start in iHost, display normally, and load
+ */
 const startInIHost = ref<'UNUSUAL' | 'NORMAL' | 'LOADING'>('LOADING');
 
-/** 刷新按钮状态 */
+/**
+ * 刷新按钮状态
+ * Refresh button state
+ */
 const isRefresh = ref(false);
 
-/** 能点击下一步，ip一定要有效、token也一定要有效 */
+/**
+ * 能点击下一步，ip一定要有效、token也一定要有效
+ * To be able to click Next, the IP must be valid and the token must also be valid.
+ */
 const hasIHostToken = computed(() => deviceStore.effectIHostIp && deviceStore.effectIHostToken);
 
-/** iHost 异常提示语 */
+/**
+ * iHost 异常提示语
+ * iHost exception prompts
+ */
 const iHostErrorMsg = computed(() => {
-    if(deviceStore.iHostList.length<1) return '';
+    if (deviceStore.iHostList.length < 1) return '';
     let msg = '';
     const name = deviceStore.iHostList[0].name || '';
     const mac = deviceStore.iHostList[0].mac || '';
-    /** ip失效 */
+    /**
+     * ip失效
+     * IP invalid
+     */
     if (!deviceStore.effectIHostIp) {
         msg += i18n.global.t('IHOST_IP_INVALID', { name: `${name}(${mac})` });
     }
-    /** ip失效 + token失效 */
+    /**
+     * ip失效 + token失效
+     * IP invalid + token invalid
+     */
     if (deviceStore.iHostTokenFail && !deviceStore.effectIHostIp) {
         msg += ' 、';
     }
-    /** token失效 */
+    /**
+     * token失效
+     * token失效
+     */
     if (deviceStore.iHostTokenFail) {
         msg += i18n.global.t('TOKEN_INVALID', { name: `${name}(${mac})` });
     }
     return msg;
 });
 
-/** nsPro异常提示语 */
+/**
+ * nsPro异常提示语
+ * Ns pro abnormal prompts
+ */
 const nsProErrorMsg = computed(() => {
     let msg = '';
-    /** 存在一个ip失效的nsPro */
+    // 存在一个ip失效的nsPro There is an ns pro with invalid ip
     if (deviceStore.hasOneInvalidNsProIP) {
         let ipFailMsg = '';
         deviceStore.nsProList.forEach((item, idx) => {
             if (!item.ipValid) {
                 const name = `${item.name}(${item.mac})`;
                 const symbol = idx !== deviceStore.nsProList.length - 1 ? '、' : '';
-                ipFailMsg += (name + '' + symbol);
+                ipFailMsg += name + '' + symbol;
             }
         });
         msg += i18n.global.t('NS_PRO_IP_CANT_ACCESS', { name: ipFailMsg });
     }
 
-    /** 中间的分隔符号 */
-    if(deviceStore.hasOneInvalidNsProIP && deviceStore.hasOneInvalidNsProToken){
+    // 中间的分隔符号 middle separator
+    if (deviceStore.hasOneInvalidNsProIP && deviceStore.hasOneInvalidNsProToken) {
         msg += ' ; ';
     }
 
-    /** 存在一个token失效的nsPro（tokenValid为false、token有值） */
+    // 存在一个token失效的nsPro（tokenValid为false、token有值） There is an ns pro with invalid token (token valid is false, token has value)
     if (deviceStore.hasOneInvalidNsProToken) {
-        let tokenFailMsg = ''
+        let tokenFailMsg = '';
         deviceStore.nsProList.forEach((item, idx) => {
             if (!item.tokenValid && item.token) {
                 const name = `${item.name}(${item.mac})`;
                 const symbol = idx !== deviceStore.nsProList.length - 1 ? '、' : '';
-                tokenFailMsg += (name + '' + symbol);
+                tokenFailMsg += name + '' + symbol;
             }
         });
         msg += i18n.global.t('TOKEN_INVALID', { name: tokenFailMsg });
@@ -159,18 +189,18 @@ const nsProErrorMsg = computed(() => {
     return msg;
 });
 
-/** 是否获取到一个nsPro的ip有效token */
+// 是否获取到一个nsPro的ip有效token Have you obtained a valid token for the ns pro IP?
 const hasNsProToken = computed(() => deviceStore.nsProList.some((item) => item.tokenValid && item.ipValid));
 
-/** nsPro是否存在不能访问或者token失效的网关 */
+// nsPro是否存在不能访问或者token失效的网关 Is there a gateway in Ns pro that is inaccessible or has an expired token?
 const nsProExistIpInValid = computed(() => deviceStore.hasOneInvalidNsProIP || deviceStore.hasOneInvalidNsProToken);
 
-/** 判断获取iHost列表还是nsPro的列表 */
+// 判断获取iHost列表还是nsPro的列表 Determine whether to obtain the iHost list or the ns pro list
 onMounted(async () => {
     if (steps.value === stepsList.FIRST) {
         const response = await deviceStore.getIHostGateWatList();
         startInIHost.value = 'NORMAL';
-        //不在iHost上启动
+        // 不在iHost上启动 Do not start on iHost
         if (response.error === 1101) {
             startInIHost.value = 'UNUSUAL';
         }
@@ -180,7 +210,10 @@ onMounted(async () => {
     }
 });
 
-/** 刷新操作 */
+/** 
+* 刷新操作
+* refresh operation
+*/
 const handleRefresh = () => {
     if (isRefresh.value) return;
     isRefresh.value = true;
@@ -190,14 +223,20 @@ const handleRefresh = () => {
     }, 1000);
 };
 
-/** 点击下一步 */
+/** 
+* 点击下一步
+* Click Next
+*/
 const nextStep = () => {
     if (!hasIHostToken.value) return;
     deviceStore.setStep(stepsList.SECOND);
     deviceStore.getNsProGateWayList();
 };
 
-/** 点击完成 */
+/** 
+* 点击完成
+* Click Finish
+*/
 const goDeviceListPage = () => {
     if (!hasNsProToken.value) return;
     deviceStore.setStep(stepsList.THIRD);

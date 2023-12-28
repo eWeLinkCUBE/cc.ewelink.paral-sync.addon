@@ -1,7 +1,8 @@
 const en = {
     ERROR:{
         500:'Failed, please try later',
-        // 1001:'Incorrect password. Please try again.',
+        603:'Synchronization failed, please try again later.',
+        604:'Synchronization failed, device not supported.',
         1002:'Invalid account number',
         1003:'This user does not exist. Please try again.'
     },

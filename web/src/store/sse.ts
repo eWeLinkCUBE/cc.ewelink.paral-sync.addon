@@ -34,7 +34,10 @@ export const useSseStore = defineStore('sse', {
                 this.sseIsConnect = true;
             });
 
-            /** 开始获取token */
+            /** 
+            * 开始获取token
+            * Start getting token
+            */
             source.addEventListener('begin_obtain_token_report', async (event: any) => {
                 // console.log('begin_obtain_token_report------------->', event.data);
                 const data = JSON.parse(event.data) as IGateWayInfoData;
@@ -42,7 +45,10 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.replaceGateWayItemBySse(data);
             });
 
-            /**成功获取token */
+            /**
+            * 成功获取token
+            * Successfully obtained token
+            */
             source.addEventListener('obtain_token_success_report', async (event: any) => {
                 // console.log('obtain_token_success------------->', event.data);
                 const data = JSON.parse(event.data) as IGateWayInfoData;
@@ -50,7 +56,10 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.replaceGateWayItemBySse(data);
             });
 
-            /**获取token失败 */
+            /**
+            * 获取token失败
+            * Failed to obtain token
+            */
             source.addEventListener('obtain_token_fail_report', async (event: any) => {
                 // console.log('obtain_token_fail_report---------->', event.data);
                 const data = JSON.parse(event.data) as IGateWayInfoData;
@@ -58,7 +67,10 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.replaceGateWayItemBySse(data);
             });
 
-            /** 网关信息推送 */
+            /** 
+            * 网关信息推送
+            * Gateway information push
+            */
             source.addEventListener('gateway_info_report', async (event: any) => {
                 // console.log('gateway_info_report------------->', event.data);
                 const data = JSON.parse(event.data) as IGateWayInfoData;
@@ -66,7 +78,10 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.modifyGateWayInfoBySse(data);
             });
 
-            /**子设备信息变更 上下线和名字变化 */
+            /**
+            * 子设备信息变更 上下线和名字变化
+            * Sub-device information changes, online and offline, and name changes
+            */
             source.addEventListener('device_info_change_report', async (event: any) => {
                 // console.log('device_info_change_report------------->', event.data);
                 const data = JSON.parse(event.data) as INsProDeviceData;
@@ -74,7 +89,10 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.replaceDeviceItemBySse(data);
             });
 
-            /** 子设备删除 */
+            /** 
+            * 子设备删除
+            * Sub device deletion
+            */
             source.addEventListener('device_deleted_report', async (event: any) => {
                 // console.log('device_deleted_report------------->', event.data);
                 const data = JSON.parse(event.data) as IDeleteDeviceData;
@@ -82,7 +100,10 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.deleteNsProDeviceById(data.deviceId);
             });
 
-            /** 子设备新增 */
+            /** 
+            * 子设备新增
+            * New sub-device
+            */
             source.addEventListener('device_added_report', async (event: any) => {
                 // console.log('device_added_report------------->', event.data);
                 const data = JSON.parse(event.data) as IAddDeviceData;
@@ -90,7 +111,10 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.addNsPaneProDevice(data);
             });
 
-            /** 同步单个设备 */
+            /** 
+            * 同步单个设备
+            * Sync a single device
+            */
             source.addEventListener('sync_one_device_result', (event: any) => {
                 // console.log('sync_one_device_result------------->', event.data);
                 const deviceId = JSON.parse(event.data).syncDeviceId;
@@ -98,7 +122,10 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.modifyDeviceSyncStatusById(deviceId, true);
             });
 
-            /** 取消同步单个设备 */
+            /** 
+            * 取消同步单个设备
+            * Unsync a single device
+            */
             source.addEventListener('unsync_one_device_result', (event: any) => {
                 // console.log('unsync_one_device_result------------->', event.data);
                 const deviceId = JSON.parse(event.data).unsyncDeviceId;
@@ -106,20 +133,26 @@ export const useSseStore = defineStore('sse', {
                 deviceStore.modifyDeviceSyncStatusById(deviceId, false);
             });
 
-            /** 一键同步所有设备 */
+            /** 
+            * 一键同步所有设备
+            * Sync all your devices with one click
+            */
             source.addEventListener('sync_all_device_result', async (event: any) => {
                 // console.log('sync_all_device_result------------->', event.data);
                 const deviceIdList = JSON.parse(event.data).syncDeviceIdList as string[];
                 const deviceStore = useDeviceStore();
                 const etcStore = useEtcStore();
-                //每次将重试次数置为0;
+                // 每次将重试次数置为0 Set the number of retries to 0 each time
                 deviceStore.reverseRetryTime();
                 etcStore.setIsLoading(true);
                 await deviceSyncSuccessNum(deviceIdList);
                 etcStore.setIsLoading(false);
             });
 
-            /** SSE失败 */
+            /** 
+            * SSE连接失败
+            * Sse connect failed
+            */
             source.addEventListener('error', (event: any) => {
                 // console.log('SSE connect error, reboot');
                 setTimeout(() => {

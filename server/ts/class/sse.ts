@@ -4,9 +4,15 @@ import { v4 as uuid } from 'uuid';
 import logger from '../../log';
 
 interface ISendEvent {
-    /** 事件名称 例如：change_report */
+    /** 
+    * 事件名称 例如：change_report
+    * event name e.g. change_report
+    */
     name: string;
-    /** 时间数据 例如 {设备数据} */
+    /** 
+    * 事件数据 
+    * event data
+    */
     data: any;
 }
 
@@ -70,13 +76,13 @@ function buildStreamContext(req: Request, res: Response) {
 }
 
 /**
- * 
+ * @description send sse message
  * @param {object} event 
- * @param {String} event.name  事件名称 例如：change_report
- * @param {Object} event.data  时间数据 例如 {设备数据}
+ * @param {String} event.name  事件名称 例如：change_report event name
+ * @param {Object} event.data  事件数据 event data
  */
 function send(event: ISendEvent) {
-    //广播数据
+    // 广播数据 broadcast data
     for (const entry of ssePool.entries()) {
         const sse = entry[1];
         try {

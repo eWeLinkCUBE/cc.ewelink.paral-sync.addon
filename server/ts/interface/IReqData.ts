@@ -1,4 +1,4 @@
-//iHost请求addon的参数
+// iHost请求addon的参数 request params for iHost to add-on
 export interface IReqData {
     directive: {
         header: {

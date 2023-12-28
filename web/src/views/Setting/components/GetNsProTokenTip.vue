@@ -1,5 +1,5 @@
 <template>
-    <!-- nsPro 提示框 -->
+    <!-- nsPro 提示框 nsPro prompt box-->
     <a-modal :visible="nsProTipModalVisible" destroyOnClose :maskClosable="false" centered :closable="false" width="504px" class="NsPro-Modal">
         <template #title>
             <div class="nsPro-title">{{ i18n.global.t('GET_NS_PRO_TOKEN') }}</div>
@@ -23,12 +23,12 @@
 <script setup lang="ts">
 import { useEtcStore } from '@/store/etc';
 import i18n from '@/i18n/index';
-//中文图
+// 中文图 zh-cn pic
 import Setting_zh from '@/assets/img/setting-modal-zh.png';
 import Machine_zh from '@/assets/img/machine-modal-zh.png';
 import Click_zh from '@/assets/img/click-modal-zh.png';
 import Token_zh from '@/assets/img/token-modal-zh.png';
-//英文图
+// 英文图 en-us pic
 import Setting_en from '@/assets/img/setting-modal-en.png';
 import Machine_en from '@/assets/img/machine-modal-en.png';
 import Click_en from '@/assets/img/click-modal-en.png';
@@ -37,14 +37,26 @@ const props = defineProps<{
     nsProTipModalVisible: boolean;
 }>();
 const etcStore = useEtcStore();
-/** 关闭弹窗回调 */
+/** 
+* 关闭弹窗回调
+* Close pop-up window callback
+*/
 const emits = defineEmits(['closeNsProTipModal']);
 const closeNsProTipModal = () => emits('closeNsProTipModal');
-/** 当前语言环境 */
+/** 
+* 当前语言环境
+* current locale
+*/
 const language = computed(() => etcStore.language === 'zh-cn');
-/** 英文轮播图列表 */
+/** 
+* 英文轮播图列表
+* English carousel picture list
+*/
 const en_autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting_en }, { imgSrc: Machine_en }, { imgSrc: Click_en }, { imgSrc: Token_en }];
-/** 中文轮播图列表 */
+/** 
+* 中文轮播图列表
+* Chinese carousel picture list
+*/
 const zh_autoplayImageList: { imgSrc: string }[] = [{ imgSrc: Setting_zh }, { imgSrc: Machine_zh }, { imgSrc: Click_zh }, { imgSrc: Token_zh }];
 </script>
 

@@ -3,20 +3,21 @@ import { Request, Response } from 'express';
 import { toResponse } from '../utils/error';
 import logger from '../log';
 import DB from '../utils/db';
-import CubeApi from '../lib/cube-api';
+import CubeApi, { ECategory } from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import CONFIG from '../config';
 import { srcDeviceInDestGateway } from './getSourceGatewaySubDevices';
-import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
-import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, updateSrcGatewayDeviceGroup } from '../utils/tmp';
+import { destTokenInvalid } from '../utils/dealError';
+import { filterUnsupportedCapability, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup } from '../utils/tmp';
 import SSE from '../ts/class/sse';
 
 /**
  * 创建设备的 tags
+ * Create device tags
  *
- * @param device 将要同步的设备数据
- * @param srcGatewayMac 同步来源网关的 MAC 地址
- * @returns 合并后的 tags
+ * @param device 将要同步的设备数据 Device data to be synchronized
+ * @param srcGatewayMac 同步来源网关的 MAC 地址 MAC address of sync source gateway
+ * @returns 合并后的 tags Merged tags
  */
 export function createDeviceTags(device: any, srcGatewayMac: string) {
     let result = {};
@@ -33,22 +34,35 @@ export function createDeviceTags(device: any, srcGatewayMac: string) {
 
 /**
  * 创建设备的 service address
+ * Create the service address of the device
  */
 export function createDeviceServiceAddr(deviceId: string) {
     return `${CONFIG.localIp}/api/v1/open/device/${deviceId}`;
 }
 
-/** 同步单个设备(1500) */
+/**
+ * 同步单个设备(1500) 
+ * Sync a single device (1500)
+ * */
 export default async function syncOneDevice(req: Request, res: Response) {
     try {
-        /** 将要被同步的设备 ID */
+        /** 
+        * 将要被同步的设备 ID
+        * Device ID to be synced
+        */
         const willSyncDeviceId = req.params.deviceId;
-        /** 同步来源网关的 MAC 地址 */
+        /** 
+        * 同步来源网关的 MAC 地址
+        * MAC address of sync source gateway
+        */
         const srcGatewayMac = req.body.from;
         logger.info(`(service.syncOneDevice) willSyncDeviceId: ${willSyncDeviceId}`);
         logger.info(`(service.syncOneDevice) srcGatewayMac: ${srcGatewayMac}`);
 
-        /** 同步目标网关的信息 */
+        /** 
+        * 同步目标网关的信息
+        * Synchronize target gateway information
+        */
         const destGatewayInfo = await DB.getDbValue('destGatewayInfo');
         if (!destGatewayInfo?.ipValid) {
             logger.info(`(service.syncOneDevice) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
@@ -59,7 +73,10 @@ export default async function syncOneDevice(req: Request, res: Response) {
             return res.json(toResponse(703));
         }
 
-        /** 同步来源网关的信息列表 */
+        /** 
+        * 同步来源网关的信息列表
+        * Synchronization source gateway information list
+        */
         const srcGatewayInfoList = await DB.getDbValue('srcGatewayInfoList');
         const srcGatewayInfo = _.find(srcGatewayInfoList, { mac: srcGatewayMac });
         if (!srcGatewayInfo) {
@@ -81,7 +98,6 @@ export default async function syncOneDevice(req: Request, res: Response) {
         let srcGatewayDeviceList: GatewayDeviceItem[] = [];
         let destGatewayDeviceList: GatewayDeviceItem[] = [];
 
-        // 获取同步来源网关的设备列表
         const srcRes = await getSrcGatewayDeviceGroup(srcGatewayMac);
         logger.debug(`(service.syncOneDevice) srcRes: ${JSON.stringify(srcRes)}`);
         if (srcRes.error === 0) {
@@ -90,7 +106,6 @@ export default async function syncOneDevice(req: Request, res: Response) {
             return res.json(toResponse(srcRes.error));
         }
 
-        // 获取同步目标网关的设备列表
         const destRes = await getDestGatewayDeviceGroup();
         logger.debug(`(service.syncOneDevice) destRes: ${JSON.stringify(destRes)}`);
         if (destRes.error === 0) {
@@ -99,7 +114,10 @@ export default async function syncOneDevice(req: Request, res: Response) {
             return res.json(toResponse(destRes.error));
         }
 
-        /** 将要被同步的设备数据 */
+        /** 
+        * 将要被同步的设备数据
+        * Device data to be synchronized
+        */
         const srcDeviceData = _.find(srcGatewayDeviceList, { serial_number: willSyncDeviceId });
         logger.debug(`(service.syncOneDevice) srcDeviceData: ${JSON.stringify(srcDeviceData)}`);
         if (!srcDeviceData) {
@@ -111,7 +129,7 @@ export default async function syncOneDevice(req: Request, res: Response) {
             logger.info(`(service.syncOneDevice)  current device ${srcDeviceData} already exist in dest gateway`)
             logger.debug(`(service.syncOneDevice)  current device ${srcDeviceData}, destGatewayDeviceList => ${JSON.stringify(destGatewayDeviceList)}`)
             res.json(toResponse(0));
-            // 当前设备已经被同步过了
+            // 当前设备已经被同步过了 The current device has been synchronized
             SSE.send({
                 name: 'sync_one_device_result',
                 data: {
@@ -120,18 +138,21 @@ export default async function syncOneDevice(req: Request, res: Response) {
             });
             return;
         } else {
-            // 调用添加第三方设备的接口
+            logger.debug(`(service.syncOneDevice) before formatted device: ${JSON.stringify(srcDeviceData)}`);
+            // 删除不支持的能力 filter unsupported capability
+            const formattedDevice = filterUnsupportedCapability(srcDeviceData);
+            // 调用添加第三方设备的接口 Call the interface for adding third-party devices
             const syncDevices = [
                 {
-                    name: srcDeviceData.name,
-                    third_serial_number: srcDeviceData.serial_number,
-                    manufacturer: srcDeviceData.manufacturer,
-                    model: srcDeviceData.model,
-                    firmware_version: srcDeviceData.firmware_version,
-                    display_category: srcDeviceData.display_category as any,
-                    capabilities: srcDeviceData.capabilities,
-                    state: srcDeviceData.state,
-                    tags: createDeviceTags(srcDeviceData, srcGatewayMac),
+                    name: formattedDevice.name,
+                    third_serial_number: formattedDevice.serial_number,
+                    manufacturer: formattedDevice.manufacturer,
+                    model: formattedDevice.model,
+                    firmware_version: formattedDevice.firmware_version,
+                    display_category: formattedDevice.display_category as ECategory,
+                    capabilities: formattedDevice.capabilities,
+                    state: formattedDevice.state,
+                    tags: createDeviceTags(formattedDevice, srcGatewayMac),
                     service_address: createDeviceServiceAddr(willSyncDeviceId),
                 },
             ];
@@ -150,10 +171,13 @@ export default async function syncOneDevice(req: Request, res: Response) {
             } else if (resType === 'INVALID_PARAMETERS') {
                 logger.info(`(service.syncOneDevice) response: ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID`);
                 return res.json(toResponse(604));
+            } else if (resType === 'INTERNAL_ERROR') {
+                logger.info(`(service.syncOneDevice) response: ERR_CUBEAPI_SYNC_DEVICE_INTERNAL_ERROR`);
+                return res.json(toResponse(500));
             } else {
                 logger.info(`(service.syncOneDevice) RESPONSE: ERR_SUCCESS`);
                 res.json(toResponse(0));
-                // 同步成功，把结果通过 SSE 告诉前端
+                // 同步成功，把结果通过 SSE 告诉前端 sync success, inform frontend
                 SSE.send({
                     name: 'sync_one_device_result',
                     data: {

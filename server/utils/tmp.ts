@@ -4,63 +4,75 @@ import { DestServerSentEvent } from '../ts/class/destSse';
 import { ServerSentEvent } from '../ts/class/srcSse';
 import logger from '../log';
 import db from './db';
-import CubeApi from '../lib/cube-api';
+import CubeApi, { ECapability } from '../lib/cube-api';
 import { toResponse } from './error';
 import IResponse from '../ts/interface/IResponse';
 import { destTokenInvalid, srcTokenAndIPInvalid } from './dealError';
 
 export interface ISrcGatewayDevice {
-    /** 目标网关mac地址 */
+    /** 
+    * 目标网关mac地址
+    * Target gateway mac address
+    */
     srcGatewayMac: string;
-    /** 设备列表 */
+    /** 
+    * 设备列表
+    * Device List
+    */
     deviceList: GatewayDeviceItem[]
 }
 
-/** 同步来源网关的设备数据组 */
-export const srcGatewayDeviceGroup: ISrcGatewayDevice[] = [];
+/** 
+* 同步来源网关的设备数据组
+* Synchronize the device data group of the source gateway
+*/
+const srcGatewayDeviceGroup: ISrcGatewayDevice[] = [];
 
-/** 同步目标网关的设备数据组 */
-export let destGatewayDeviceGroup: GatewayDeviceItem[] = [];
+/** 
+* 同步目标网关的设备数据组
+* Synchronize the device data group of the target gateway
+*/
+let destGatewayDeviceGroup: GatewayDeviceItem[] = [];
 
-/** 目标网关sse */
+/** 
+* 目标网关sse
+* target gateway sse
+*/
 export let destSseEvent: DestServerSentEvent | null = null;
 
-/** 来源网关sse合集 */
+/** 
+* 来源网关sse合集
+* Source gateway sse collection
+*/
 export const srcSsePool: Map<string, ServerSentEvent> = new Map();
 
 /**
- * 格式化设备数据（去掉不支持能力的数据）
- *
- * @param device 设备数据
- * @returns 格式化后的设备数据
+* @description 格式化设备数据（去掉不支持能力的数据）Format device data (remove data with unsupported capabilities)
+ * @param {GatewayDeviceItem} device 
+ * @returns {GatewayDeviceItem} 
  */
-function formatDevice(device: GatewayDeviceItem) {
-    // 不支持的能力列表
-    const UNSUPPORT_CAPA = ['ota', 'identify', 'thermostat-mode-detect'];
+export function filterUnsupportedCapability(device: GatewayDeviceItem): GatewayDeviceItem {
+    /**
+     * 不支持的能力列表
+     * List of capabilities to filter
+     */
+    const UNSUPPORTED_CAP = [ECapability.OTA];
+    const curDevice = _.cloneDeep(device);
+    // 删除 capabilities Delete capabilities
+    const list = curDevice.capabilities;
+    _.remove(list, (item: any) => UNSUPPORTED_CAP.includes(item.capability));
 
-    // 删除 capabilities
-    const list = device.capabilities;
-    _.remove(list, (item: any) => UNSUPPORT_CAPA.includes(item.capability));
+    curDevice.capabilities = list;
 
-    // 移除 NSPro 中温度能力的 scale 字段
-    // TODO: iHost 更新 configuration 后，删除这段代码
-    for (let i = 0; i < list.length; i++) {
-        if (list[i].capability === 'temperature') {
-            _.unset(list[i], 'configuration.scale');
-        }
-    }
+    // 删除 state delete state
+    const state = curDevice.state;
+    curDevice.state = _.omit(state, UNSUPPORTED_CAP);
 
-    device.capabilities = list;
-
-    // 删除 state
-    const state = device.state;
-    device.state = _.omit(state, UNSUPPORT_CAPA);
-
-    return device;
+    return curDevice;
 }
 
 /**
- * @description 更新
+ * @description update destination gateway sse
  * @export
  */
 export function updateDestSse(sse: DestServerSentEvent) {
@@ -69,36 +81,37 @@ export function updateDestSse(sse: DestServerSentEvent) {
 }
 
 /**
- * 更新同步来源网关的设备数据组
- *
- * @param srcGatewayMac 同步来源网关 MAC 地址
- * @param deviceList 同步来源网关的设备数据
+ * @description 更新同步来源网关的设备数据组 Update the device data group of the synchronization source gateway
+ * @export
+ * @param {string} srcGatewayMac 同步来源网关 MAC 地址 Sync source gateway MAC address
+ * @param {GatewayDeviceItem[]} deviceList 同步来源网关的设备数据 Synchronize device data from source gateway
+ * @returns {*} 
  */
 export async function updateSrcGatewayDeviceGroup(srcGatewayMac: string, deviceList: GatewayDeviceItem[]) {
     const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
     const srcGatewayInfo = _.find(srcGatewayInfoList, { mac: srcGatewayMac });
     if (!srcGatewayInfo) {
-        logger.info(`(service.syncOneDevice) RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
+        logger.info(`[updateSrcGatewayDeviceGroup] RESPONSE: ERR_NO_SRC_GATEWAY_INFO`);
         return toResponse(1500);
     }
     if (!srcGatewayInfo.ipValid) {
-        logger.info(`(service.syncOneDevice) RESPONSE: ERR_SRC_GATEWAY_IP_INVALID`);
+        logger.info(`[updateSrcGatewayDeviceGroup] RESPONSE: ERR_SRC_GATEWAY_IP_INVALID`);
         return toResponse(1501);
     }
     if (!srcGatewayInfo.tokenValid) {
-        logger.info(`(service.syncOneDevice) RESPONSE: ERR_SRC_GATEWAY_TOKEN_INVALID`);
+        logger.info(`[updateSrcGatewayDeviceGroup] RESPONSE: ERR_SRC_GATEWAY_TOKEN_INVALID`);
         return toResponse(1502);
     }
 
-    const formattedDeviceList = deviceList.map((item) => formatDevice(item));
+    // logger.info(`[updateSrcGatewayDeviceGroup] updated device info ${JSON.stringify(deviceList)}`)
 
     const groupItem = _.find(srcGatewayDeviceGroup, { srcGatewayMac });
     if (groupItem) {
-        groupItem.deviceList = formattedDeviceList;
+        groupItem.deviceList = deviceList;
     } else {
         srcGatewayDeviceGroup.push({
             srcGatewayMac,
-            deviceList: formattedDeviceList
+            deviceList
         });
     }
 }
@@ -106,15 +119,15 @@ export async function updateSrcGatewayDeviceGroup(srcGatewayMac: string, deviceL
 
 
 /**
- * @description 获取指定来源网关的设备列表
+ * @description 获取指定来源网关的设备列表 Get the device list of the specified source gateway
  * @export
- * @param {string} srcGatewayMac 目标网关的mac
- * @param {boolean} [noCache=false] 是否使用缓存
+ * @param {string} srcGatewayMac 目标网关的mac Target gateway mac 
+ * @param {boolean} [noCache=false] 是否使用缓存 Whether to use cache 
  * @returns {*}  {Promise<IResponse>}
  */
 export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = false): Promise<IResponse> {
     const groupItem = _.find(srcGatewayDeviceGroup, { srcGatewayMac });
-    // 存在直接返回
+    // 存在缓存直接返回 Cache exist then return it directly
     if (groupItem && !noCache) {
         return {
             error: 0,
@@ -125,14 +138,12 @@ export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = 
         };
     }
 
-    /** 所有来源网关的信息 */
     const srcGatewayInfoList = await db.getDbValue('srcGatewayInfoList');
 
-    /** 当前网关信息 */
     const srcGateway = _.find(srcGatewayInfoList, { mac: srcGatewayMac });
 
     if (!srcGateway) {
-        logger.info(`[getSrcGatewayDeviceGroup] get src gateway ${srcGatewayMac} from srcGatewayInfoList fails. Here is the list ${srcGatewayInfoList}`)
+        logger.info(`[getSrcGatewayDeviceGroup] get src gateway ${srcGatewayMac} from srcGatewayInfoList fails. Here is the list ${JSON.stringify(srcGatewayInfoList)}`)
         return {
             error: 606,
             msg: "src gateway not exist",
@@ -165,12 +176,11 @@ export async function getSrcGatewayDeviceGroup(srcGatewayMac: string, noCache = 
 
 
 /**
- * 更新目标网关的设备数据组
- *
- * @param deviceList 同步来源网关的设备数据
+ * @description 更新目标网关的设备数据组 Update the device data group of the target gateway
+ * @export
+ * @param {GatewayDeviceItem[]} deviceList 同步来源网关的设备数据 Synchronize device data from source gateway
  */
 export async function updateDestGatewayDeviceGroup(deviceList: GatewayDeviceItem[]) {
-    /** 同步目标网关的信息 */
     const destGatewayInfo = await db.getDbValue('destGatewayInfo');
     if (!destGatewayInfo?.ipValid) {
         logger.info(`(service.syncOneDevice) RESPONSE: ERR_DEST_GATEWAY_IP_INVALID`);
@@ -186,13 +196,12 @@ export async function updateDestGatewayDeviceGroup(deviceList: GatewayDeviceItem
 
 
 /**
- * @description 获取目标网关的设备列表
- * @export
+ * @description 获取目标网关的设备列表 Get the device list of the target gateway
+ * @export 
  * @returns {*}  {Promise<IResponse>}
  */
 export async function getDestGatewayDeviceGroup(noCache = false): Promise<IResponse> {
 
-    // 存在直接返回
     if (destGatewayDeviceGroup.length && !noCache) {
         return {
             error: 0,
@@ -203,7 +212,6 @@ export async function getDestGatewayDeviceGroup(noCache = false): Promise<IRespo
         };
     }
 
-    /** 目标网关的信息 */
     const destGatewayInfo = await db.getDbValue('destGatewayInfo');
 
     if (!destGatewayInfo) {
@@ -216,7 +224,7 @@ export async function getDestGatewayDeviceGroup(noCache = false): Promise<IRespo
     }
 
 
-    // 获取同步目标网关的设备列表
+    // 获取同步目标网关的设备列表 Get the device list of the synchronization target gateway
     const ApiClient = CubeApi.ihostApi;
     const destGatewayClient = new ApiClient({ ip: destGatewayInfo.ip, at: destGatewayInfo.token });
     const cubeApiRes = await destGatewayClient.getDeviceList();

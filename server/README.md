@@ -1,3 +1,13 @@
+# server
+
+## Development
+
+Run the following command to start server.
+
+```
+npm run serve
+```
+
 ## PostMan使用脚本计算出sign和取得at
 正式环境命令：APP_ENV=prod npm run serve
 ### 1、点击collect，切换到 Pre-request Script
@@ -42,12 +52,15 @@ logger.error("sign => ", sign);
 
 pm.collectionVariables.set("paramsSign", sign);
     pm.request.headers.add({
-        key: "sign", 
+        key: "sign",
         value: `Sign ${sign}`
     })
 
 
-/** 在非登录/注册请求中加上at */
+/** 
+ * 在非登录/注册请求中加上at
+ * Add at to non-login/registration requests
+ * */
 const isUerRelateReq = pm.request.url.path.includes("device/lan") && pm.request.url.path.includes("account");
 if (!isUerRelateReq) {
     const at = pm.collectionVariables.get("at");
@@ -96,4 +109,3 @@ const { at } = res.data;
 pm.collectionVariables.set("at", at);
 console.info(`登录成功，at ${at} 已填充到环境变量`);
 ```
-

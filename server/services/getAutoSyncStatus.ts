@@ -3,7 +3,10 @@ import { toResponse } from '../utils/error';
 import logger from '../log';
 import db from '../utils/db';
 
-/** 开关新增设备自动同步(1700) */
+/** 
+* 开关新增设备自动同步(1700) 
+* Switch to automatically synchronize new devices (1700)
+*/
 export default async function changeIsAutoSyncStatus(req: Request, res: Response) {
     try {
         const autoSync = await db.getDbValue('autoSync');

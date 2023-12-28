@@ -1,8 +1,5 @@
 import { Modal, Tabs, Spin, Select, Input, Button, Form, Popover, Tooltip, Switch ,Pagination ,Carousel} from 'ant-design-vue';
 import type { App } from '@vue/runtime-core';
-//使用moment版本的时间组件
-// import DatePicker from 'ant-design-vue/es/date-picker/moment';
-// import TimePicker from 'ant-design-vue/es/time-picker/moment';
 const components = [Modal, Tabs, Spin, Select, Input, Button, Form, Popover, Tooltip, Switch,Pagination,Carousel];
 
 export default function (app: App<Element>) {

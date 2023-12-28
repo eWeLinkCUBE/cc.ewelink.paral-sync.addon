@@ -10,7 +10,7 @@ mDns.on('response', (response: any) => {
     if (!Array.isArray(answers)) return;
     const responseDataList = [...answers, ...additionals];
     if (responseDataList.length === 0) return;
-
+    
     const reg = RegExp(/NSPanelPro/gi);
     const gatewayInfo = {
         ip: '',

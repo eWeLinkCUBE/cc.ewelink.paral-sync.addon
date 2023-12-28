@@ -16,6 +16,9 @@ export default interface IHostDevice {
         deviceInfo: string;
     };
     online: boolean;
-    /** 第三方设备（已同步的设备）不存在这个字段 */
+    /** 
+    * 第三方设备（已同步的设备）不存在这个字段
+    * This field does not exist for third-party devices (synced devices)
+    */
     protocol?: 'zigbee' | 'onvif' | 'rtsp' | 'esp32-cam';
 }

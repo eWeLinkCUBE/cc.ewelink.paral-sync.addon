@@ -6,9 +6,17 @@ import CubeApi from '../../lib/cube-api';
 import { IGatewayInfoItem } from '../../utils/db';
 import encryption from '../../utils/encryption';
 import config from '../../config';
+import { IHOST_DEFAULT_FW_VERSION, NS_PANEL_PRO_DEFAULT_FW_VERSION } from '../../utils/const';
 
-/** 接口获取网关信息并存储到数据库中 */
-export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
+/**
+ * @description 接口获取网关信息并存储到数据库中 The interface obtains gateway information and stores it in the database
+ * @export
+ * @param {string} ipAddress
+ * @param {EGatewayType} type
+ * @param {string} [deviceId='']
+ * @returns {*} 
+ */
+export default async function getGatewayInfo(ipAddress: string, type: EGatewayType, deviceId = '') {
     try {
         let ip = ipAddress;
         if (type === EGatewayType.NS_PANEL_PRO) {
@@ -20,47 +28,37 @@ export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
 
         const gatewayRes = await gatewayClient.getBridgeInfo();
 
-        
+
         if (gatewayRes.error !== 0 || !gatewayRes.data) {
             logger.info('gatewayRes error----------------', JSON.stringify(gatewayRes));
             return 1101;
         }
 
-        const { mac, domain } = gatewayRes.data;
+        const { mac, domain, fw_version = EGatewayType.IHOST ? IHOST_DEFAULT_FW_VERSION : NS_PANEL_PRO_DEFAULT_FW_VERSION } = gatewayRes.data;
 
-        const defaultGatewayInfo = {
-            /** mac地址 */
+        const defaultGatewayInfo: IGatewayInfoItem = {
             mac,
-            /** ip地址 */
             ip,
-            /** 名称 */
             name: type,
-            /** 域名 */
             domain,
-            /** 凭证 */
             token: '',
-            /** 获取凭证时间起点 */
             ts: '',
-            /** ip是否有效 */
             ipValid: true,
-            /** 凭证是否有效 */
             tokenValid: false,
-            /** 网关设备id */
             deviceId,
+            fwVersion: fw_version
         };
 
         if (type === EGatewayType.IHOST) {
             const destGatewayInfo = await db.getDbValue('destGatewayInfo');
             if (!destGatewayInfo) {
                 await db.setDbValue('destGatewayInfo', defaultGatewayInfo);
-                //返回ip，不返回ihost
                 return encryptToken(_.merge(defaultGatewayInfo, { ip: gatewayRes.data.ip }));
             }
 
             const newDestGatewayInfo = _.merge(destGatewayInfo, { mac, ip, domain, ipValid: true });
 
             await db.setDbValue('destGatewayInfo', newDestGatewayInfo);
-            //返回ip，不返回ihost
             return encryptToken(_.merge(newDestGatewayInfo, { ip: gatewayRes.data.ip }));
         }
 
@@ -72,13 +70,13 @@ export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
             }
 
             const srcGatewayInfo = srcGatewayInfoList.find((item) => item.mac === mac);
-            //存在nsPro网关信息
+            // 存在nsPro网关信息 NS pro gateway information exists
             if (srcGatewayInfo) {
                 _.merge(srcGatewayInfo, { ip, ipValid: true });
                 await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
                 return encryptToken(srcGatewayInfo);
             } else {
-                //不存在nsPro网关信息
+                // 不存在nsPro网关信息 No ns pro gateway information exists
                 srcGatewayInfoList.push(defaultGatewayInfo);
                 await db.setDbValue('srcGatewayInfoList', srcGatewayInfoList);
                 return encryptToken(defaultGatewayInfo);
@@ -88,7 +86,7 @@ export default async (ipAddress: string, type: EGatewayType, deviceId = '') => {
         logger.error('getGatewayInfo error-----------------------------', error);
         return null;
     }
-};
+}
 
 /**
  * @description

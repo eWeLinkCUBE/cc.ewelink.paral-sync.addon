@@ -3,23 +3,23 @@ import { Request, Response } from 'express';
 import { toResponse } from '../utils/error';
 import logger from '../log';
 import DB from '../utils/db';
-import CubeApi from '../lib/cube-api';
+import CubeApi, { ECategory } from '../lib/cube-api';
 import { GatewayDeviceItem } from '../ts/interface/CubeApi';
 import {
     createDeviceTags,
     createDeviceServiceAddr
 } from './syncOneDevice';
-import { destTokenInvalid, srcTokenAndIPInvalid } from '../utils/dealError';
-import { getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup, updateSrcGatewayDeviceGroup } from '../utils/tmp';
-import { isSupportDevice } from '../utils/categoryCapabilityMaping';
+import { destTokenInvalid } from '../utils/dealError';
+import { filterUnsupportedCapability, getDestGatewayDeviceGroup, getSrcGatewayDeviceGroup } from '../utils/tmp';
 import SSE from '../ts/class/sse';
 
 /**
  * 判断当前设备是否已经同步过
+ * Determine whether the current device has been synchronized
  *
- * @param srcDevice 同步来源网关设备数据
- * @param srcGatewayMac 同步来源网关 MAC
- * @param destDeviceList 同步目标网关设备列表
+ * @param srcDevice 同步来源网关设备数据 Synchronize source gateway device data
+ * @param srcGatewayMac 同步来源网关 MAC Sync source gateway MAC
+ * @param destDeviceList 同步目标网关设备列表 Synchronize target gateway device list
  */
 function isNewDevice(srcDevice: GatewayDeviceItem, srcGatewayMac: string, destDeviceList: GatewayDeviceItem[]) {
     for (const destDevice of destDeviceList) {
@@ -32,11 +32,17 @@ function isNewDevice(srcDevice: GatewayDeviceItem, srcGatewayMac: string, destDe
     return true;
 }
 
-/** 同步所有设备(1600) */
+/** 
+* 同步所有设备(1600)
+* Sync all devices(1600)
+*/
 export default async function syncAllDevices(req: Request, res: Response) {
     try {
 
-        /** 同步目标网关的信息 */
+        /** 
+        * 同步目标网关的信息
+        * Synchronize target gateway information
+        */
         const destGatewayInfo = await DB.getDbValue('destGatewayInfo');
         logger.debug(`(service.syncAllDevices) destGatewayInfo: ${JSON.stringify(destGatewayInfo)}`);
         if (!destGatewayInfo?.ipValid) {
@@ -48,9 +54,15 @@ export default async function syncAllDevices(req: Request, res: Response) {
             return res.json(toResponse(703));
         }
 
-        /** 同步来源网关的信息列表 */
+        /** 
+        * 同步来源网关的信息列表
+        * Synchronization source gateway information list
+        */
         const srcGatewayInfoList = await DB.getDbValue('srcGatewayInfoList');
-        /** 同步来源网关的信息列表（有效的） */
+        /** 
+        * 同步来源网关的信息列表（有效的）
+        * Synchronization source gateway information list (valid)
+        */
         const srcGatewayInfoListEffect = [];
         for (const gateway of srcGatewayInfoList) {
             if (gateway.ipValid && gateway.tokenValid) {
@@ -63,7 +75,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
         let cubeApiRes = null;
         let destGatewayDeviceList: GatewayDeviceItem[] = [];
 
-        // 拉取同步目标网关的设备
+        // 拉取同步目标网关的设备 Pull the device that synchronizes the target gateway
         const destRes = await getDestGatewayDeviceGroup();
         logger.debug(`(service.syncAllDevice) destRes: ${JSON.stringify(destRes)}`);
         if (destRes.error === 0) {
@@ -72,27 +84,28 @@ export default async function syncAllDevices(req: Request, res: Response) {
             return res.json(toResponse(destRes.error));
         }
 
-        // 拉取所有有效的同步来源设备并汇总
+        // 拉取所有有效的同步来源设备并汇总 Pull all valid sync source devices and summarize them
         const syncDevices = [];
         for (const gateway of srcGatewayInfoListEffect) {
             const srcRes = await getSrcGatewayDeviceGroup(gateway.mac);
             logger.debug(`(service.syncAllDevice) src mac: ${gateway.mac} srcRes: ${JSON.stringify(srcRes)}`);
-            // 接口报错不中止流程
+            // 接口报错不中止流程 api error won't stop the process
             if (srcRes.error === 0) {
                 const deviceList = srcRes.data.device_list;
                 for (const device of deviceList) {
-                    if (isSupportDevice(device) && isNewDevice(device, gateway.mac, destGatewayDeviceList)) {
+                    if (isNewDevice(device, gateway.mac, destGatewayDeviceList)) {
+                        const formattedDevice = filterUnsupportedCapability(device);
                         syncDevices.push({
-                            name: device.name,
-                            third_serial_number: device.serial_number,
-                            manufacturer: device.manufacturer,
-                            model: device.model,
-                            firmware_version: device.firmware_version,
-                            display_category: device.display_category,
-                            capabilities: device.capabilities,
-                            state: device.state,
-                            tags: createDeviceTags(device, gateway.mac),
-                            service_address: createDeviceServiceAddr(device.serial_number)
+                            name: formattedDevice.name,
+                            third_serial_number: formattedDevice.serial_number,
+                            manufacturer: formattedDevice.manufacturer,
+                            model: formattedDevice.model,
+                            firmware_version: formattedDevice.firmware_version,
+                            display_category: formattedDevice.display_category as ECategory,
+                            capabilities: formattedDevice.capabilities,
+                            state: formattedDevice.state,
+                            tags: createDeviceTags(formattedDevice, gateway.mac),
+                            service_address: createDeviceServiceAddr(formattedDevice.serial_number)
                         });
                     }
                 }
@@ -100,10 +113,10 @@ export default async function syncAllDevices(req: Request, res: Response) {
         }
         logger.info(`(service.syncAllDevice) syncDevices: ${JSON.stringify(syncDevices)}`);
 
-        // 如果没有需要同步的设备，则直接返回成功
+        // 如果没有需要同步的设备，则直接返回成功 If there is no device that needs to be synchronized, success will be returned directly.
         if (syncDevices.length === 0) {
             res.json(toResponse(0, 'Success', { syncDeviceIdList: [] }));
-            // 同步所有设备成功，把结果通过 SSE 告诉前端
+            // 同步所有设备成功，把结果通过 SSE 告诉前端 Synchronization of all devices is successful, and the results are reported to the front end through SSE.
             SSE.send({
                 name: 'sync_all_device_result',
                 data: {
@@ -113,7 +126,7 @@ export default async function syncAllDevices(req: Request, res: Response) {
             return;
         }
 
-        // 调用添加第三方设备接口
+        // 调用添加第三方设备接口 Call to add third-party device interface
         cubeApiRes = await destGatewayClient.syncDevices({ devices: syncDevices });
         logger.debug(`(service.syncAllDevice) destGatewayClient.syncDevices() cubeApiRes: ${JSON.stringify(cubeApiRes)}`);
         const resError = _.get(cubeApiRes, 'error');
@@ -128,10 +141,13 @@ export default async function syncAllDevices(req: Request, res: Response) {
         } else if (resType === 'INVALID_PARAMETERS') {
             logger.info(`(service.syncAllDevice) response: ERR_CUBEAPI_SYNC_DEVICE_PARAMS_INVALID`);
             return res.json(toResponse(604));
+        } else if (resType === 'INTERNAL_ERROR') {
+            logger.info(`(service.syncOneDevice) response: ERR_CUBEAPI_SYNC_DEVICE_INTERNAL_ERROR`);
+            return res.json(toResponse(500));
         } else {
             logger.info(`(service.syncAllDevice) response: ERR_SUCCESS`);
             res.json(toResponse(0, 'Success', { syncDeviceIdList: syncDevices.map((item) => item.third_serial_number) }));
-            // 同步所有设备成功，把结果通过 SSE 告诉前端
+            // 同步所有设备成功，把结果通过 SSE 告诉前端 Synchronization of all devices is successful, and the results are reported to the front end through SSE.
             SSE.send({
                 name: 'sync_all_device_result',
                 data: {

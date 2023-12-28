@@ -19,10 +19,8 @@ import unsyncOneDeviceSchema from '../schema/unsyncOneDevice';
 import getGatewayTokenSchema from '../schema/getGatewayToken';
 import syncOneDeviceSchema from '../schema/syncOneDevice';
 
-// 开放接口
 import openControlDevice from '../services/openControlDevice';
 
-// SSE 接口
 import sse from '../services/sse';
 
 import autoSync from '../schema/autoSync';
@@ -41,10 +39,10 @@ router.get(EApiPath.GET_AUTO_SYNC_STATUS, checkSchema({}), getAutoSyncStatus);
 router.delete(EApiPath.UNSYNC_ONE_DEVICE, checkSchema(unsyncOneDeviceSchema), validate, unsyncOneDevice);
 router.delete(EApiPath.DELETE_GATEWAY, checkSchema({}), deleteGateway);
 
-// 开放接口路由
+// 开放接口路由 Open interface routing
 router.post(EApiPath.OPEN_CONTROL_DEVICE, checkSchema({}), openControlDevice);
 
-// SSE 接口路由
+// SSE 接口路由 SSE interface routing
 router.get(EApiPath.SSE, checkSchema({}), sse);
 
 export default router;

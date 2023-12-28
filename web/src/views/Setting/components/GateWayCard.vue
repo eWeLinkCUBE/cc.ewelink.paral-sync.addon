@@ -32,23 +32,26 @@ const props = defineProps<{
 const emits = defineEmits(['openNsProTipModal']);
 const openNsProTipModal = () => emits('openNsProTipModal');
 const dynamicBtnColor = computed(() => {
-    //ip失效，灰色
+    // ip失效，灰色 IP invalid, gray
     if (!props.gateWayData.ipValid) {
         return { 'background-color': '#999999 !important' };
     }
-    //已经获取一个token，按钮淡蓝色
+    // 已经获取一个token，按钮淡蓝色 A token has been obtained, the button is light blue
     if (props.gateWayData.tokenValid) {
         return { 'background-color': '#FFFFFF !important', color: '#1890FF!important' };
     }
 
-    //有一个nsPro在倒计时，按钮淡蓝色
+    // 有一个nsPro在倒计时，按钮淡蓝色 There is an ns pro counting down, the button is light blue
     if (disabledBtn.value) {
         return { 'background-color': '#1890FF!important', opacity: '0.5!important' };
     }
     return {};
 });
 
-/** 获取token按钮的状态  获取token 、*/
+/** 
+* 获取token按钮的状态  获取token
+* Get the status of the token button Get the token
+*/
 const btnLoadingStatus = computed<boolean>(() => {
     clearInterval(timer.value);
     if (!props.gateWayData) {
@@ -56,16 +59,16 @@ const btnLoadingStatus = computed<boolean>(() => {
     }
     const { tokenValid, ts } = props.gateWayData;
     const requestTime = Number(ts);
-    //已经获取token
+    // 已经获取token Already obtained token
     if (tokenValid) {
         return false;
     }
 
-    //没有ts,显示获取token
+    // 没有ts,显示获取token If there is no ts, the token will be obtained.
     if (!requestTime) {
         return false;
     } else {
-        //有ts,再判断距离当前时间是否小于五分钟
+        // 有ts,再判断距离当前时间是否小于五分钟 If there is ts, then determine whether the current time is less than five minutes.
         const nowTime = moment();
         const seconds = moment(nowTime).diff(moment(requestTime), 'seconds');
         if (seconds >= 300) {
@@ -77,38 +80,48 @@ const btnLoadingStatus = computed<boolean>(() => {
     }
 });
 
-/**有一个nsPro在获取token倒计时或者已经获取token,按钮禁用*/
+/**
+* 有一个nsPro在获取token倒计时或者已经获取token,按钮禁用
+* There is an NS Pro that is counting down to obtain the token or has already obtained the token, and the button is disabled.
+*/
 const disabledBtn = computed(() => {
     if (props.type === 'iHost') return false;
     return deviceStore.hasTokenOrTs;
 });
-/** 倒计时时间 */
+/** 
+* 倒计时时间
+* Countdown time
+*/
 const countdownTime = ref(300);
 
 const timer = ref<any>(null);
 
-/** 按钮展示内容的控制 */
+/** 
+* 按钮展示内容的控制
+* Control of button display content
+*/
 const showWhichContent = computed(() => {
     if (!props.gateWayData.ipValid) {
         return i18n.global.t('IP_FAILED');
     }
-    //已获取token
+    // 已获取token Token has been obtained
     if (props.gateWayData.tokenValid) {
         return i18n.global.t('ALREADY_GET_TOKEN');
     }
-    //获取token
+    // 获取token Get token
     return i18n.global.t('GET_TOKEN');
 });
 
-/** 开始倒计时 */
+/** 
+* 开始倒计时
+* Start countdown
+*/
 const setCutDownTimer = (seconds: number) => {
     countdownTime.value = 300 - seconds;
 
     if (timer.value) {
         window.clearInterval(timer.value);
     }
-
-    // countdownTime.value--;
 
     timer.value = window.setInterval(() => {
         if (countdownTime.value > 0) {
@@ -121,7 +134,10 @@ const setCutDownTimer = (seconds: number) => {
     }, 1000);
 };
 
-/**获取token */
+/**
+* 获取token
+* Get token
+*/
 const getToken = async (mac: string) => {
     if (props.type === 'nsPro') {
         openNsProTipModal();
@@ -133,14 +149,20 @@ const getToken = async (mac: string) => {
     }
 };
 
-/** 格式化时间 */
+/** 
+* 格式化时间
+* Format time
+*/
 const formatCount = (count: number) => {
     const min = Math.floor(count / 60);
     const sec = count % 60;
     return `${min}min${sec}s`;
 };
 
-/** 去掉ip端口号 */
+/** 
+* 去掉ip端口号
+* Remove ip port number
+*/
 const formatIp = computed(() => {
     if (!props.gateWayData.ip) return '';
 
@@ -151,7 +173,10 @@ const formatIp = computed(() => {
     return props.gateWayData.ip;
 });
 
-/** 刷新网关数据 */
+/** 
+* 刷新网关数据
+* Refresh gateway data
+*/
 const refreshGateWayList = () => {
     if (props.type === 'iHost') {
         deviceStore.getIHostGateWatList();
